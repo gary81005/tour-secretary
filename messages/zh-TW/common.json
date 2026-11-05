@@ -5,7 +5,10 @@
   },
   "home": {
     "title": "我的行程",
-    "signedInAs": "已登入：{name}",
     "comingSoon": "行程列表會在下一步完成。"
+  },
+  "appShell": {
+    "home": "回到我的行程",
+    "accountMenu": "帳號選單"
   }
 }
