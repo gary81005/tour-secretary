@@ -1,6 +1,6 @@
 'use client';
 
-import { LogOutIcon } from 'lucide-react';
+import { LogOutIcon, Trash2Icon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useTransition } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useRouter } from '@/i18n/navigation';
+import { Link, useRouter } from '@/i18n/navigation';
 import { LOGIN_PATH } from '@/lib/auth/paths';
 import { createClient } from '@/lib/supabase/client';
 
@@ -23,7 +23,7 @@ type Props = {
   avatarUrl: string | null;
 };
 
-// 右上角的帳號選單。第 5 步會加上「垃圾桶」。
+// 右上角的帳號選單：名稱與 Email、垃圾桶、登出。
 export function UserMenu({ displayName, email, avatarUrl }: Props) {
   const t = useTranslations();
   const router = useRouter();
@@ -58,6 +58,10 @@ export function UserMenu({ displayName, email, avatarUrl }: Props) {
           </DropdownMenuLabel>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
+        <DropdownMenuItem render={<Link href='/trash' />}>
+          <Trash2Icon />
+          {t('appShell.trash')}
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={signOut} disabled={isSigningOut}>
           <LogOutIcon />
           {t('auth.signOut')}

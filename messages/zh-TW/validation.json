@@ -1,0 +1,15 @@
+{
+  "required": "必填",
+  "tooLong": "太長了",
+  "tooMany": "數量太多了",
+  "invalidDate": "請輸入有效的日期",
+  "invalidTime": "請輸入有效的時間（例如 09:30）",
+  "invalidUrl": "請輸入以 http:// 或 https:// 開頭的網址",
+  "invalidTimezone": "請選擇有效的時區",
+  "invalidOption": "請從選項中選擇",
+  "endBeforeStart": "回程日不能早於出發日",
+  "tripTooLong": "行程最多 60 天",
+  "endTimeWithoutStart": "填了結束時間就要填開始時間",
+  "endTimeNotAfterStart": "結束時間要晚於開始時間",
+  "checkOutNotAfterCheckIn": "退房日要晚於入住日"
+}

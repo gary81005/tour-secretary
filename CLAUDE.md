@@ -34,6 +34,8 @@ npm run db:types      # 由已 link 的專案產生 src/types/database.ts
 - `src/i18n/`：next-intl 的 routing、request config、navigation。
 - `src/lib/supabase/`：`client.ts`（Client Component）、`server.ts`（Server 端，`server-only`）、`proxy.ts`（在 proxy 刷新 session）。
 - `src/components/ui/`：shadcn/ui 產生的元件（`npx shadcn@latest add <name>`）。可以修改，但要知道重新 add 會覆蓋。
+- `src/data/`：讀取資料的查詢（`server-only`，呼叫端要在 `<Suspense>` 裡）；`src/actions/`：Server Actions（`'use server'`，每個都重新確認登入，回傳 `ActionResult` / `FormState`）。
+- `src/lib/trip/`：行程的純邏輯與 zod schema（有測試）；`src/lib/auth/`：登入相關的路徑判斷與 `getCurrentUser()`。
 - `src/lib/dayjs.ts`：已載入 utc / timezone plugin 的 dayjs，專案內一律從這裡 import。
 - `src/proxy.ts`：Next 16 的 proxy（原 middleware）：先跑 next-intl，再在同一個 response 上刷新 Supabase session。
 - `messages/<locale>/*.json`：翻譯檔。`common.json` 展開在頂層，之後的 namespace 各自一檔（照 clinico-official-nx-web）。
@@ -45,6 +47,7 @@ npm run db:types      # 由已 link 的專案產生 src/types/database.ts
 這些會讓 build 失敗，不只是警告：
 
 - **Cache Components 已開啟**（`cacheComponents: true`）。讀 `cookies()`、`headers()`、未快取的 fetch、`connection()` 的元件必須在 `<Suspense>` 裡，否則 build 失敗。不要在 layout 頂層 await session。參考 `node_modules/next/dist/docs/01-app/02-guides/authentication-with-cache-components.md`。
+- **`new Date()` / `Date.now()`**：在 Server Component 裡要放在讀過請求資料（cookies、Supabase 查詢）之後，否則 build 失敗（blocking-prerender-current-time）。
 - **React Compiler 已開啟**。不要為了效能手寫 `useMemo` / `useCallback` / `React.memo`；程式碼要遵守 Rules of React，否則 compiler 會默默放棄最佳化該元件。
 - **`verbatimModuleSyntax`**：只當型別用的 import 要寫 `import type`。
 - **`noUnusedLocals` / `noUnusedParameters`**：未使用的變數會讓 build 失敗。`tsconfig.json` 因此排除 `.next/dev`：`next dev` 產生的 `validator.ts` 在沒有 Route Handler 時會留下未使用的 import（Next 16.4.5 的行為），不排除的話，跑過 dev server 後 build 就會失敗。不要移除這個 exclude。

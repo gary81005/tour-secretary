@@ -1,0 +1,57 @@
+{
+  "list": {
+    "title": "我的行程",
+    "create": "建立行程",
+    "phases": {
+      "ongoing": "進行中",
+      "upcoming": "即將出發",
+      "past": "已結束"
+    },
+    "dayCount": "{count} 天",
+    "currentDay": "第 {day} 天",
+    "empty": {
+      "title": "還沒有行程",
+      "description": "建立第一個行程，開始規劃旅途。"
+    }
+  },
+  "create": {
+    "title": "建立行程",
+    "nameLabel": "行程名稱",
+    "namePlaceholder": "例如：東北秘境探險",
+    "startDateLabel": "出發日",
+    "endDateLabel": "回程日",
+    "timezoneLabel": "時區",
+    "timezoneDescription": "行程上的時間都以當地時間顯示。之後每一天也可以個別設定時區。",
+    "submit": "建立行程",
+    "cancel": "取消"
+  },
+  "timezone": {
+    "other": "其他時區…",
+    "otherPlaceholder": "搜尋時區，例如 Europe/Paris",
+    "backToCommon": "改選常用時區"
+  },
+  "trip": {
+    "menu": "行程選項",
+    "moveToTrash": "移到垃圾桶",
+    "movedToTrash": "已將「{name}」移到垃圾桶",
+    "undo": "復原",
+    "comingSoon": "每天的行程內容會在下一步完成。"
+  },
+  "trash": {
+    "title": "垃圾桶",
+    "description": "移到垃圾桶的行程會在 30 天後永久刪除。",
+    "daysLeft": "{days, plural, =0 {即將永久刪除} other {# 天後永久刪除}}",
+    "restore": "救回",
+    "restored": "已救回「{name}」",
+    "deleteForever": "永久刪除",
+    "deleteTitle": "永久刪除「{name}」？",
+    "deleteDescription": "這個行程的每一天、行程項目、住宿、提醒與旅伴限制都會一起刪除，無法復原。",
+    "confirmNameLabel": "請輸入行程名稱「{name}」確認",
+    "deleted": "已永久刪除「{name}」",
+    "cancel": "取消",
+    "empty": {
+      "title": "垃圾桶是空的",
+      "description": "刪除的行程會在這裡保留 30 天。"
+    }
+  }
+}

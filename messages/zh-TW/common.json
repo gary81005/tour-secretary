@@ -3,12 +3,27 @@
     "name": "旅遊秘書",
     "tagline": "從規劃到旅途中，幫你把行程顧好"
   },
-  "home": {
-    "title": "我的行程",
-    "comingSoon": "行程列表會在下一步完成。"
-  },
   "appShell": {
     "home": "回到我的行程",
-    "accountMenu": "帳號選單"
+    "accountMenu": "帳號選單",
+    "trash": "垃圾桶"
+  },
+  "errors": {
+    "unauthorized": "登入已過期，請重新登入。",
+    "notFound": "找不到這個行程，可能已經被刪除。",
+    "nameMismatch": "行程名稱不符。",
+    "unknown": "發生錯誤，請稍後再試。"
+  },
+  "timezones": {
+    "Asia/Tokyo": "東京（GMT+9）",
+    "Asia/Seoul": "首爾（GMT+9）",
+    "Asia/Taipei": "台北（GMT+8）",
+    "Asia/Hong_Kong": "香港（GMT+8）",
+    "Asia/Shanghai": "上海（GMT+8）",
+    "Asia/Bangkok": "曼谷（GMT+7）",
+    "Asia/Singapore": "新加坡（GMT+8）",
+    "Asia/Kuala_Lumpur": "吉隆坡（GMT+8）",
+    "Asia/Ho_Chi_Minh": "胡志明市（GMT+7）",
+    "Asia/Manila": "馬尼拉（GMT+8）"
   }
 }
