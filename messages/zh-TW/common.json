@@ -12,7 +12,8 @@
     "unauthorized": "登入已過期，請重新登入。",
     "notFound": "找不到這個行程，可能已經被刪除。",
     "nameMismatch": "行程名稱不符。",
-    "unknown": "發生錯誤，請稍後再試。"
+    "unknown": "發生錯誤，請稍後再試。",
+    "conflict": "行程內容已經有變動，已重新載入最新內容。"
   },
   "timezones": {
     "Asia/Tokyo": "東京（GMT+9）",

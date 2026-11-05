@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { groupItemsBySlot, sortItems, type OrderableItem } from '@/lib/trip/item-order';
+import {
+  applySlotOrder,
+  groupItemsBySlot,
+  sortItems,
+  untimedIdsBySlot,
+  type OrderableItem,
+} from '@/lib/trip/item-order';
 
 const item = (
   id: string,
@@ -64,5 +70,45 @@ describe('groupItemsBySlot', () => {
 
   it('沒有項目時回傳空陣列', () => {
     expect(groupItemsBySlot([])).toEqual([]);
+  });
+});
+
+describe('applySlotOrder', () => {
+  it('同時段調換順序', () => {
+    const items = [item('a', 'morning', 0), item('b', 'morning', 1)];
+    const result = sortItems(applySlotOrder(items, 'morning', ['b', 'a']));
+    expect(result.map((i) => i.id)).toEqual(['b', 'a']);
+  });
+
+  it('跨時段：被拖的項目改成目標時段，原時段剩下的順序不變', () => {
+    const items = [
+      item('a', 'morning', 0),
+      item('b', 'morning', 1),
+      item('c', 'morning', 2),
+      item('lunch', 'noon', 0),
+    ];
+    const groups = groupItemsBySlot(applySlotOrder(items, 'noon', ['b', 'lunch']));
+    expect(groups.map((g) => [g.slot, g.items.map((i) => i.id)])).toEqual([
+      ['morning', ['a', 'c']],
+      ['noon', ['b', 'lunch']],
+    ]);
+  });
+
+  it('不修改原陣列', () => {
+    const items = [item('a', 'morning', 0)];
+    applySlotOrder(items, 'night', ['a']);
+    expect(items[0]).toMatchObject({ time_slot: 'morning', position: 0 });
+  });
+});
+
+describe('untimedIdsBySlot', () => {
+  it('只列出沒有精確時間的項目，依目前順序', () => {
+    const result = untimedIdsBySlot([
+      item('b', 'morning', 1),
+      item('timed', 'morning', 0, '09:00'),
+      item('a', 'morning', 0),
+      item('dinner', 'evening', 0, '18:00'),
+    ]);
+    expect(result).toEqual({ morning: ['a', 'b'], evening: [] });
   });
 });

@@ -450,6 +450,14 @@ export type Database = {
       is_trip_member: { Args: { p_trip_id: string }; Returns: boolean }
       is_trip_owner: { Args: { p_trip_id: string }; Returns: boolean }
       purge_deleted_rows: { Args: never; Returns: undefined }
+      reorder_items: {
+        Args: {
+          p_day_id: string
+          p_item_ids: string[]
+          p_time_slot: Database["public"]["Enums"]["time_slot"]
+        }
+        Returns: undefined
+      }
       save_item: {
         Args: {
           p_category: Database["public"]["Enums"]["item_category"]

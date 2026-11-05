@@ -1,10 +1,12 @@
 'use server';
 
 import { refresh } from 'next/cache';
+import { z } from 'zod';
 import { getSignedInClient } from '@/lib/auth/session';
 import { fieldErrorsOf, type ActionResult, type FormResult } from '@/lib/form';
 import { parseItemFormData } from '@/lib/trip/item-form';
 import { itemSchema } from '@/lib/trip/schemas';
+import { TIME_SLOTS, type TimeSlot } from '@/lib/trip/time-slot';
 import { isUuid } from '@/lib/uuid';
 
 // 行程項目的 Server Actions。成功後 refresh() 讓單日畫面重新讀取。
@@ -67,5 +69,34 @@ async function setItemDeletedAt(itemId: string, deletedAt: string | null): Promi
   if (data.length === 0) return { ok: false, error: 'notFound' };
 
   refresh();
+  return { ok: true };
+}
+
+const reorderSchema = z.object({
+  dayId: z.uuid(),
+  timeSlot: z.enum(TIME_SLOTS),
+  itemIds: z.array(z.uuid()).max(100),
+});
+
+// 拖拉排序（Q22）：把 itemIds 依序設成 timeSlot 的手動順序。
+// 不論成功與否都 refresh()：衝突時（資料已被別人或別的分頁改過）讓畫面拿到最新內容。
+export async function reorderItems(
+  dayId: string,
+  timeSlot: TimeSlot,
+  itemIds: string[],
+): Promise<ActionResult> {
+  const parsed = reorderSchema.safeParse({ dayId, timeSlot, itemIds });
+  if (!parsed.success) return { ok: false, error: 'notFound' };
+
+  const supabase = await getSignedInClient();
+  if (!supabase) return { ok: false, error: 'unauthorized' };
+
+  const { error } = await supabase.rpc('reorder_items', {
+    p_day_id: parsed.data.dayId,
+    p_time_slot: parsed.data.timeSlot,
+    p_item_ids: parsed.data.itemIds,
+  });
+  refresh();
+  if (error) return { ok: false, error: error.code === '40001' ? 'conflict' : 'unknown' };
   return { ok: true };
 }

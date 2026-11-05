@@ -2,14 +2,24 @@
 
 import { ExternalLinkIcon, GitBranchIcon, MapPinIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import type { ReactNode } from 'react';
 import { CategoryIcon } from '@/components/trip/category-icon';
 import type { DayItem } from '@/data/trips';
 import { toHourMinute } from '@/lib/trip/time-slot';
 import { isSafeHttpUrl } from '@/lib/url';
 
 // 行程項目卡片。整張卡可以點開編輯：標題按鈕用 after: 蓋住整張卡，
-// 卡片裡的連結再用 relative z-10 浮到上層，避免在 <button> 裡放互動元素。
-export function ItemCard({ item, onEdit }: { item: DayItem; onEdit: () => void }) {
+// 卡片裡的連結與拖拉把手再用 relative z-10 浮到上層，避免在 <button> 裡放互動元素。
+// handle：左側的拖拉把手，或有精確時間時的時鐘圖示（Q22）。
+export function ItemCard({
+  item,
+  onEdit,
+  handle,
+}: {
+  item: DayItem;
+  onEdit: () => void;
+  handle?: ReactNode;
+}) {
   const t = useTranslations('trips');
   const time = item.start_time
     ? [item.start_time, item.end_time]
@@ -20,6 +30,7 @@ export function ItemCard({ item, onEdit }: { item: DayItem; onEdit: () => void }
 
   return (
     <article className='relative flex gap-3 rounded-lg border bg-card p-3 transition-colors hover:bg-muted/50 has-[button:focus-visible]:ring-3 has-[button:focus-visible]:ring-ring/50'>
+      {handle}
       <div
         className='flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary'
         title={t(`categories.${item.category}`)}

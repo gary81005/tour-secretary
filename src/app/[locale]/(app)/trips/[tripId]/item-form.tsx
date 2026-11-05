@@ -1,8 +1,24 @@
 'use client';
 
-import { PlusIcon, Trash2Icon, XIcon } from 'lucide-react';
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { GripVerticalIcon, PlusIcon, Trash2Icon, XIcon } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
-import { useRef, useState, useTransition, type FormEvent } from 'react';
+import { useId, useRef, useState, useTransition, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { deleteItem, restoreItem, saveItem } from '@/actions/items';
 import { ResponsiveDialogClose, ResponsiveDialogTitle } from '@/components/responsive-dialog';
@@ -25,6 +41,7 @@ import { ITEM_CATEGORIES } from '@/lib/trip/enums';
 import { ITEM_FIELDS } from '@/lib/trip/item-form';
 import { TIME_SLOTS, timeSlotForTime, toHourMinute, type TimeSlot } from '@/lib/trip/time-slot';
 import { localDateToUtc } from '@/lib/trip/trip-dates';
+import { useDndAccessibility } from './dnd-accessibility';
 
 export type DayOption = { id: string; dayNumber: number; date: string; city: string | null };
 
@@ -61,6 +78,15 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, onDone }: Props
   // 手機用區網 IP 連開發伺服器時會直接報錯。
   const nextRowKey = useRef(0);
   const newRowKey = () => `new-${nextRowKey.current++}`;
+  const placesDndId = useId();
+  const placeSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+  const placesAccessibility = useDndAccessibility((id) => {
+    const index = places.findIndex((place) => place.key === id);
+    return `${t('trips.item.placesLabel')} ${index + 1}`;
+  });
   const [result, setResult] = useState<FormResult | null>(null);
   const [isSaving, startSave] = useTransition();
   const [isDeleting, startDelete] = useTransition();
@@ -239,32 +265,38 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, onDone }: Props
 
         <FieldSet>
           <FieldLegend variant='label'>{t('trips.item.placesLabel')}</FieldLegend>
-          {places.map((place, index) => (
-            <Field key={place.key} data-invalid={!!fieldErrors?.[`places.${index}.name`]}>
-              <div className='flex gap-2'>
-                <Input
-                  name={ITEM_FIELDS.place}
+          {/* 地點可以拖拉調整順序；輸入框是非受控的，靠 key 跟著列移動，已輸入的文字不會遺失。 */}
+          <DndContext
+            id={placesDndId}
+            sensors={placeSensors}
+            collisionDetection={closestCenter}
+            accessibility={placesAccessibility}
+            onDragEnd={({ active, over }) => {
+              if (!over || active.id === over.id) return;
+              setPlaces((rows) => {
+                const from = rows.findIndex((row) => row.key === active.id);
+                const to = rows.findIndex((row) => row.key === over.id);
+                return from < 0 || to < 0 ? rows : arrayMove(rows, from, to);
+              });
+            }}
+          >
+            <SortableContext
+              items={places.map((place) => place.key)}
+              strategy={verticalListSortingStrategy}
+            >
+              {places.map((place, index) => (
+                <SortablePlaceRow
+                  key={place.key}
+                  id={place.key}
+                  index={index}
                   defaultValue={place.name}
-                  placeholder={t('trips.item.placePlaceholder')}
-                  maxLength={200}
-                  aria-label={`${t('trips.item.placesLabel')} ${index + 1}`}
-                  className='h-11 text-base'
-                  aria-invalid={!!fieldErrors?.[`places.${index}.name`]}
+                  invalid={!!fieldErrors?.[`places.${index}.name`]}
+                  error={errorFor(`places.${index}.name`)}
+                  onRemove={() => setPlaces((rows) => rows.filter((row) => row.key !== place.key))}
                 />
-                <Button
-                  type='button'
-                  variant='ghost'
-                  size='icon-lg'
-                  className='size-11'
-                  aria-label={t('trips.item.removePlace', { index: index + 1 })}
-                  onClick={() => setPlaces((rows) => rows.filter((row) => row.key !== place.key))}
-                >
-                  <XIcon />
-                </Button>
-              </div>
-              {errorFor(`places.${index}.name`)}
-            </Field>
-          ))}
+              ))}
+            </SortableContext>
+          </DndContext>
           <Button
             type='button'
             variant='outline'
@@ -396,5 +428,77 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, onDone }: Props
         </div>
       </div>
     </form>
+  );
+}
+
+type SortablePlaceRowProps = {
+  id: string;
+  index: number;
+  defaultValue: string;
+  invalid: boolean;
+  error: ReactNode;
+  onRemove: () => void;
+};
+
+// 一列地點：左邊是拖拉把手，右邊是移除按鈕。
+function SortablePlaceRow({
+  id,
+  index,
+  defaultValue,
+  invalid,
+  error,
+  onRemove,
+}: SortablePlaceRowProps) {
+  const t = useTranslations('trips');
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id, attributes: { roleDescription: t('dnd.roleDescription') } });
+
+  return (
+    <Field
+      ref={setNodeRef}
+      style={{ transform: CSS.Translate.toString(transform), transition }}
+      className={isDragging ? 'relative z-10 opacity-80' : undefined}
+      data-invalid={invalid}
+    >
+      <div className='flex gap-1'>
+        <button
+          type='button'
+          ref={setActivatorNodeRef}
+          {...attributes}
+          {...listeners}
+          aria-label={t('dnd.placeHandle', { index: index + 1 })}
+          className='flex w-7 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 active:cursor-grabbing'
+        >
+          <GripVerticalIcon className='size-4' />
+        </button>
+        <Input
+          name={ITEM_FIELDS.place}
+          defaultValue={defaultValue}
+          placeholder={t('item.placePlaceholder')}
+          maxLength={200}
+          aria-label={`${t('item.placesLabel')} ${index + 1}`}
+          className='h-11 text-base'
+          aria-invalid={invalid}
+        />
+        <Button
+          type='button'
+          variant='ghost'
+          size='icon-lg'
+          className='size-11'
+          aria-label={t('item.removePlace', { index: index + 1 })}
+          onClick={onRemove}
+        >
+          <XIcon />
+        </Button>
+      </div>
+      {error}
+    </Field>
   );
 }

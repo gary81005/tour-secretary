@@ -127,5 +127,18 @@
     "saved": "已儲存",
     "deleted": "已刪除「{title}」",
     "undo": "復原"
+  },
+  "dnd": {
+    "itemHandle": "拖拉調整「{title}」的順序",
+    "timedLocked": "有精確時間，依時間排序",
+    "placeHandle": "拖拉調整地點 {index} 的順序",
+    "instructions": "按空白鍵或 Enter 拿起，用方向鍵移動，再按一次空白鍵或 Enter 放下；按 Esc 取消。",
+    "pickedUp": "已拿起「{name}」",
+    "movedOver": "「{name}」移到「{target}」的位置",
+    "movedOutside": "「{name}」不在可以放下的位置",
+    "dropped": "已放下「{name}」",
+    "droppedOver": "已把「{name}」放到「{target}」的位置",
+    "cancelled": "已取消移動「{name}」",
+    "roleDescription": "可拖拉排序"
   }
 }

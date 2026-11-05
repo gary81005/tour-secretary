@@ -41,3 +41,28 @@ export function groupItemsBySlot<T extends OrderableItem>(
     items: sorted.filter((item) => item.time_slot === slot),
   })).filter((group) => group.items.length > 0);
 }
+
+// 拖拉排序的樂觀更新（與 reorder_items RPC 相同的規則）：
+// orderedIds 依序設成 slot、position 0..n；其他項目不動。
+export function applySlotOrder<T extends OrderableItem>(
+  items: readonly T[],
+  slot: TimeSlot,
+  orderedIds: readonly string[],
+): T[] {
+  const positions = new Map(orderedIds.map((id, index) => [id, index]));
+  return items.map((item) => {
+    const position = positions.get(item.id);
+    return position === undefined ? item : { ...item, time_slot: slot, position };
+  });
+}
+
+// 每個時段裡可以拖的項目（沒有精確時間），依目前順序。拖拉時的初始狀態。
+export function untimedIdsBySlot(
+  items: readonly OrderableItem[],
+): Partial<Record<TimeSlot, string[]>> {
+  const result: Partial<Record<TimeSlot, string[]>> = {};
+  for (const group of groupItemsBySlot(items)) {
+    result[group.slot] = group.items.filter((item) => !item.start_time).map((item) => item.id);
+  }
+  return result;
+}

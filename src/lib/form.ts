@@ -14,7 +14,7 @@ export function fieldErrorsOf(error: z.ZodError): FieldErrors {
 }
 
 // Server Action 的錯誤，翻譯在 common.json 的 errors。
-export type ActionErrorKey = 'unauthorized' | 'notFound' | 'nameMismatch' | 'unknown';
+export type ActionErrorKey = 'unauthorized' | 'notFound' | 'nameMismatch' | 'conflict' | 'unknown';
 
 export type ActionResult = { ok: true } | { ok: false; error: ActionErrorKey };
 
