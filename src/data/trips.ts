@@ -80,3 +80,56 @@ export async function getDayItems(dayId: string) {
 }
 
 export type DayItem = Awaited<ReturnType<typeof getDayItems>>[number];
+
+// 住宿（未刪除），依入住日排序。行程分頁的「今晚住」與住宿分頁都會用到。
+export const getTripStays = cache(async (tripId: string) => {
+  if (!isUuid(tripId)) return [];
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('stays')
+    .select('id, name, check_in, check_out, address, status, confirmation_code, url, note')
+    .eq('trip_id', tripId)
+    .is('deleted_at', null)
+    .order('check_in')
+    .order('check_out');
+  if (error) throw error;
+  return data;
+});
+
+export type TripStay = Awaited<ReturnType<typeof getTripStays>>[number];
+
+// 提醒事項（未刪除），依手動順序。
+export async function getTripNotes(tripId: string) {
+  if (!isUuid(tripId)) return [];
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('trip_notes')
+    .select('id, topic, content, position')
+    .eq('trip_id', tripId)
+    .is('deleted_at', null)
+    .order('position')
+    .order('created_at');
+  if (error) throw error;
+  return data;
+}
+
+export type TripNote = Awaited<ReturnType<typeof getTripNotes>>[number];
+
+// 旅伴限制（未刪除），依建立時間；畫面上再依類型分組。
+export async function getTravelerConstraints(tripId: string) {
+  if (!isUuid(tripId)) return [];
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('traveler_constraints')
+    .select('id, kind, subject, content')
+    .eq('trip_id', tripId)
+    .is('deleted_at', null)
+    .order('created_at');
+  if (error) throw error;
+  return data;
+}
+
+export type TravelerConstraint = Awaited<ReturnType<typeof getTravelerConstraints>>[number];

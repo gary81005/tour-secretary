@@ -8,6 +8,7 @@ import { parseItemFormData } from '@/lib/trip/item-form';
 import { itemSchema } from '@/lib/trip/schemas';
 import { TIME_SLOTS, type TimeSlot } from '@/lib/trip/time-slot';
 import { rpcErrorKey } from '@/lib/rpc-errors';
+import { setDeletedAt } from '@/lib/supabase/soft-delete';
 import { isUuid } from '@/lib/uuid';
 
 // 行程項目的 Server Actions。成功後 refresh() 讓單日畫面重新讀取。
@@ -46,29 +47,15 @@ export async function saveItem(itemId: string | null, formData: FormData): Promi
 
 // 刪除是軟刪除，畫面上提供「復原」（Q13）。
 export async function deleteItem(itemId: string): Promise<ActionResult> {
-  return setItemDeletedAt(itemId, new Date().toISOString());
+  const result = await setDeletedAt('items', itemId, new Date().toISOString());
+  if (result.ok) refresh();
+  return result;
 }
 
 export async function restoreItem(itemId: string): Promise<ActionResult> {
-  return setItemDeletedAt(itemId, null);
-}
-
-async function setItemDeletedAt(itemId: string, deletedAt: string | null): Promise<ActionResult> {
-  if (!isUuid(itemId)) return { ok: false, error: 'notFound' };
-
-  const supabase = await getSignedInClient();
-  if (!supabase) return { ok: false, error: 'unauthorized' };
-
-  const { data, error } = await supabase
-    .from('items')
-    .update({ deleted_at: deletedAt })
-    .eq('id', itemId)
-    .select('id');
-  if (error) return { ok: false, error: 'unknown' };
-  if (data.length === 0) return { ok: false, error: 'notFound' };
-
-  refresh();
-  return { ok: true };
+  const result = await setDeletedAt('items', itemId, null);
+  if (result.ok) refresh();
+  return result;
 }
 
 const reorderSchema = z.object({

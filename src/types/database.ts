@@ -460,6 +460,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      reorder_trip_notes: {
+        Args: { p_note_ids: string[]; p_trip_id: string }
+        Returns: undefined
+      }
       save_item: {
         Args: {
           p_category: Database["public"]["Enums"]["item_category"]

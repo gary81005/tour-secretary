@@ -26,6 +26,7 @@ import { useTranslations } from 'next-intl';
 import { useId, useOptimistic, useState, useTransition, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { reorderItems } from '@/actions/items';
+import { useEditorState } from '@/hooks/use-editor-state';
 import { ResponsiveDialog, ResponsiveDialogContent } from '@/components/responsive-dialog';
 import { Button } from '@/components/ui/button';
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
@@ -73,12 +74,7 @@ export function DayItems({ dayId, dayOptions, items }: Props) {
   const [, startReorder] = useTransition();
   // 拖拉中的暫時順序；放下或取消後清掉。
   const [dragOrder, setDragOrder] = useState<SlotOrder | null>(null);
-  const [open, setOpen] = useState(false);
-  // 關閉面板時保留內容，讓關閉動畫跑完；每次打開都換 key，重設表單。
-  const [editing, setEditing] = useState<{ item: DayItem | null; key: number }>({
-    item: null,
-    key: 0,
-  });
+  const editor = useEditorState<DayItem>();
 
   const groups = groupItemsBySlot(optimisticItems);
   const itemsById = new Map(optimisticItems.map((item) => [item.id, item]));
@@ -93,11 +89,6 @@ export function DayItems({ dayId, dayOptions, items }: Props) {
   const accessibility = useDndAccessibility((id) =>
     isTimeSlot(id) ? t(`trips.timeSlots.${id}`) : (itemsById.get(String(id))?.title ?? ''),
   );
-
-  function openEditor(item: DayItem | null) {
-    setEditing((current) => ({ item, key: current.key + 1 }));
-    setOpen(true);
-  }
 
   // 拖到別的時段時，先把項目搬過去，讓目標組即時騰出位置。
   function handleDragOver({ active, over }: DragOverEvent) {
@@ -169,7 +160,7 @@ export function DayItems({ dayId, dayOptions, items }: Props) {
                   <li key={item.id}>
                     <ItemCard
                       item={item}
-                      onEdit={() => openEditor(item)}
+                      onEdit={() => editor.openEditor(item)}
                       handle={<TimedMarker />}
                     />
                   </li>
@@ -182,7 +173,9 @@ export function DayItems({ dayId, dayOptions, items }: Props) {
                 {(order[group.slot] ?? []).map((id) => {
                   const item = itemsById.get(id);
                   return (
-                    item && <SortableItem key={id} item={item} onEdit={() => openEditor(item)} />
+                    item && (
+                      <SortableItem key={id} item={item} onEdit={() => editor.openEditor(item)} />
+                    )
                   );
                 })}
               </SortableContext>
@@ -191,20 +184,20 @@ export function DayItems({ dayId, dayOptions, items }: Props) {
         </DndContext>
       )}
 
-      <Button variant='outline' size='lg' className='h-11' onClick={() => openEditor(null)}>
+      <Button variant='outline' size='lg' className='h-11' onClick={() => editor.openEditor(null)}>
         <PlusIcon />
         {t('trips.item.add')}
       </Button>
 
-      <ResponsiveDialog open={open} onOpenChange={setOpen}>
+      <ResponsiveDialog open={editor.open} onOpenChange={editor.setOpen}>
         <ResponsiveDialogContent>
           <ItemForm
-            key={editing.key}
-            item={editing.item}
+            key={editor.key}
+            item={editor.target}
             dayId={dayId}
             defaultSlot={groups.at(-1)?.slot ?? 'morning'}
             dayOptions={dayOptions}
-            onDone={() => setOpen(false)}
+            onDone={() => editor.setOpen(false)}
           />
         </ResponsiveDialogContent>
       </ResponsiveDialog>

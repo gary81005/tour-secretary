@@ -16,12 +16,11 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVerticalIcon, PlusIcon, Trash2Icon, XIcon } from 'lucide-react';
+import { GripVerticalIcon, PlusIcon, XIcon } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useId, useRef, useState, useTransition, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { deleteItem, restoreItem, saveItem } from '@/actions/items';
-import { ResponsiveDialogClose, ResponsiveDialogTitle } from '@/components/responsive-dialog';
 import { CategoryIcon } from '@/components/trip/category-icon';
 import { Button } from '@/components/ui/button';
 import {
@@ -42,6 +41,7 @@ import { ITEM_FIELDS } from '@/lib/trip/item-form';
 import { TIME_SLOTS, timeSlotForTime, toHourMinute, type TimeSlot } from '@/lib/trip/time-slot';
 import { localDateToUtc } from '@/lib/trip/trip-dates';
 import { useDndAccessibility } from './dnd-accessibility';
+import { EditorError, EditorFormShell } from './editor-form-shell';
 
 export type DayOption = { id: string; dayNumber: number; date: string; city: string | null };
 
@@ -104,7 +104,7 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, onDone }: Props
       const saved = await saveItem(item?.id ?? null, formData);
       setResult(saved);
       if (saved.ok) {
-        toast.success(t('trips.item.saved'));
+        toast.success(t('trips.editor.saved'));
         onDone();
       }
     });
@@ -119,9 +119,9 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, onDone }: Props
         return;
       }
       onDone();
-      toast.success(t('trips.item.deleted', { title: item.title }), {
+      toast.success(t('trips.editor.deleted', { name: item.title }), {
         action: {
-          label: t('trips.item.undo'),
+          label: t('trips.editor.undo'),
           onClick: async () => {
             const restored = await restoreItem(item.id);
             if (!restored.ok) toast.error(t(`errors.${restored.error}`));
@@ -144,290 +144,254 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, onDone }: Props
   }
 
   return (
-    <form onSubmit={handleSubmit} className='flex h-full min-h-0 flex-col' noValidate>
-      <div className='flex items-center justify-between gap-2 border-b px-4 py-3'>
-        <ResponsiveDialogTitle>
-          {item ? t('trips.item.editTitle') : t('trips.item.createTitle')}
-        </ResponsiveDialogTitle>
-        <ResponsiveDialogClose render={<Button type='button' variant='ghost' size='icon-sm' />}>
-          <XIcon />
-          <span className='sr-only'>{t('trips.item.close')}</span>
-        </ResponsiveDialogClose>
-      </div>
+    <EditorFormShell
+      title={item ? t('trips.item.editTitle') : t('trips.item.createTitle')}
+      onSubmit={handleSubmit}
+      isSaving={isSaving}
+      onDelete={item ? handleDelete : undefined}
+      isDeleting={isDeleting}
+      error={
+        <EditorError
+          message={result && !result.ok && result.error ? t(`errors.${result.error}`) : null}
+        />
+      }
+    >
+      <Field data-invalid={!!fieldErrors?.title}>
+        <FieldLabel htmlFor='item-title'>{t('trips.item.titleLabel')}</FieldLabel>
+        <Input
+          id='item-title'
+          name={ITEM_FIELDS.title}
+          defaultValue={item?.title}
+          placeholder={t('trips.item.titlePlaceholder')}
+          maxLength={200}
+          required
+          autoFocus={!item}
+          className='h-11 text-base'
+          aria-invalid={!!fieldErrors?.title}
+        />
+        {errorFor('title')}
+      </Field>
 
-      <div className='flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4'>
-        <Field data-invalid={!!fieldErrors?.title}>
-          <FieldLabel htmlFor='item-title'>{t('trips.item.titleLabel')}</FieldLabel>
-          <Input
-            id='item-title'
-            name={ITEM_FIELDS.title}
-            defaultValue={item?.title}
-            placeholder={t('trips.item.titlePlaceholder')}
-            maxLength={200}
-            required
-            autoFocus={!item}
-            className='h-11 text-base'
-            aria-invalid={!!fieldErrors?.title}
-          />
-          {errorFor('title')}
-        </Field>
-
-        <Field>
-          <FieldLabel htmlFor='item-day'>{t('trips.item.dayLabel')}</FieldLabel>
-          <NativeSelect
-            id='item-day'
-            name={ITEM_FIELDS.dayId}
-            defaultValue={dayId}
-            className='w-full'
-          >
-            {dayOptions.map((option) => (
-              <NativeSelectOption key={option.id} value={option.id}>
-                {dayLabel(option)}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-        </Field>
-
-        <div className='grid grid-cols-2 gap-3'>
-          <Field data-invalid={!!fieldErrors?.startTime}>
-            <FieldLabel htmlFor='item-start'>{t('trips.item.startTimeLabel')}</FieldLabel>
-            <Input
-              id='item-start'
-              name={ITEM_FIELDS.startTime}
-              type='time'
-              defaultValue={item?.start_time ? toHourMinute(item.start_time) : undefined}
-              // 填了開始時間就自動帶入對應的時段，使用者仍可改回來（Q19）。
-              onChange={(event) => {
-                if (event.target.value) setTimeSlot(timeSlotForTime(event.target.value));
-              }}
-              className='h-11 text-base'
-              aria-invalid={!!fieldErrors?.startTime}
-            />
-            {errorFor('startTime')}
-          </Field>
-          <Field data-invalid={!!fieldErrors?.endTime}>
-            <FieldLabel htmlFor='item-end'>{t('trips.item.endTimeLabel')}</FieldLabel>
-            <Input
-              id='item-end'
-              name={ITEM_FIELDS.endTime}
-              type='time'
-              defaultValue={item?.end_time ? toHourMinute(item.end_time) : undefined}
-              className='h-11 text-base'
-              aria-invalid={!!fieldErrors?.endTime}
-            />
-            {errorFor('endTime')}
-          </Field>
-          <FieldDescription className='col-span-2'>
-            {t('trips.item.timeDescription')}
-          </FieldDescription>
-        </div>
-
-        <Field data-invalid={!!fieldErrors?.timeSlot}>
-          <FieldLabel htmlFor='item-slot'>{t('trips.item.timeSlotLabel')}</FieldLabel>
-          <NativeSelect
-            id='item-slot'
-            name={ITEM_FIELDS.timeSlot}
-            value={timeSlot}
-            onChange={(event) => setTimeSlot(event.target.value as TimeSlot)}
-            className='w-full'
-          >
-            {TIME_SLOTS.map((slot) => (
-              <NativeSelectOption key={slot} value={slot}>
-                {t(`trips.timeSlots.${slot}`)}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-          {errorFor('timeSlot')}
-        </Field>
-
-        <FieldSet>
-          <FieldLegend variant='label'>{t('trips.item.categoryLabel')}</FieldLegend>
-          <div className='grid grid-cols-3 gap-2'>
-            {ITEM_CATEGORIES.map((category) => (
-              <label
-                key={category}
-                className='flex cursor-pointer flex-col items-center gap-1 rounded-lg border p-2 text-sm transition-colors has-checked:border-primary has-checked:bg-primary/10 has-checked:text-primary has-focus-visible:ring-3 has-focus-visible:ring-ring/50'
-              >
-                <input
-                  type='radio'
-                  name={ITEM_FIELDS.category}
-                  value={category}
-                  defaultChecked={(item?.category ?? 'sightseeing') === category}
-                  className='sr-only'
-                />
-                <CategoryIcon category={category} className='size-5' />
-                {t(`trips.categories.${category}`)}
-              </label>
-            ))}
-          </div>
-          {errorFor('category')}
-        </FieldSet>
-
-        <FieldSet>
-          <FieldLegend variant='label'>{t('trips.item.placesLabel')}</FieldLegend>
-          {/* 地點可以拖拉調整順序；輸入框是非受控的，靠 key 跟著列移動，已輸入的文字不會遺失。 */}
-          <DndContext
-            id={placesDndId}
-            sensors={placeSensors}
-            collisionDetection={closestCenter}
-            accessibility={placesAccessibility}
-            onDragEnd={({ active, over }) => {
-              if (!over || active.id === over.id) return;
-              setPlaces((rows) => {
-                const from = rows.findIndex((row) => row.key === active.id);
-                const to = rows.findIndex((row) => row.key === over.id);
-                return from < 0 || to < 0 ? rows : arrayMove(rows, from, to);
-              });
-            }}
-          >
-            <SortableContext
-              items={places.map((place) => place.key)}
-              strategy={verticalListSortingStrategy}
-            >
-              {places.map((place, index) => (
-                <SortablePlaceRow
-                  key={place.key}
-                  id={place.key}
-                  index={index}
-                  defaultValue={place.name}
-                  invalid={!!fieldErrors?.[`places.${index}.name`]}
-                  error={errorFor(`places.${index}.name`)}
-                  onRemove={() => setPlaces((rows) => rows.filter((row) => row.key !== place.key))}
-                />
-              ))}
-            </SortableContext>
-          </DndContext>
-          <Button
-            type='button'
-            variant='outline'
-            className='w-fit'
-            onClick={() => setPlaces((rows) => [...rows, { key: newRowKey(), name: '' }])}
-          >
-            <PlusIcon />
-            {t('trips.item.addPlace')}
-          </Button>
-          {errorFor('places')}
-        </FieldSet>
-
-        <Field data-invalid={!!fieldErrors?.description}>
-          <FieldLabel htmlFor='item-description'>{t('trips.item.descriptionLabel')}</FieldLabel>
-          <Textarea
-            id='item-description'
-            name={ITEM_FIELDS.description}
-            defaultValue={item?.description ?? undefined}
-            maxLength={5000}
-            rows={3}
-            className='text-base'
-            aria-invalid={!!fieldErrors?.description}
-          />
-          {errorFor('description')}
-        </Field>
-
-        <Field data-invalid={!!fieldErrors?.url}>
-          <FieldLabel htmlFor='item-url'>{t('trips.item.urlLabel')}</FieldLabel>
-          <Input
-            id='item-url'
-            name={ITEM_FIELDS.url}
-            type='url'
-            inputMode='url'
-            defaultValue={item?.url ?? undefined}
-            placeholder={t('trips.item.urlPlaceholder')}
-            maxLength={2000}
-            className='h-11 text-base'
-            aria-invalid={!!fieldErrors?.url}
-          />
-          {errorFor('url')}
-        </Field>
-
-        <FieldSet>
-          <FieldLegend variant='label'>{t('trips.item.fallbacksLabel')}</FieldLegend>
-          <FieldDescription>{t('trips.item.fallbacksDescription')}</FieldDescription>
-          {fallbacks.map((fallback, index) => (
-            <div key={fallback.key} className='flex gap-2'>
-              <div className='flex flex-1 flex-col gap-2'>
-                <Input
-                  name={ITEM_FIELDS.fallbackCondition}
-                  defaultValue={fallback.condition}
-                  placeholder={t('trips.item.conditionPlaceholder')}
-                  maxLength={500}
-                  aria-label={`${t('trips.item.fallbacksLabel')} ${index + 1}`}
-                  className='h-11 text-base'
-                  aria-invalid={!!fieldErrors?.[`fallbacks.${index}.condition`]}
-                />
-                {errorFor(`fallbacks.${index}.condition`)}
-                <Input
-                  name={ITEM_FIELDS.fallbackAlternative}
-                  defaultValue={fallback.alternative}
-                  placeholder={t('trips.item.alternativePlaceholder')}
-                  maxLength={1000}
-                  aria-label={`${t('trips.item.alternativePlaceholder')} ${index + 1}`}
-                  className='h-11 text-base'
-                  aria-invalid={!!fieldErrors?.[`fallbacks.${index}.alternative`]}
-                />
-                {errorFor(`fallbacks.${index}.alternative`)}
-              </div>
-              <Button
-                type='button'
-                variant='ghost'
-                size='icon-lg'
-                className='size-11'
-                aria-label={t('trips.item.removeFallback', { index: index + 1 })}
-                onClick={() =>
-                  setFallbacks((rows) => rows.filter((row) => row.key !== fallback.key))
-                }
-              >
-                <XIcon />
-              </Button>
-            </div>
+      <Field>
+        <FieldLabel htmlFor='item-day'>{t('trips.item.dayLabel')}</FieldLabel>
+        <NativeSelect
+          id='item-day'
+          name={ITEM_FIELDS.dayId}
+          defaultValue={dayId}
+          className='w-full'
+        >
+          {dayOptions.map((option) => (
+            <NativeSelectOption key={option.id} value={option.id}>
+              {dayLabel(option)}
+            </NativeSelectOption>
           ))}
-          <Button
-            type='button'
-            variant='outline'
-            className='w-fit'
-            onClick={() =>
-              setFallbacks((rows) => [
-                ...rows,
-                { key: newRowKey(), condition: '', alternative: '' },
-              ])
-            }
-          >
-            <PlusIcon />
-            {t('trips.item.addFallback')}
-          </Button>
-          {errorFor('fallbacks')}
-        </FieldSet>
+        </NativeSelect>
+      </Field>
 
-        {result && !result.ok && result.error && (
-          <p role='alert' className='text-sm text-destructive'>
-            {t(`errors.${result.error}`)}
-          </p>
-        )}
+      <div className='grid grid-cols-2 gap-3'>
+        <Field data-invalid={!!fieldErrors?.startTime}>
+          <FieldLabel htmlFor='item-start'>{t('trips.item.startTimeLabel')}</FieldLabel>
+          <Input
+            id='item-start'
+            name={ITEM_FIELDS.startTime}
+            type='time'
+            defaultValue={item?.start_time ? toHourMinute(item.start_time) : undefined}
+            // 填了開始時間就自動帶入對應的時段，使用者仍可改回來（Q19）。
+            onChange={(event) => {
+              if (event.target.value) setTimeSlot(timeSlotForTime(event.target.value));
+            }}
+            className='h-11 text-base'
+            aria-invalid={!!fieldErrors?.startTime}
+          />
+          {errorFor('startTime')}
+        </Field>
+        <Field data-invalid={!!fieldErrors?.endTime}>
+          <FieldLabel htmlFor='item-end'>{t('trips.item.endTimeLabel')}</FieldLabel>
+          <Input
+            id='item-end'
+            name={ITEM_FIELDS.endTime}
+            type='time'
+            defaultValue={item?.end_time ? toHourMinute(item.end_time) : undefined}
+            className='h-11 text-base'
+            aria-invalid={!!fieldErrors?.endTime}
+          />
+          {errorFor('endTime')}
+        </Field>
+        <FieldDescription className='col-span-2'>
+          {t('trips.item.timeDescription')}
+        </FieldDescription>
       </div>
 
-      <div className='flex items-center gap-2 border-t p-4 pb-[max(1rem,env(safe-area-inset-bottom))]'>
-        {item && (
-          <Button
-            type='button'
-            variant='destructive'
-            size='lg'
-            onClick={handleDelete}
-            disabled={isDeleting || isSaving}
-            aria-busy={isDeleting}
-          >
-            <Trash2Icon />
-            {t('trips.item.delete')}
-          </Button>
-        )}
-        <div className='ml-auto flex gap-2'>
-          <ResponsiveDialogClose render={<Button type='button' variant='outline' size='lg' />}>
-            {t('trips.item.cancel')}
-          </ResponsiveDialogClose>
-          <Button type='submit' size='lg' disabled={isSaving || isDeleting} aria-busy={isSaving}>
-            {t('trips.item.save')}
-          </Button>
+      <Field data-invalid={!!fieldErrors?.timeSlot}>
+        <FieldLabel htmlFor='item-slot'>{t('trips.item.timeSlotLabel')}</FieldLabel>
+        <NativeSelect
+          id='item-slot'
+          name={ITEM_FIELDS.timeSlot}
+          value={timeSlot}
+          onChange={(event) => setTimeSlot(event.target.value as TimeSlot)}
+          className='w-full'
+        >
+          {TIME_SLOTS.map((slot) => (
+            <NativeSelectOption key={slot} value={slot}>
+              {t(`trips.timeSlots.${slot}`)}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
+        {errorFor('timeSlot')}
+      </Field>
+
+      <FieldSet>
+        <FieldLegend variant='label'>{t('trips.item.categoryLabel')}</FieldLegend>
+        <div className='grid grid-cols-3 gap-2'>
+          {ITEM_CATEGORIES.map((category) => (
+            <label
+              key={category}
+              className='flex cursor-pointer flex-col items-center gap-1 rounded-lg border p-2 text-sm transition-colors has-checked:border-primary has-checked:bg-primary/10 has-checked:text-primary has-focus-visible:ring-3 has-focus-visible:ring-ring/50'
+            >
+              <input
+                type='radio'
+                name={ITEM_FIELDS.category}
+                value={category}
+                defaultChecked={(item?.category ?? 'sightseeing') === category}
+                className='sr-only'
+              />
+              <CategoryIcon category={category} className='size-5' />
+              {t(`trips.categories.${category}`)}
+            </label>
+          ))}
         </div>
-      </div>
-    </form>
+        {errorFor('category')}
+      </FieldSet>
+
+      <FieldSet>
+        <FieldLegend variant='label'>{t('trips.item.placesLabel')}</FieldLegend>
+        {/* 地點可以拖拉調整順序；輸入框是非受控的，靠 key 跟著列移動，已輸入的文字不會遺失。 */}
+        <DndContext
+          id={placesDndId}
+          sensors={placeSensors}
+          collisionDetection={closestCenter}
+          accessibility={placesAccessibility}
+          onDragEnd={({ active, over }) => {
+            if (!over || active.id === over.id) return;
+            setPlaces((rows) => {
+              const from = rows.findIndex((row) => row.key === active.id);
+              const to = rows.findIndex((row) => row.key === over.id);
+              return from < 0 || to < 0 ? rows : arrayMove(rows, from, to);
+            });
+          }}
+        >
+          <SortableContext
+            items={places.map((place) => place.key)}
+            strategy={verticalListSortingStrategy}
+          >
+            {places.map((place, index) => (
+              <SortablePlaceRow
+                key={place.key}
+                id={place.key}
+                index={index}
+                defaultValue={place.name}
+                invalid={!!fieldErrors?.[`places.${index}.name`]}
+                error={errorFor(`places.${index}.name`)}
+                onRemove={() => setPlaces((rows) => rows.filter((row) => row.key !== place.key))}
+              />
+            ))}
+          </SortableContext>
+        </DndContext>
+        <Button
+          type='button'
+          variant='outline'
+          className='w-fit'
+          onClick={() => setPlaces((rows) => [...rows, { key: newRowKey(), name: '' }])}
+        >
+          <PlusIcon />
+          {t('trips.item.addPlace')}
+        </Button>
+        {errorFor('places')}
+      </FieldSet>
+
+      <Field data-invalid={!!fieldErrors?.description}>
+        <FieldLabel htmlFor='item-description'>{t('trips.item.descriptionLabel')}</FieldLabel>
+        <Textarea
+          id='item-description'
+          name={ITEM_FIELDS.description}
+          defaultValue={item?.description ?? undefined}
+          maxLength={5000}
+          rows={3}
+          className='text-base'
+          aria-invalid={!!fieldErrors?.description}
+        />
+        {errorFor('description')}
+      </Field>
+
+      <Field data-invalid={!!fieldErrors?.url}>
+        <FieldLabel htmlFor='item-url'>{t('trips.item.urlLabel')}</FieldLabel>
+        <Input
+          id='item-url'
+          name={ITEM_FIELDS.url}
+          type='url'
+          inputMode='url'
+          defaultValue={item?.url ?? undefined}
+          placeholder={t('trips.item.urlPlaceholder')}
+          maxLength={2000}
+          className='h-11 text-base'
+          aria-invalid={!!fieldErrors?.url}
+        />
+        {errorFor('url')}
+      </Field>
+
+      <FieldSet>
+        <FieldLegend variant='label'>{t('trips.item.fallbacksLabel')}</FieldLegend>
+        <FieldDescription>{t('trips.item.fallbacksDescription')}</FieldDescription>
+        {fallbacks.map((fallback, index) => (
+          <div key={fallback.key} className='flex gap-2'>
+            <div className='flex flex-1 flex-col gap-2'>
+              <Input
+                name={ITEM_FIELDS.fallbackCondition}
+                defaultValue={fallback.condition}
+                placeholder={t('trips.item.conditionPlaceholder')}
+                maxLength={500}
+                aria-label={`${t('trips.item.fallbacksLabel')} ${index + 1}`}
+                className='h-11 text-base'
+                aria-invalid={!!fieldErrors?.[`fallbacks.${index}.condition`]}
+              />
+              {errorFor(`fallbacks.${index}.condition`)}
+              <Input
+                name={ITEM_FIELDS.fallbackAlternative}
+                defaultValue={fallback.alternative}
+                placeholder={t('trips.item.alternativePlaceholder')}
+                maxLength={1000}
+                aria-label={`${t('trips.item.alternativePlaceholder')} ${index + 1}`}
+                className='h-11 text-base'
+                aria-invalid={!!fieldErrors?.[`fallbacks.${index}.alternative`]}
+              />
+              {errorFor(`fallbacks.${index}.alternative`)}
+            </div>
+            <Button
+              type='button'
+              variant='ghost'
+              size='icon-lg'
+              className='size-11'
+              aria-label={t('trips.item.removeFallback', { index: index + 1 })}
+              onClick={() => setFallbacks((rows) => rows.filter((row) => row.key !== fallback.key))}
+            >
+              <XIcon />
+            </Button>
+          </div>
+        ))}
+        <Button
+          type='button'
+          variant='outline'
+          className='w-fit'
+          onClick={() =>
+            setFallbacks((rows) => [...rows, { key: newRowKey(), condition: '', alternative: '' }])
+          }
+        >
+          <PlusIcon />
+          {t('trips.item.addFallback')}
+        </Button>
+        {errorFor('fallbacks')}
+      </FieldSet>
+    </EditorFormShell>
   );
 }
 

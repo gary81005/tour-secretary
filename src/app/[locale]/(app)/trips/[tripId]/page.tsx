@@ -1,8 +1,12 @@
+import { BedDoubleIcon } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
 import { notFound } from 'next/navigation';
 import { Suspense, type ReactNode } from 'react';
-import { getDayItems, getTrip, getTripDays, type DayItem } from '@/data/trips';
+import { getDayItems, getTrip, getTripDays, getTripStays, type DayItem } from '@/data/trips';
+import { Link } from '@/i18n/navigation';
+import type { StayStatus } from '@/lib/trip/enums';
 import { resolveSelectedDayIndex } from '@/lib/trip/day-selection';
+import { staysForNight } from '@/lib/trip/stays';
 import { localDateToUtc } from '@/lib/trip/trip-dates';
 import { currentDayIndex, resolveTimezone } from '@/lib/trip/trip-phase';
 import { DayItems } from './day-items';
@@ -39,7 +43,9 @@ async function Itinerary({ params, searchParams }: Props) {
     todayIndex,
   );
   const selectedDay = days[selectedIndex];
-  const items = await getDayItems(selectedDay.id);
+  const [items, stays] = await Promise.all([getDayItems(selectedDay.id), getTripStays(tripId)]);
+  // 最後一天是回程日，不需要住宿。
+  const isLastDay = selectedIndex === days.length - 1;
 
   return (
     <>
@@ -66,6 +72,18 @@ async function Itinerary({ params, searchParams }: Props) {
         // 只有和行程預設不同時才標示當地時區，例如回程那天在台北。
         customTimezone={selectedDay.timezone !== null ? timezones[selectedIndex] : null}
         items={items}
+        tonight={
+          isLastDay ? null : (
+            <TonightStay
+              tripId={trip.id}
+              stays={staysForNight(stays, selectedDay.date).map((stay) => ({
+                id: stay.id,
+                name: stay.name,
+                status: stay.status,
+              }))}
+            />
+          )
+        }
         menu={
           <DayMenu
             tripId={trip.id}
@@ -97,6 +115,7 @@ type DayViewProps = {
   city: string | null;
   customTimezone: string | null;
   items: DayItem[];
+  tonight: ReactNode;
   menu: ReactNode;
 };
 
@@ -108,6 +127,7 @@ function DayView({
   city,
   customTimezone,
   items,
+  tonight,
   menu,
 }: DayViewProps) {
   const t = useTranslations('trips.day');
@@ -139,7 +159,43 @@ function DayView({
       </header>
 
       <DayItems dayId={dayId} dayOptions={dayOptions} items={items} />
+      {tonight}
     </section>
+  );
+}
+
+// 單日畫面最下方的「今晚住」（Q8），由住宿日期推算；點了到住宿分頁。
+function TonightStay({
+  tripId,
+  stays,
+}: {
+  tripId: string;
+  stays: { id: string; name: string; status: StayStatus }[];
+}) {
+  const t = useTranslations('trips');
+
+  return (
+    <Link
+      href={`/trips/${tripId}/stays`}
+      className='flex items-center gap-3 rounded-lg border border-dashed p-3 text-sm transition-colors outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50'
+    >
+      <BedDoubleIcon className='size-4 shrink-0 text-muted-foreground' aria-hidden='true' />
+      {stays.length === 0 ? (
+        <span className='text-muted-foreground'>{t('stays.tonightNone')}</span>
+      ) : (
+        <span className='flex min-w-0 flex-col gap-0.5'>
+          <span className='text-xs text-muted-foreground'>{t('stays.tonight')}</span>
+          {stays.map((stay) => (
+            <span key={stay.id} className='break-words'>
+              {stay.name}
+              <span className='ml-1.5 text-xs text-muted-foreground'>
+                {t(`stayStatus.${stay.status}`)}
+              </span>
+            </span>
+          ))}
+        </span>
+      )}
+    </Link>
   );
 }
 

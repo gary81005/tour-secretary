@@ -94,7 +94,6 @@
     "fallbackWithCondition": "{condition} → {alternative}",
     "openLink": "開啟連結"
   },
-  "comingSoon": "這個分頁會在之後的步驟完成。",
   "item": {
     "add": "新增項目",
     "createTitle": "新增行程項目",
@@ -122,14 +121,7 @@
     "conditionPlaceholder": "狀況（選填），例如：纜車停駛",
     "alternativePlaceholder": "替代方案",
     "addFallback": "新增備案",
-    "removeFallback": "移除備案 {index}",
-    "save": "儲存",
-    "cancel": "取消",
-    "close": "關閉",
-    "delete": "刪除",
-    "saved": "已儲存",
-    "deleted": "已刪除「{title}」",
-    "undo": "復原"
+    "removeFallback": "移除備案 {index}"
   },
   "dnd": {
     "itemHandle": "拖拉調整「{title}」的順序",
@@ -192,5 +184,83 @@
     "deleteItems": "這一天的 {count} 個行程項目也會一起刪除，無法復原。",
     "deleteConfirm": "刪除",
     "cancel": "取消"
+  },
+  "editor": {
+    "save": "儲存",
+    "cancel": "取消",
+    "close": "關閉",
+    "delete": "刪除",
+    "saved": "已儲存",
+    "deleted": "已刪除「{name}」",
+    "undo": "復原"
+  },
+  "stayStatus": {
+    "candidate": "候選",
+    "booked": "已預訂",
+    "paid": "已付款"
+  },
+  "constraintKinds": {
+    "diet": "飲食",
+    "stamina": "體力",
+    "mobility": "行動",
+    "preference": "偏好",
+    "other": "其他"
+  },
+  "stays": {
+    "add": "新增住宿",
+    "createTitle": "新增住宿",
+    "editTitle": "編輯住宿",
+    "edit": "編輯「{name}」",
+    "nights": "{count} 晚",
+    "overlap": "日期和其他住宿重疊",
+    "outsideTrip": "不在行程日期內",
+    "confirmationCode": "確認碼：{code}",
+    "openLink": "訂房連結",
+    "nameLabel": "名稱",
+    "namePlaceholder": "例如：藏王溫泉旅館",
+    "checkInLabel": "入住日",
+    "checkOutLabel": "退房日",
+    "statusLabel": "訂房狀態",
+    "addressLabel": "地址或地點",
+    "confirmationCodeLabel": "確認碼",
+    "urlLabel": "訂房連結",
+    "noteLabel": "備註",
+    "notePlaceholder": "例如：一泊二食、確認接送",
+    "empty": {
+      "title": "還沒有住宿",
+      "description": "新增住宿後，每天的行程最下方會顯示「今晚住」。"
+    },
+    "tonight": "今晚住",
+    "tonightNone": "今晚還沒有安排住宿"
+  },
+  "notes": {
+    "add": "新增提醒",
+    "createTitle": "新增提醒事項",
+    "editTitle": "編輯提醒事項",
+    "edit": "編輯「{topic}」",
+    "handle": "拖拉調整「{topic}」的順序",
+    "topicLabel": "主題",
+    "topicPlaceholder": "例如：交通方向、行李、訂房順序",
+    "contentLabel": "內容",
+    "empty": {
+      "title": "還沒有提醒事項",
+      "description": "記下整趟旅程都要注意的事，例如行李、交通方向、訂房順序。"
+    }
+  },
+  "constraints": {
+    "add": "新增限制",
+    "createTitle": "新增旅伴限制",
+    "editTitle": "編輯旅伴限制",
+    "edit": "編輯「{content}」",
+    "kindLabel": "類型",
+    "subjectLabel": "對象",
+    "subjectPlaceholder": "選填，例如：媽媽",
+    "contentLabel": "內容",
+    "contentPlaceholder": "例如：不吃牛肉",
+    "description": "調整行程與 AI 建議時都會遵守這些條件。",
+    "empty": {
+      "title": "還沒有旅伴限制",
+      "description": "記下飲食、體力、行動等限制，例如「同行者不吃牛肉」。"
+    }
   }
 }

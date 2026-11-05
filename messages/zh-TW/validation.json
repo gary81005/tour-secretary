@@ -11,5 +11,6 @@
   "tripTooLong": "行程最多 60 天",
   "endTimeWithoutStart": "填了結束時間就要填開始時間",
   "endTimeNotAfterStart": "結束時間要晚於開始時間",
-  "checkOutNotAfterCheckIn": "退房日要晚於入住日"
+  "checkOutNotAfterCheckIn": "退房日要晚於入住日",
+  "outsideTrip": "入住到退房要在行程日期內"
 }

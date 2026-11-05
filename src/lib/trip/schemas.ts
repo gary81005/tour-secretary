@@ -19,7 +19,8 @@ export type ValidationErrorKey =
   | 'tripTooLong'
   | 'endTimeWithoutStart'
   | 'endTimeNotAfterStart'
-  | 'checkOutNotAfterCheckIn';
+  | 'checkOutNotAfterCheckIn'
+  | 'outsideTrip';
 
 const error = (key: ValidationErrorKey) => ({ error: key });
 
