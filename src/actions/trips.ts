@@ -2,21 +2,15 @@
 
 import { hasLocale } from 'next-intl';
 import { refresh } from 'next/cache';
-import { isTripId } from '@/data/trips';
 import { redirect } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
+import { getSignedInClient } from '@/lib/auth/session';
 import { fieldErrorsOf, formString, type ActionResult, type FormState } from '@/lib/form';
-import { createClient } from '@/lib/supabase/server';
 import { tripCreateSchema } from '@/lib/trip/schemas';
+import { isUuid } from '@/lib/uuid';
 
 // 行程的 Server Actions（Q11）。每個 action 都重新確認登入，權限最後由 RLS 把關。
 // next/root-params 在 Server Action 不能用，需要語系的地方由呼叫端傳入。
-
-async function getSignedInClient() {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  return data?.claims.sub ? supabase : null;
-}
 
 export type CreateTripValues = {
   name: string;
@@ -70,7 +64,7 @@ export async function restoreTrip(tripId: string): Promise<ActionResult> {
 }
 
 async function setDeletedAt(tripId: string, deletedAt: string | null): Promise<ActionResult> {
-  if (!isTripId(tripId)) return { ok: false, error: 'notFound' };
+  if (!isUuid(tripId)) return { ok: false, error: 'notFound' };
 
   const supabase = await getSignedInClient();
   if (!supabase) return { ok: false, error: 'unauthorized' };
@@ -90,7 +84,7 @@ export async function deleteTripPermanently(
   tripId: string,
   confirmName: string,
 ): Promise<ActionResult> {
-  if (!isTripId(tripId)) return { ok: false, error: 'notFound' };
+  if (!isUuid(tripId)) return { ok: false, error: 'notFound' };
 
   const supabase = await getSignedInClient();
   if (!supabase) return { ok: false, error: 'unauthorized' };

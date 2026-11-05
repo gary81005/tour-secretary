@@ -75,7 +75,8 @@ function DeleteForeverDialog({ tripId, tripName }: Props) {
         <Trash2Icon />
         {t('trips.trash.deleteForever')}
       </DialogTrigger>
-      <DialogContent>
+      {/* 預設的關閉按鈕文字寫死英文；這裡已有「取消」，不需要。 */}
+      <DialogContent showCloseButton={false}>
         <form action={deleteForever} className='flex flex-col gap-4'>
           <DialogHeader>
             <DialogTitle>{t('trips.trash.deleteTitle', { name: tripName })}</DialogTitle>

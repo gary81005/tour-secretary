@@ -33,6 +33,7 @@ npm run db:types      # 由已 link 的專案產生 src/types/database.ts
 - `src/app/[locale]/`：所有頁面。`[locale]/layout.tsx` 是 root layout；沒有 `src/app/layout.tsx`。
 - `src/i18n/`：next-intl 的 routing、request config、navigation。
 - `src/lib/supabase/`：`client.ts`（Client Component）、`server.ts`（Server 端，`server-only`）、`proxy.ts`（在 proxy 刷新 session）。
+- **元件放哪裡**：只有一個路由用到的元件，跟 `page.tsx` 放在同一個路由資料夾（例如 `[tripId]/item-form.tsx`）；被第二個路由用到時，才搬到 `src/components/<領域>/`（例如 `src/components/trip/`）。
 - `src/components/ui/`：shadcn/ui 產生的元件（`npx shadcn@latest add <name>`）。可以修改，但要知道重新 add 會覆蓋。
 - `src/data/`：讀取資料的查詢（`server-only`，呼叫端要在 `<Suspense>` 裡）；`src/actions/`：Server Actions（`'use server'`，每個都重新確認登入，回傳 `ActionResult` / `FormState`）。
 - `src/lib/trip/`：行程的純邏輯與 zod schema（有測試）；`src/lib/auth/`：登入相關的路徑判斷與 `getCurrentUser()`。

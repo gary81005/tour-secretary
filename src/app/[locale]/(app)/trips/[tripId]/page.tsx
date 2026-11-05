@@ -1,16 +1,12 @@
-import { ExternalLinkIcon, GitBranchIcon, MapPinIcon } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
-import { CategoryIcon } from '@/components/trip/category-icon';
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
 import { getDayItems, getTrip, getTripDays, type DayItem } from '@/data/trips';
 import { resolveSelectedDayIndex } from '@/lib/trip/day-selection';
-import { groupItemsBySlot } from '@/lib/trip/item-order';
-import { toHourMinute, type TimeSlot } from '@/lib/trip/time-slot';
 import { localDateToUtc } from '@/lib/trip/trip-dates';
 import { currentDayIndex, resolveTimezone } from '@/lib/trip/trip-phase';
-import { isSafeHttpUrl } from '@/lib/url';
+import { DayItems } from './day-items';
+import type { DayOption } from './item-form';
 import { DaySelector } from './day-selector';
 
 type Props = PageProps<'/[locale]/trips/[tripId]'>;
@@ -56,6 +52,13 @@ async function Itinerary({ params, searchParams }: Props) {
         }))}
       />
       <DayView
+        dayId={selectedDay.id}
+        dayOptions={days.map((day, index) => ({
+          id: day.id,
+          dayNumber: index + 1,
+          date: day.date,
+          city: day.city,
+        }))}
         dayNumber={selectedIndex + 1}
         date={selectedDay.date}
         city={selectedDay.city}
@@ -68,6 +71,8 @@ async function Itinerary({ params, searchParams }: Props) {
 }
 
 type DayViewProps = {
+  dayId: string;
+  dayOptions: DayOption[];
   dayNumber: number;
   date: string;
   city: string | null;
@@ -75,10 +80,17 @@ type DayViewProps = {
   items: DayItem[];
 };
 
-function DayView({ dayNumber, date, city, customTimezone, items }: DayViewProps) {
+function DayView({
+  dayId,
+  dayOptions,
+  dayNumber,
+  date,
+  city,
+  customTimezone,
+  items,
+}: DayViewProps) {
   const t = useTranslations('trips.day');
   const format = useFormatter();
-  const groups = groupItemsBySlot(items);
 
   return (
     <section className='flex flex-col gap-5 pt-4' aria-labelledby='day-heading'>
@@ -102,108 +114,8 @@ function DayView({ dayNumber, date, city, customTimezone, items }: DayViewProps)
         )}
       </header>
 
-      {groups.length === 0 ? (
-        <Empty className='border'>
-          <EmptyHeader>
-            <EmptyTitle>{t('empty.title')}</EmptyTitle>
-            <EmptyDescription>{t('empty.description')}</EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      ) : (
-        groups.map((group) => <SlotGroup key={group.slot} slot={group.slot} items={group.items} />)
-      )}
+      <DayItems dayId={dayId} dayOptions={dayOptions} items={items} />
     </section>
-  );
-}
-
-function SlotGroup({ slot, items }: { slot: TimeSlot; items: DayItem[] }) {
-  const t = useTranslations('trips.timeSlots');
-
-  return (
-    <section className='flex flex-col gap-2' aria-labelledby={`slot-${slot}`}>
-      <h3 id={`slot-${slot}`} className='text-sm font-medium text-muted-foreground'>
-        {t(slot)}
-      </h3>
-      <ul className='flex flex-col gap-2'>
-        {items.map((item) => (
-          <li key={item.id}>
-            <ItemCard item={item} />
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-function ItemCard({ item }: { item: DayItem }) {
-  const t = useTranslations('trips');
-  const time = item.start_time
-    ? [item.start_time, item.end_time]
-        .filter((value): value is string => !!value)
-        .map(toHourMinute)
-        .join('–')
-    : null;
-
-  return (
-    <article className='flex gap-3 rounded-lg border bg-card p-3'>
-      <div
-        className='flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary'
-        title={t(`categories.${item.category}`)}
-      >
-        <CategoryIcon category={item.category} className='size-4' />
-        <span className='sr-only'>{t(`categories.${item.category}`)}</span>
-      </div>
-      <div className='flex min-w-0 flex-1 flex-col gap-1'>
-        <div className='flex items-baseline justify-between gap-2'>
-          <h4 className='font-medium break-words'>{item.title}</h4>
-          {time && (
-            <span className='shrink-0 text-sm text-muted-foreground tabular-nums'>{time}</span>
-          )}
-        </div>
-
-        {item.item_places.length > 0 && (
-          <p className='flex items-start gap-1 text-sm text-muted-foreground'>
-            <MapPinIcon className='mt-0.5 size-3.5 shrink-0' aria-hidden='true' />
-            <span>{item.item_places.map((place) => place.name).join(' → ')}</span>
-          </p>
-        )}
-
-        {item.description && (
-          <p className='text-sm break-words whitespace-pre-line'>{item.description}</p>
-        )}
-
-        {isSafeHttpUrl(item.url) && (
-          <a
-            href={item.url}
-            target='_blank'
-            rel='noopener noreferrer'
-            className='flex w-fit items-center gap-1 text-sm text-primary underline-offset-4 hover:underline'
-          >
-            <ExternalLinkIcon className='size-3.5' aria-hidden='true' />
-            {t('day.openLink')}
-          </a>
-        )}
-
-        {item.fallbacks.length > 0 && (
-          <ul className='mt-1 flex flex-col gap-1 border-t pt-2 text-sm text-muted-foreground'>
-            {item.fallbacks.map((fallback) => (
-              <li key={fallback.id} className='flex items-start gap-1'>
-                <GitBranchIcon className='mt-0.5 size-3.5 shrink-0' aria-hidden='true' />
-                <span>
-                  <span className='sr-only'>{t('day.fallback')}：</span>
-                  {fallback.condition
-                    ? t('day.fallbackWithCondition', {
-                        condition: fallback.condition,
-                        alternative: fallback.alternative,
-                      })
-                    : fallback.alternative}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </article>
   );
 }
 

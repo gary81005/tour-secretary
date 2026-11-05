@@ -29,3 +29,7 @@ export function formString(formData: FormData, key: string): string {
   const value = formData.get(key);
   return typeof value === 'string' ? value : '';
 }
+
+// 不用 useActionState 的表單（例如項目編輯面板）的結果：成功，或欄位錯誤／整體錯誤。
+export type FormResult =
+  { ok: true } | { ok: false; fieldErrors?: FieldErrors; error?: ActionErrorKey };

@@ -85,11 +85,47 @@
     "localTime": "當地時間：{timezone}",
     "empty": {
       "title": "這一天還沒有安排",
-      "description": "下一步會加上新增行程項目的功能。"
+      "description": "點下方的「新增項目」開始安排。"
     },
     "fallback": "備案",
     "fallbackWithCondition": "{condition} → {alternative}",
     "openLink": "開啟連結"
   },
-  "comingSoon": "這個分頁會在之後的步驟完成。"
+  "comingSoon": "這個分頁會在之後的步驟完成。",
+  "item": {
+    "add": "新增項目",
+    "createTitle": "新增行程項目",
+    "editTitle": "編輯行程項目",
+    "edit": "編輯「{title}」",
+    "titleLabel": "標題",
+    "titlePlaceholder": "例如：淺草寺、仲見世通",
+    "dayLabel": "日期",
+    "dayOption": "第 {day} 天・{date}",
+    "dayOptionWithCity": "第 {day} 天・{date}・{city}",
+    "timeSlotLabel": "時段",
+    "startTimeLabel": "開始時間",
+    "endTimeLabel": "結束時間",
+    "timeDescription": "選填。填了開始時間會自動帶入時段；只有精確時間的項目才會有落後提醒。",
+    "categoryLabel": "類別",
+    "placesLabel": "地點",
+    "placePlaceholder": "地點名稱",
+    "addPlace": "新增地點",
+    "removePlace": "移除地點 {index}",
+    "descriptionLabel": "說明",
+    "urlLabel": "連結",
+    "urlPlaceholder": "https://",
+    "fallbacksLabel": "備案",
+    "fallbacksDescription": "例如：纜車停駛 → 改逛溫泉街。調整行程時會優先參考。",
+    "conditionPlaceholder": "狀況（選填），例如：纜車停駛",
+    "alternativePlaceholder": "替代方案",
+    "addFallback": "新增備案",
+    "removeFallback": "移除備案 {index}",
+    "save": "儲存",
+    "cancel": "取消",
+    "close": "關閉",
+    "delete": "刪除",
+    "saved": "已儲存",
+    "deleted": "已刪除「{title}」",
+    "undo": "復原"
+  }
 }
