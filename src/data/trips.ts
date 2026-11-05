@@ -53,3 +53,36 @@ export async function getTrashedTrips() {
   if (error) throw error;
   return data.map((trip) => ({ ...trip, deleted_at: trip.deleted_at as string }));
 }
+
+// 行程的每一天，依日期排序。layout 與頁面都會用到，同一個請求只查一次。
+export const getTripDays = cache(async (tripId: string) => {
+  if (!isTripId(tripId)) return [];
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('days')
+    .select('id, date, city, timezone')
+    .eq('trip_id', tripId)
+    .order('date');
+  if (error) throw error;
+  return data;
+});
+
+// 某一天的行程項目（未刪除），含依序排列的地點與備案。排序與分組交給 groupItemsBySlot。
+export async function getDayItems(dayId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('items')
+    // select 字串要是單一字面值，supabase-js 才推得出回傳型別（用 + 串接會變成錯誤型別）。
+    .select(
+      'id, title, time_slot, category, start_time, end_time, description, url, position, item_places (id, name, position), fallbacks (id, condition, alternative, position)',
+    )
+    .eq('day_id', dayId)
+    .is('deleted_at', null)
+    .order('position', { referencedTable: 'item_places' })
+    .order('position', { referencedTable: 'fallbacks' });
+  if (error) throw error;
+  return data;
+}
+
+export type DayItem = Awaited<ReturnType<typeof getDayItems>>[number];

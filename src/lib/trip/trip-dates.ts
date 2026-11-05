@@ -43,3 +43,9 @@ export function planDateRangeChange<T extends DayWithItemCount>(
     added: listDates(startDate, endDate).filter((date) => !existing.has(date)),
   };
 }
+
+// 'YYYY-MM-DD' 當地日期 → UTC 午夜的 Date。格式化時要搭配 timeZone: 'UTC'，
+// 才不會被裝置時區往前或往後推一天。
+export function localDateToUtc(date: string): Date {
+  return new Date(`${date}T00:00:00Z`);
+}

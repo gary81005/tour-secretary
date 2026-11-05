@@ -34,8 +34,7 @@
     "menu": "行程選項",
     "moveToTrash": "移到垃圾桶",
     "movedToTrash": "已將「{name}」移到垃圾桶",
-    "undo": "復原",
-    "comingSoon": "每天的行程內容會在下一步完成。"
+    "undo": "復原"
   },
   "trash": {
     "title": "垃圾桶",
@@ -53,5 +52,44 @@
       "title": "垃圾桶是空的",
       "description": "刪除的行程會在這裡保留 30 天。"
     }
-  }
+  },
+  "tabs": {
+    "label": "行程內容",
+    "itinerary": "行程",
+    "stays": "住宿",
+    "notes": "提醒",
+    "constraints": "限制"
+  },
+  "timeSlots": {
+    "all_day": "整天",
+    "early_morning": "清晨",
+    "morning": "上午",
+    "noon": "中午",
+    "afternoon": "下午",
+    "evening": "傍晚",
+    "night": "晚上"
+  },
+  "categories": {
+    "sightseeing": "景點",
+    "meal": "餐食",
+    "transport": "交通",
+    "lodging": "住宿",
+    "shopping": "購物",
+    "reminder": "提醒"
+  },
+  "day": {
+    "selectorLabel": "選擇日期",
+    "dayNumber": "第 {day} 天",
+    "today": "今天",
+    "noCity": "未設定城市",
+    "localTime": "當地時間：{timezone}",
+    "empty": {
+      "title": "這一天還沒有安排",
+      "description": "下一步會加上新增行程項目的功能。"
+    },
+    "fallback": "備案",
+    "fallbackWithCondition": "{condition} → {alternative}",
+    "openLink": "開啟連結"
+  },
+  "comingSoon": "這個分頁會在之後的步驟完成。"
 }
