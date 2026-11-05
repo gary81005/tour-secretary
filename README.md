@@ -21,7 +21,7 @@ npm run dev                 # http://localhost:3000
 | `npm test`          | Vitest（純邏輯）                   |
 | `npm run typecheck` | 產生路由型別並執行 `tsc`           |
 | `npm run format`    | Prettier（含 Tailwind class 排序） |
-| `npm run db:push`   | 套用 `supabase/migrations/`        |
+| `npm run db:push`   | 套用 `supabase/migrations/` 到雲端 |
 | `npm run db:types`  | 產生 `src/types/database.ts`       |
 
 `db:*` 指令需要先 `npx supabase login` 與 `npx supabase link --project-ref <ref>`。

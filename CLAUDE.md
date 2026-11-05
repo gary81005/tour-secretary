@@ -53,6 +53,13 @@ npm run db:types      # 由已 link 的專案產生 src/types/database.ts
 - **UI 字串**：一律走 `useTranslations` / `getTranslations`，不要寫死在元件裡；key 有型別檢查（`src/i18n/next-intl.d.ts`）。
 - **環境變數**：瀏覽器端的變數要 `NEXT_PUBLIC_` 前綴，且必須寫完整的 `process.env.NEXT_PUBLIC_XXX`。AI、地圖等私密金鑰不能加 `NEXT_PUBLIC_`。
 
+## Database
+
+- Supabase CLI 3 的 `db push` / `gen types` **預設連本機**，要對雲端專案一律加 `--remote`（`npm run db:*` 已加）。目前沒有本機 Supabase，migration push 前要先給使用者看 SQL。
+- migration 必須能重複執行：`if not exists`、`create or replace`、`drop policy if exists`、enum 用 `duplicate_object` 例外包起來。
+- 權限一律用 `is_trip_member()` / `can_access_trip()` 判斷；`trips.start_date/end_date`、`days.date` 只能透過 RPC 改（欄位層級 grant）。
+- **軟刪除不在 RLS 過濾**（否則「復原」無法 update）：查詢 items、stays、trip_notes、traveler_constraints、trips 時要自己加 `deleted_at is null`。
+
 ## Styling
 
 - 顏色只用主題 token（`bg-background`、`text-muted-foreground`、`bg-primary`…），不要寫死色碼。token 定義在 `src/app/globals.css`。
