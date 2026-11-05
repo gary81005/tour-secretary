@@ -7,6 +7,7 @@ import { fieldErrorsOf, type ActionResult, type FormResult } from '@/lib/form';
 import { parseItemFormData } from '@/lib/trip/item-form';
 import { itemSchema } from '@/lib/trip/schemas';
 import { TIME_SLOTS, type TimeSlot } from '@/lib/trip/time-slot';
+import { rpcErrorKey } from '@/lib/rpc-errors';
 import { isUuid } from '@/lib/uuid';
 
 // 行程項目的 Server Actions。成功後 refresh() 讓單日畫面重新讀取。
@@ -36,10 +37,8 @@ export async function saveItem(itemId: string | null, formData: FormData): Promi
     p_places: item.places.map((place) => place.name),
     p_fallbacks: item.fallbacks,
   });
-  if (error) {
-    // P0002：天或項目不存在、不是成員，或行程已進垃圾桶。
-    return { ok: false, error: error.code === 'P0002' ? 'notFound' : 'unknown' };
-  }
+  // P0002：天或項目不存在、不是成員，或行程已進垃圾桶。
+  if (error) return { ok: false, error: rpcErrorKey(error) };
 
   refresh();
   return { ok: true };
@@ -97,6 +96,6 @@ export async function reorderItems(
     p_item_ids: parsed.data.itemIds,
   });
   refresh();
-  if (error) return { ok: false, error: error.code === '40001' ? 'conflict' : 'unknown' };
+  if (error) return { ok: false, error: rpcErrorKey(error) };
   return { ok: true };
 }

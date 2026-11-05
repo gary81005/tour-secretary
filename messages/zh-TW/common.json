@@ -13,7 +13,10 @@
     "notFound": "找不到這個行程，可能已經被刪除。",
     "nameMismatch": "行程名稱不符。",
     "unknown": "發生錯誤，請稍後再試。",
-    "conflict": "行程內容已經有變動，已重新載入最新內容。"
+    "conflict": "行程內容已經有變動，已重新載入最新內容。",
+    "daysHaveItems": "要刪除的日期裡還有行程項目，請先搬到其他天或刪除。",
+    "tripTooLong": "行程最多 60 天。",
+    "lastDay": "行程至少要保留一天。"
   },
   "timezones": {
     "Asia/Tokyo": "東京（GMT+9）",

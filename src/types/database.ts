@@ -447,6 +447,8 @@ export type Database = {
         }
         Returns: string
       }
+      delete_day: { Args: { p_day_id: string }; Returns: undefined }
+      insert_day_after: { Args: { p_day_id: string }; Returns: string }
       is_trip_member: { Args: { p_trip_id: string }; Returns: boolean }
       is_trip_owner: { Args: { p_trip_id: string }; Returns: boolean }
       purge_deleted_rows: { Args: never; Returns: undefined }
@@ -474,7 +476,15 @@ export type Database = {
         }
         Returns: string
       }
+      set_trip_dates: {
+        Args: { p_end_date: string; p_start_date: string; p_trip_id: string }
+        Returns: undefined
+      }
       shares_trip_with: { Args: { p_user_id: string }; Returns: boolean }
+      shift_trip: {
+        Args: { p_days: number; p_trip_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       item_category:

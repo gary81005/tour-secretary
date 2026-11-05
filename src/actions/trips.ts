@@ -2,11 +2,20 @@
 
 import { hasLocale } from 'next-intl';
 import { refresh } from 'next/cache';
+import { z } from 'zod';
 import { redirect } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
 import { getSignedInClient } from '@/lib/auth/session';
-import { fieldErrorsOf, formString, type ActionResult, type FormState } from '@/lib/form';
-import { tripCreateSchema } from '@/lib/trip/schemas';
+import {
+  fieldErrorsOf,
+  formString,
+  type ActionResult,
+  type FormResult,
+  type FormState,
+} from '@/lib/form';
+import { blockedDatesOf, rpcErrorKey } from '@/lib/rpc-errors';
+import { tripCreateSchema, tripDateRangeSchema, tripUpdateSchema } from '@/lib/trip/schemas';
+import { countDays } from '@/lib/trip/trip-dates';
 import { isUuid } from '@/lib/uuid';
 
 // 行程的 Server Actions（Q11）。每個 action 都重新確認登入，權限最後由 RLS 把關。
@@ -102,6 +111,100 @@ export async function deleteTripPermanently(
   const { data, error } = await supabase.from('trips').delete().eq('id', tripId).select('id');
   if (error) return { ok: false, error: 'unknown' };
   if (data.length === 0) return { ok: false, error: 'notFound' };
+
+  refresh();
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
+// 行程設定（第 9 步）：改名稱與預設時區、整趟平移、修改起訖日。
+// ---------------------------------------------------------------------------
+
+export async function updateTrip(tripId: string, formData: FormData): Promise<FormResult> {
+  if (!isUuid(tripId)) return { ok: false, error: 'notFound' };
+
+  const parsed = tripUpdateSchema.safeParse({
+    name: formString(formData, 'name'),
+    defaultTimezone: formString(formData, 'defaultTimezone'),
+  });
+  if (!parsed.success) return { ok: false, fieldErrors: fieldErrorsOf(parsed.error) };
+
+  const supabase = await getSignedInClient();
+  if (!supabase) return { ok: false, error: 'unauthorized' };
+
+  const { data, error } = await supabase
+    .from('trips')
+    .update({ name: parsed.data.name, default_timezone: parsed.data.defaultTimezone })
+    .eq('id', tripId)
+    .is('deleted_at', null)
+    .select('id');
+  if (error) return { ok: false, error: 'unknown' };
+  if (data.length === 0) return { ok: false, error: 'notFound' };
+
+  refresh();
+  return { ok: true };
+}
+
+// 整趟平移：使用者選新的出發日，平移天數以資料庫裡目前的出發日計算。
+export async function shiftTrip(tripId: string, formData: FormData): Promise<FormResult> {
+  if (!isUuid(tripId)) return { ok: false, error: 'notFound' };
+
+  const parsed = z
+    .object({ startDate: z.iso.date({ error: 'invalidDate' }) })
+    .safeParse({ startDate: formString(formData, 'startDate') });
+  if (!parsed.success) return { ok: false, fieldErrors: fieldErrorsOf(parsed.error) };
+
+  const supabase = await getSignedInClient();
+  if (!supabase) return { ok: false, error: 'unauthorized' };
+
+  const { data: trip } = await supabase
+    .from('trips')
+    .select('start_date')
+    .eq('id', tripId)
+    .is('deleted_at', null)
+    .maybeSingle();
+  if (!trip) return { ok: false, error: 'notFound' };
+
+  const { error } = await supabase.rpc('shift_trip', {
+    p_trip_id: tripId,
+    p_days: countDays(trip.start_date, parsed.data.startDate) - 1,
+  });
+  if (error) return { ok: false, error: rpcErrorKey(error) };
+
+  refresh();
+  return { ok: true };
+}
+
+export type SetTripDatesResult =
+  FormResult | { ok: false; error: 'daysHaveItems'; blockedDates: string[] };
+
+// 修改起訖日：以日期對應（Q15）；要刪的天還有項目時擋下，並回傳那些日期。
+export async function setTripDates(
+  tripId: string,
+  formData: FormData,
+): Promise<SetTripDatesResult> {
+  if (!isUuid(tripId)) return { ok: false, error: 'notFound' };
+
+  const parsed = tripDateRangeSchema.safeParse({
+    startDate: formString(formData, 'startDate'),
+    endDate: formString(formData, 'endDate'),
+  });
+  if (!parsed.success) return { ok: false, fieldErrors: fieldErrorsOf(parsed.error) };
+
+  const supabase = await getSignedInClient();
+  if (!supabase) return { ok: false, error: 'unauthorized' };
+
+  const { error } = await supabase.rpc('set_trip_dates', {
+    p_trip_id: tripId,
+    p_start_date: parsed.data.startDate,
+    p_end_date: parsed.data.endDate,
+  });
+  if (error) {
+    const key = rpcErrorKey(error);
+    return key === 'daysHaveItems'
+      ? { ok: false, error: key, blockedDates: blockedDatesOf(error) }
+      : { ok: false, error: key };
+  }
 
   refresh();
   return { ok: true };

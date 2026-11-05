@@ -34,7 +34,10 @@
     "menu": "行程選項",
     "moveToTrash": "移到垃圾桶",
     "movedToTrash": "已將「{name}」移到垃圾桶",
-    "undo": "復原"
+    "undo": "復原",
+    "edit": "編輯行程",
+    "shift": "整趟平移",
+    "changeDates": "修改起訖日"
   },
   "trash": {
     "title": "垃圾桶",
@@ -140,5 +143,54 @@
     "droppedOver": "已把「{name}」放到「{target}」的位置",
     "cancelled": "已取消移動「{name}」",
     "roleDescription": "可拖拉排序"
+  },
+  "settings": {
+    "save": "儲存",
+    "cancel": "取消",
+    "saved": "已儲存",
+    "edit": {
+      "title": "編輯行程",
+      "nameLabel": "行程名稱",
+      "timezoneLabel": "預設時區",
+      "timezoneDescription": "沒有個別設定時區的天會使用這個時區。"
+    },
+    "shift": {
+      "title": "整趟平移",
+      "description": "每一天的內容跟著第 N 天一起移動，住宿日期也會一起調整。",
+      "startDateLabel": "新的出發日",
+      "preview": "新的日期：{range}",
+      "unchanged": "選擇不同的出發日。"
+    },
+    "dates": {
+      "title": "修改起訖日",
+      "description": "以日期對應：還在新範圍內的天會保留，範圍外的天會刪除。要刪除的天如果還有行程項目，會擋下修改。",
+      "startDateLabel": "出發日",
+      "endDateLabel": "回程日",
+      "willRemove": "將刪除：{days}",
+      "willAdd": "將新增 {count} 天",
+      "blocked": "這些天還有行程項目：{days}",
+      "dayWithDate": "第 {day} 天（{date}）"
+    }
+  },
+  "dayMenu": {
+    "label": "第 {day} 天的選項",
+    "edit": "編輯這一天",
+    "insertAfter": "在後面插入一天",
+    "inserted": "已在第 {day} 天後面插入一天",
+    "delete": "刪除這一天",
+    "deleted": "已刪除第 {day} 天",
+    "editTitle": "編輯第 {day} 天",
+    "cityLabel": "城市",
+    "cityPlaceholder": "例如：仙台",
+    "cityUntilLabel": "城市套用到",
+    "cityUntilOnlyThisDay": "只有這一天",
+    "cityUntilOption": "到第 {day} 天（{date}）",
+    "timezoneLabel": "時區",
+    "inheritTimezone": "沿用行程時區（{timezone}）",
+    "deleteTitle": "刪除第 {day} 天？",
+    "deleteDescription": "之後的日期會往前移一天，回程日提早一天。",
+    "deleteItems": "這一天的 {count} 個行程項目也會一起刪除，無法復原。",
+    "deleteConfirm": "刪除",
+    "cancel": "取消"
   }
 }

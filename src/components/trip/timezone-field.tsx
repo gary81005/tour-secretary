@@ -21,16 +21,24 @@ type Props = {
   defaultValue: string;
   invalid?: boolean;
   describedBy?: string;
+  // 有值時，選單最上面多一個「沿用行程時區」選項，送出空字串（伺服器端存成 null）。
+  inheritLabel?: string;
 };
 
 // 時區選單（Q5）：常用的亞洲時區，最下面的「其他時區…」切換成可搜尋完整 IANA 清單的輸入框。
 // 送出的值一律在 `name` 欄位；伺服器端再用 isValidTimezone 驗證。
-export function TimezoneField({ id, name, defaultValue, invalid, describedBy }: Props) {
+export function TimezoneField({
+  id,
+  name,
+  defaultValue,
+  invalid,
+  describedBy,
+  inheritLabel,
+}: Props) {
   const t = useTranslations();
   const listId = useId();
-  const [mode, setMode] = useState<'common' | 'other'>(
-    isCommonTimezone(defaultValue) ? 'common' : 'other',
-  );
+  const inSelect = isCommonTimezone(defaultValue) || (!!inheritLabel && defaultValue === '');
+  const [mode, setMode] = useState<'common' | 'other'>(inSelect ? 'common' : 'other');
   // 完整清單來自執行環境的 Intl，伺服器與瀏覽器可能不同；聚焦後才在瀏覽器產生，避免 hydration 不一致。
   const [showList, setShowList] = useState(false);
 
@@ -41,7 +49,7 @@ export function TimezoneField({ id, name, defaultValue, invalid, describedBy }: 
           id={id}
           name={name}
           list={listId}
-          defaultValue={isCommonTimezone(defaultValue) ? '' : defaultValue}
+          defaultValue={inSelect ? '' : defaultValue}
           placeholder={t('trips.timezone.otherPlaceholder')}
           autoComplete='off'
           required
@@ -68,7 +76,7 @@ export function TimezoneField({ id, name, defaultValue, invalid, describedBy }: 
     <NativeSelect
       id={id}
       name={name}
-      defaultValue={isCommonTimezone(defaultValue) ? defaultValue : COMMON_TIMEZONES[0]}
+      defaultValue={inSelect ? defaultValue : COMMON_TIMEZONES[0]}
       onChange={(event) => {
         if (event.target.value === OTHER) setMode('other');
       }}
@@ -76,6 +84,7 @@ export function TimezoneField({ id, name, defaultValue, invalid, describedBy }: 
       aria-invalid={invalid}
       aria-describedby={describedBy}
     >
+      {inheritLabel && <NativeSelectOption value=''>{inheritLabel}</NativeSelectOption>}
       {COMMON_TIMEZONES.map((timezone) => (
         <NativeSelectOption key={timezone} value={timezone}>
           {t(`timezones.${timezone}`)}

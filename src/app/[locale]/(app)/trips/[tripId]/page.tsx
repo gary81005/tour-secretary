@@ -1,11 +1,12 @@
 import { useFormatter, useTranslations } from 'next-intl';
 import { notFound } from 'next/navigation';
-import { Suspense } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import { getDayItems, getTrip, getTripDays, type DayItem } from '@/data/trips';
 import { resolveSelectedDayIndex } from '@/lib/trip/day-selection';
 import { localDateToUtc } from '@/lib/trip/trip-dates';
 import { currentDayIndex, resolveTimezone } from '@/lib/trip/trip-phase';
 import { DayItems } from './day-items';
+import { DayMenu } from './day-menu';
 import type { DayOption } from './item-form';
 import { DaySelector } from './day-selector';
 
@@ -65,6 +66,24 @@ async function Itinerary({ params, searchParams }: Props) {
         // 只有和行程預設不同時才標示當地時區，例如回程那天在台北。
         customTimezone={selectedDay.timezone !== null ? timezones[selectedIndex] : null}
         items={items}
+        menu={
+          <DayMenu
+            tripId={trip.id}
+            day={{
+              id: selectedDay.id,
+              dayNumber: selectedIndex + 1,
+              date: selectedDay.date,
+              city: selectedDay.city,
+              timezone: selectedDay.timezone,
+            }}
+            laterDays={days
+              .slice(selectedIndex + 1)
+              .map((day, offset) => ({ dayNumber: selectedIndex + 2 + offset, date: day.date }))}
+            dayCount={days.length}
+            itemCount={items.length}
+            defaultTimezone={trip.default_timezone}
+          />
+        }
       />
     </>
   );
@@ -78,6 +97,7 @@ type DayViewProps = {
   city: string | null;
   customTimezone: string | null;
   items: DayItem[];
+  menu: ReactNode;
 };
 
 function DayView({
@@ -88,30 +108,34 @@ function DayView({
   city,
   customTimezone,
   items,
+  menu,
 }: DayViewProps) {
   const t = useTranslations('trips.day');
   const format = useFormatter();
 
   return (
     <section className='flex flex-col gap-5 pt-4' aria-labelledby='day-heading'>
-      <header className='flex flex-col gap-0.5'>
-        <h2 id='day-heading' className='text-lg font-semibold'>
-          {t('dayNumber', { day: dayNumber })}
-          <span className='ml-2 text-base font-normal text-muted-foreground'>
-            {format.dateTime(localDateToUtc(date), {
-              month: 'numeric',
-              day: 'numeric',
-              weekday: 'short',
-              timeZone: 'UTC',
-            })}
-          </span>
-        </h2>
-        <p className='text-sm text-muted-foreground'>{city || t('noCity')}</p>
-        {customTimezone && (
-          <p className='text-xs text-muted-foreground'>
-            {t('localTime', { timezone: customTimezone })}
-          </p>
-        )}
+      <header className='flex items-start justify-between gap-3'>
+        <div className='flex min-w-0 flex-col gap-0.5'>
+          <h2 id='day-heading' className='text-lg font-semibold'>
+            {t('dayNumber', { day: dayNumber })}
+            <span className='ml-2 text-base font-normal text-muted-foreground'>
+              {format.dateTime(localDateToUtc(date), {
+                month: 'numeric',
+                day: 'numeric',
+                weekday: 'short',
+                timeZone: 'UTC',
+              })}
+            </span>
+          </h2>
+          <p className='text-sm text-muted-foreground'>{city || t('noCity')}</p>
+          {customTimezone && (
+            <p className='text-xs text-muted-foreground'>
+              {t('localTime', { timezone: customTimezone })}
+            </p>
+          )}
+        </div>
+        {menu}
       </header>
 
       <DayItems dayId={dayId} dayOptions={dayOptions} items={items} />
