@@ -13,8 +13,10 @@ export default getRequestConfig(async ({ locale }) => {
 
   return {
     locale: requested,
+    // common.json 展開在頂層，其他檔案各自是一個 namespace（檔名即 namespace）。
     messages: {
       ...(await import(`../../messages/${requested}/common.json`)).default,
+      auth: (await import(`../../messages/${requested}/auth.json`)).default,
     },
   };
 });

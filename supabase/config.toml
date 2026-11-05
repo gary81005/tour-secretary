@@ -245,6 +245,15 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+# 登入信範本（中文、同時有連結與驗證碼）。只套用在本機；雲端要貼到 Dashboard。
+[auth.email.template.magic_link]
+subject = "旅遊秘書登入驗證碼：{{ .Token }}"
+content_path = "./supabase/templates/login.html"
+
+[auth.email.template.confirmation]
+subject = "旅遊秘書登入驗證碼：{{ .Token }}"
+content_path = "./supabase/templates/login.html"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"
