@@ -1,0 +1,14 @@
+{
+  "app": {
+    "name": "旅遊秘書",
+    "tagline": "從規劃到旅途中，幫你把行程顧好"
+  },
+  "home": {
+    "title": "旅遊秘書",
+    "description": "基礎建設已就緒：Next.js 16、shadcn/ui、next-intl、Supabase。",
+    "supabaseStatus": "Supabase 連線",
+    "supabaseOk": "已連線",
+    "supabaseError": "連線失敗：{message}",
+    "getStarted": "開始規劃"
+  }
+}
