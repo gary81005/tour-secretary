@@ -11,34 +11,34 @@
 -- security invoker：照常套用 RLS。
 -- ---------------------------------------------------------------------------
 
-create or replace function public.reorder_items(
+CREATE OR REPLACE FUNCTION public.reorder_items(
   p_day_id uuid,
   p_time_slot public.time_slot,
   p_item_ids uuid[]
 )
-returns void
-language plpgsql
-security invoker
-set search_path = ''
-as $$
-declare
+RETURNS void
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+DECLARE
   v_updated integer;
-begin
-  update public.items i
-  set time_slot = p_time_slot,
+BEGIN
+  UPDATE public.items i
+  SET time_slot = p_time_slot,
       position = (ordered.ordinality - 1)::integer
-  from unnest(p_item_ids) with ordinality as ordered (id, ordinality)
-  where i.id = ordered.id
-    and i.day_id = p_day_id
-    and i.deleted_at is null
-    and i.start_time is null;
+  FROM unnest(p_item_ids) WITH ORDINALITY AS ordered (id, ordinality)
+  WHERE i.id = ordered.id
+    AND i.day_id = p_day_id
+    AND i.deleted_at IS NULL
+    AND i.start_time IS NULL;
 
-  get diagnostics v_updated = row_count;
-  if v_updated <> coalesce(array_length(p_item_ids, 1), 0) then
-    raise exception 'items changed' using errcode = '40001';
-  end if;
-end;
+  GET DIAGNOSTICS v_updated = ROW_COUNT;
+  IF v_updated <> coalesce(array_length(p_item_ids, 1), 0) THEN
+    RAISE EXCEPTION 'items changed' USING ERRCODE = '40001';
+  END IF;
+END;
 $$;
 
-revoke execute on function public.reorder_items(uuid, public.time_slot, uuid[]) from public, anon;
-grant execute on function public.reorder_items(uuid, public.time_slot, uuid[]) to authenticated;
+REVOKE EXECUTE ON FUNCTION public.reorder_items(uuid, public.time_slot, uuid[]) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.reorder_items(uuid, public.time_slot, uuid[]) TO authenticated;

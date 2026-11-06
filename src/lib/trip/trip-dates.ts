@@ -18,28 +18,23 @@ export function listDates(startDate: string, endDate: string): string[] {
   );
 }
 
-export type DayWithItemCount = { id: string; date: string; itemCount: number };
-
-export type DateRangeChangePlan<T extends DayWithItemCount> = {
+export type DateRangeChangePlan<T extends { date: string }> = {
   // 新範圍外、會被刪掉的天
   removed: T[];
-  // removed 之中還有項目的天：有任何一筆就要擋下修改（Q15）
-  blocked: T[];
   // 新範圍內、目前還沒有的日期
   added: string[];
 };
 
-// 「修改起訖日」以日期對應：保留還在新範圍內的天。「整趟平移」另外處理，不走這裡。
-export function planDateRangeChange<T extends DayWithItemCount>(
+// 「修改起訖日」的預告（Q15）：以日期對應，保留還在新範圍內的天。
+// 要刪的天如果還有項目，由資料庫的 set_trip_dates() 擋下並回傳日期，這裡不判斷。
+export function planDateRangeChange<T extends { date: string }>(
   days: readonly T[],
   startDate: string,
   endDate: string,
 ): DateRangeChangePlan<T> {
-  const removed = days.filter((day) => day.date < startDate || day.date > endDate);
   const existing = new Set(days.map((day) => day.date));
   return {
-    removed,
-    blocked: removed.filter((day) => day.itemCount > 0),
+    removed: days.filter((day) => day.date < startDate || day.date > endDate),
     added: listDates(startDate, endDate).filter((date) => !existing.has(date)),
   };
 }

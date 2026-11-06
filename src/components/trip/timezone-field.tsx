@@ -74,6 +74,7 @@ export function TimezoneField({
 
   return (
     <NativeSelect
+      size='lg'
       id={id}
       name={name}
       defaultValue={inSelect ? defaultValue : COMMON_TIMEZONES[0]}

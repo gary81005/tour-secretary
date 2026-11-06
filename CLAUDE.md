@@ -61,6 +61,7 @@ npm run db:types      # 由已 link 的專案產生 src/types/database.ts
 ## Database
 
 - Supabase CLI 3 的 `db push` / `gen types` **預設連本機**，要對雲端專案一律加 `--remote`（`npm run db:*` 已加）。目前沒有本機 Supabase，migration push 前要先給使用者看 SQL。
+- SQL 寫法：關鍵字大寫（`CREATE TABLE`、`NOT NULL`），型別、函式、識別字小寫（`uuid`、`now()`、`public.trips`），與 `vip-management-web` 一致。
 - migration 必須能重複執行：`if not exists`、`create or replace`、`drop policy if exists`、enum 用 `duplicate_object` 例外包起來。
 - 權限一律用 `is_trip_member()` / `can_access_trip()` 判斷；`trips.start_date/end_date`、`days.date` 只能透過 RPC 改（欄位層級 grant）。
 - **軟刪除不在 RLS 過濾**（否則「復原」無法 update）：查詢 items、stays、trip_notes、traveler_constraints、trips 時要自己加 `deleted_at is null`。

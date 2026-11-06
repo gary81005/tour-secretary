@@ -7,202 +7,202 @@
 -- Helper functions（security definer：在 policy 內查 trip_members 不會遞迴觸發 RLS）
 -- ---------------------------------------------------------------------------
 
-create or replace function public.is_trip_member(p_trip_id uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select exists (
-    select 1
-    from public.trip_members m
-    where m.trip_id = p_trip_id
-      and m.user_id = (select auth.uid())
+CREATE OR REPLACE FUNCTION public.is_trip_member(p_trip_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.trip_members m
+    WHERE m.trip_id = p_trip_id
+      AND m.user_id = (SELECT auth.uid())
   );
 $$;
 
-create or replace function public.is_trip_owner(p_trip_id uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select exists (
-    select 1
-    from public.trip_members m
-    where m.trip_id = p_trip_id
-      and m.user_id = (select auth.uid())
-      and m.role = 'owner'
+CREATE OR REPLACE FUNCTION public.is_trip_owner(p_trip_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.trip_members m
+    WHERE m.trip_id = p_trip_id
+      AND m.user_id = (SELECT auth.uid())
+      AND m.role = 'owner'
   );
 $$;
 
 -- 成員，且行程不在垃圾桶裡：行程底下的資料都用這個判斷。
-create or replace function public.can_access_trip(p_trip_id uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select exists (
-    select 1
-    from public.trip_members m
-    join public.trips t on t.id = m.trip_id
-    where m.trip_id = p_trip_id
-      and m.user_id = (select auth.uid())
-      and t.deleted_at is null
+CREATE OR REPLACE FUNCTION public.can_access_trip(p_trip_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.trip_members m
+    JOIN public.trips t ON t.id = m.trip_id
+    WHERE m.trip_id = p_trip_id
+      AND m.user_id = (SELECT auth.uid())
+      AND t.deleted_at IS NULL
   );
 $$;
 
 -- 自己，或和自己同一趟行程的旅伴。
-create or replace function public.shares_trip_with(p_user_id uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select exists (
-    select 1
-    from public.trip_members me
-    join public.trip_members other on other.trip_id = me.trip_id
-    where me.user_id = (select auth.uid())
-      and other.user_id = p_user_id
+CREATE OR REPLACE FUNCTION public.shares_trip_with(p_user_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.trip_members me
+    JOIN public.trip_members other ON other.trip_id = me.trip_id
+    WHERE me.user_id = (SELECT auth.uid())
+      AND other.user_id = p_user_id
   );
 $$;
 
-revoke execute on function public.is_trip_member(uuid) from public, anon;
-revoke execute on function public.is_trip_owner(uuid) from public, anon;
-revoke execute on function public.can_access_trip(uuid) from public, anon;
-revoke execute on function public.shares_trip_with(uuid) from public, anon;
-grant execute on function public.is_trip_member(uuid) to authenticated;
-grant execute on function public.is_trip_owner(uuid) to authenticated;
-grant execute on function public.can_access_trip(uuid) to authenticated;
-grant execute on function public.shares_trip_with(uuid) to authenticated;
+REVOKE EXECUTE ON FUNCTION public.is_trip_member(uuid) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.is_trip_owner(uuid) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.can_access_trip(uuid) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.shares_trip_with(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.is_trip_member(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_trip_owner(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.can_access_trip(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.shares_trip_with(uuid) TO authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Enable RLS
 -- ---------------------------------------------------------------------------
 
-alter table public.profiles enable row level security;
-alter table public.trips enable row level security;
-alter table public.trip_members enable row level security;
-alter table public.days enable row level security;
-alter table public.items enable row level security;
-alter table public.item_places enable row level security;
-alter table public.fallbacks enable row level security;
-alter table public.stays enable row level security;
-alter table public.trip_notes enable row level security;
-alter table public.traveler_constraints enable row level security;
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.trips ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.trip_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.days ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.item_places ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.fallbacks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.stays ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.trip_notes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.traveler_constraints ENABLE ROW LEVEL SECURITY;
 
 -- ---------------------------------------------------------------------------
 -- Grants：明確列出 authenticated 能做的事；anon 一律沒有權限。
 -- 欄位層級的 update 讓「起訖日、天的日期」只能透過 RPC 改，天數才不會和日期範圍脫節。
 -- ---------------------------------------------------------------------------
 
-revoke all on
+REVOKE ALL ON
   public.profiles, public.trips, public.trip_members, public.days, public.items,
   public.item_places, public.fallbacks, public.stays, public.trip_notes,
   public.traveler_constraints
-from anon, authenticated;
+FROM anon, authenticated;
 
-grant select on public.profiles to authenticated;
-grant update (display_name, avatar_url) on public.profiles to authenticated;
+GRANT SELECT ON public.profiles TO authenticated;
+GRANT UPDATE (display_name, avatar_url) ON public.profiles TO authenticated;
 
 -- 新增行程走 create_trip()；起訖日走之後的日期 RPC。
-grant select, delete on public.trips to authenticated;
-grant update (name, default_timezone, deleted_at) on public.trips to authenticated;
+GRANT SELECT, DELETE ON public.trips TO authenticated;
+GRANT UPDATE (name, default_timezone, deleted_at) ON public.trips TO authenticated;
 
 -- 成員異動在 M5（邀請流程）才開放。
-grant select on public.trip_members to authenticated;
+GRANT SELECT ON public.trip_members TO authenticated;
 
 -- 天的新增、刪除、改日期都走 RPC。
-grant select on public.days to authenticated;
-grant update (city, timezone) on public.days to authenticated;
+GRANT SELECT ON public.days TO authenticated;
+GRANT UPDATE (city, timezone) ON public.days TO authenticated;
 
-grant select, insert, update, delete on
+GRANT SELECT, INSERT, UPDATE, DELETE ON
   public.items, public.item_places, public.fallbacks, public.stays, public.trip_notes,
   public.traveler_constraints
-to authenticated;
+TO authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Policies
 -- ---------------------------------------------------------------------------
 
-drop policy if exists "profiles: read self and travel companions" on public.profiles;
-create policy "profiles: read self and travel companions"
-  on public.profiles for select to authenticated
-  using (id = (select auth.uid()) or public.shares_trip_with(id));
+DROP POLICY IF EXISTS "profiles: read self and travel companions" ON public.profiles;
+CREATE POLICY "profiles: read self and travel companions"
+  ON public.profiles FOR SELECT TO authenticated
+  USING (id = (SELECT auth.uid()) OR public.shares_trip_with(id));
 
-drop policy if exists "profiles: update self" on public.profiles;
-create policy "profiles: update self"
-  on public.profiles for update to authenticated
-  using (id = (select auth.uid()))
-  with check (id = (select auth.uid()));
+DROP POLICY IF EXISTS "profiles: update self" ON public.profiles;
+CREATE POLICY "profiles: update self"
+  ON public.profiles FOR UPDATE TO authenticated
+  USING (id = (SELECT auth.uid()))
+  WITH CHECK (id = (SELECT auth.uid()));
 
 -- 成員看得到垃圾桶裡的行程（垃圾桶頁面要用）。
-drop policy if exists "trips: members can read" on public.trips;
-create policy "trips: members can read"
-  on public.trips for select to authenticated
-  using (public.is_trip_member(id));
+DROP POLICY IF EXISTS "trips: members can read" ON public.trips;
+CREATE POLICY "trips: members can read"
+  ON public.trips FOR SELECT TO authenticated
+  USING (public.is_trip_member(id));
 
-drop policy if exists "trips: members can update" on public.trips;
-create policy "trips: members can update"
-  on public.trips for update to authenticated
-  using (public.is_trip_member(id))
-  with check (public.is_trip_member(id));
+DROP POLICY IF EXISTS "trips: members can update" ON public.trips;
+CREATE POLICY "trips: members can update"
+  ON public.trips FOR UPDATE TO authenticated
+  USING (public.is_trip_member(id))
+  WITH CHECK (public.is_trip_member(id));
 
 -- 永久刪除只有 owner 能做。
-drop policy if exists "trips: owner can delete" on public.trips;
-create policy "trips: owner can delete"
-  on public.trips for delete to authenticated
-  using (public.is_trip_owner(id));
+DROP POLICY IF EXISTS "trips: owner can delete" ON public.trips;
+CREATE POLICY "trips: owner can delete"
+  ON public.trips FOR DELETE TO authenticated
+  USING (public.is_trip_owner(id));
 
-drop policy if exists "trip_members: members can read" on public.trip_members;
-create policy "trip_members: members can read"
-  on public.trip_members for select to authenticated
-  using (public.is_trip_member(trip_id));
+DROP POLICY IF EXISTS "trip_members: members can read" ON public.trip_members;
+CREATE POLICY "trip_members: members can read"
+  ON public.trip_members FOR SELECT TO authenticated
+  USING (public.is_trip_member(trip_id));
 
-drop policy if exists "days: members can access" on public.days;
-create policy "days: members can access"
-  on public.days for all to authenticated
-  using (public.can_access_trip(trip_id))
-  with check (public.can_access_trip(trip_id));
+DROP POLICY IF EXISTS "days: members can access" ON public.days;
+CREATE POLICY "days: members can access"
+  ON public.days FOR ALL TO authenticated
+  USING (public.can_access_trip(trip_id))
+  WITH CHECK (public.can_access_trip(trip_id));
 
-drop policy if exists "items: members can access" on public.items;
-create policy "items: members can access"
-  on public.items for all to authenticated
-  using (public.can_access_trip(trip_id))
-  with check (public.can_access_trip(trip_id));
+DROP POLICY IF EXISTS "items: members can access" ON public.items;
+CREATE POLICY "items: members can access"
+  ON public.items FOR ALL TO authenticated
+  USING (public.can_access_trip(trip_id))
+  WITH CHECK (public.can_access_trip(trip_id));
 
-drop policy if exists "item_places: members can access" on public.item_places;
-create policy "item_places: members can access"
-  on public.item_places for all to authenticated
-  using (public.can_access_trip(trip_id))
-  with check (public.can_access_trip(trip_id));
+DROP POLICY IF EXISTS "item_places: members can access" ON public.item_places;
+CREATE POLICY "item_places: members can access"
+  ON public.item_places FOR ALL TO authenticated
+  USING (public.can_access_trip(trip_id))
+  WITH CHECK (public.can_access_trip(trip_id));
 
-drop policy if exists "fallbacks: members can access" on public.fallbacks;
-create policy "fallbacks: members can access"
-  on public.fallbacks for all to authenticated
-  using (public.can_access_trip(trip_id))
-  with check (public.can_access_trip(trip_id));
+DROP POLICY IF EXISTS "fallbacks: members can access" ON public.fallbacks;
+CREATE POLICY "fallbacks: members can access"
+  ON public.fallbacks FOR ALL TO authenticated
+  USING (public.can_access_trip(trip_id))
+  WITH CHECK (public.can_access_trip(trip_id));
 
-drop policy if exists "stays: members can access" on public.stays;
-create policy "stays: members can access"
-  on public.stays for all to authenticated
-  using (public.can_access_trip(trip_id))
-  with check (public.can_access_trip(trip_id));
+DROP POLICY IF EXISTS "stays: members can access" ON public.stays;
+CREATE POLICY "stays: members can access"
+  ON public.stays FOR ALL TO authenticated
+  USING (public.can_access_trip(trip_id))
+  WITH CHECK (public.can_access_trip(trip_id));
 
-drop policy if exists "trip_notes: members can access" on public.trip_notes;
-create policy "trip_notes: members can access"
-  on public.trip_notes for all to authenticated
-  using (public.can_access_trip(trip_id))
-  with check (public.can_access_trip(trip_id));
+DROP POLICY IF EXISTS "trip_notes: members can access" ON public.trip_notes;
+CREATE POLICY "trip_notes: members can access"
+  ON public.trip_notes FOR ALL TO authenticated
+  USING (public.can_access_trip(trip_id))
+  WITH CHECK (public.can_access_trip(trip_id));
 
-drop policy if exists "traveler_constraints: members can access" on public.traveler_constraints;
-create policy "traveler_constraints: members can access"
-  on public.traveler_constraints for all to authenticated
-  using (public.can_access_trip(trip_id))
-  with check (public.can_access_trip(trip_id));
+DROP POLICY IF EXISTS "traveler_constraints: members can access" ON public.traveler_constraints;
+CREATE POLICY "traveler_constraints: members can access"
+  ON public.traveler_constraints FOR ALL TO authenticated
+  USING (public.can_access_trip(trip_id))
+  WITH CHECK (public.can_access_trip(trip_id));

@@ -27,9 +27,9 @@ describe('日期計算', () => {
 
 describe('planDateRangeChange', () => {
   const days = [
-    { id: 'd1', date: '2027-03-05', itemCount: 2 },
-    { id: 'd2', date: '2027-03-06', itemCount: 0 },
-    { id: 'd3', date: '2027-03-07', itemCount: 1 },
+    { id: 'd1', date: '2027-03-05' },
+    { id: 'd2', date: '2027-03-06' },
+    { id: 'd3', date: '2027-03-07' },
   ];
 
   it('延長：只新增缺少的日期', () => {
@@ -38,23 +38,15 @@ describe('planDateRangeChange', () => {
     expect(plan.added).toEqual(['2027-03-04', '2027-03-08']);
   });
 
-  it('晚一天出發：刪掉第 1 天；第 1 天有項目所以被擋下', () => {
+  it('晚一天出發：刪掉第 1 天', () => {
     const plan = planDateRangeChange(days, '2027-03-06', '2027-03-07');
     expect(plan.removed.map((d) => d.id)).toEqual(['d1']);
-    expect(plan.blocked.map((d) => d.id)).toEqual(['d1']);
     expect(plan.added).toEqual([]);
-  });
-
-  it('要刪的天沒有項目就不擋', () => {
-    const plan = planDateRangeChange(days.slice(0, 2), '2027-03-05', '2027-03-05');
-    expect(plan.removed.map((d) => d.id)).toEqual(['d2']);
-    expect(plan.blocked).toEqual([]);
   });
 
   it('整個換到不重疊的日期：全部刪除、全部新增', () => {
     const plan = planDateRangeChange(days, '2027-04-01', '2027-04-02');
     expect(plan.removed).toHaveLength(3);
-    expect(plan.blocked.map((d) => d.id)).toEqual(['d1', 'd3']);
     expect(plan.added).toEqual(['2027-04-01', '2027-04-02']);
   });
 });

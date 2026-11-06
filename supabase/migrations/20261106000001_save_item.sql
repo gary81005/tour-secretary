@@ -6,13 +6,13 @@
 -- 畫面上另有 isSafeHttpUrl() 再擋一次（src/lib/url.ts）。
 -- ---------------------------------------------------------------------------
 
-alter table public.items drop constraint if exists items_url_http;
-alter table public.items
-  add constraint items_url_http check (url is null or url ~* '^https?://');
+ALTER TABLE public.items DROP CONSTRAINT IF EXISTS items_url_http;
+ALTER TABLE public.items
+  ADD CONSTRAINT items_url_http CHECK (url IS NULL OR url ~* '^https?://');
 
-alter table public.stays drop constraint if exists stays_url_http;
-alter table public.stays
-  add constraint stays_url_http check (url is null or url ~* '^https?://');
+ALTER TABLE public.stays DROP CONSTRAINT IF EXISTS stays_url_http;
+ALTER TABLE public.stays
+  ADD CONSTRAINT stays_url_http CHECK (url IS NULL OR url ~* '^https?://');
 
 -- ---------------------------------------------------------------------------
 -- save_item：新增或更新一個行程項目，並整批替換它的地點與備案。
@@ -22,68 +22,68 @@ alter table public.stays
 
 -- 可以是空值的參數都有 default：產生的 TypeScript 型別會是選填，呼叫端不傳就好。
 -- PostgREST 以參數名稱呼叫，所以順序只影響 SQL 直接呼叫。
-create or replace function public.save_item(
+CREATE OR REPLACE FUNCTION public.save_item(
   p_day_id uuid,
   p_title text,
   p_time_slot public.time_slot,
   p_category public.item_category,
   -- null 表示新增
-  p_item_id uuid default null,
-  p_start_time time default null,
-  p_end_time time default null,
-  p_description text default null,
-  p_url text default null,
-  p_places text[] default '{}',
+  p_item_id uuid DEFAULT NULL,
+  p_start_time time DEFAULT NULL,
+  p_end_time time DEFAULT NULL,
+  p_description text DEFAULT NULL,
+  p_url text DEFAULT NULL,
+  p_places text[] DEFAULT '{}',
   -- [{ "condition": "纜車停駛" | null, "alternative": "改逛溫泉街" }, ...]
-  p_fallbacks jsonb default '[]'
+  p_fallbacks jsonb DEFAULT '[]'
 )
-returns uuid
-language plpgsql
-security invoker
-set search_path = ''
-as $$
-declare
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+DECLARE
   v_trip_id uuid;
   v_item_id uuid := p_item_id;
   v_old_day_id uuid;
   v_old_slot public.time_slot;
   v_position integer;
-begin
+BEGIN
   -- 天由 RLS 過濾：不是成員或行程在垃圾桶裡時查不到。
-  select d.trip_id into v_trip_id from public.days d where d.id = p_day_id;
-  if v_trip_id is null then
-    raise exception 'day not found' using errcode = 'P0002';
-  end if;
+  SELECT d.trip_id INTO v_trip_id FROM public.days d WHERE d.id = p_day_id;
+  IF v_trip_id IS NULL THEN
+    RAISE EXCEPTION 'day not found' USING ERRCODE = 'P0002';
+  END IF;
 
-  if v_item_id is not null then
-    select i.day_id, i.time_slot into v_old_day_id, v_old_slot
-    from public.items i
-    where i.id = v_item_id and i.trip_id = v_trip_id and i.deleted_at is null;
-    if v_old_day_id is null then
-      raise exception 'item not found' using errcode = 'P0002';
-    end if;
-  end if;
+  IF v_item_id IS NOT NULL THEN
+    SELECT i.day_id, i.time_slot INTO v_old_day_id, v_old_slot
+    FROM public.items i
+    WHERE i.id = v_item_id AND i.trip_id = v_trip_id AND i.deleted_at IS NULL;
+    IF v_old_day_id IS NULL THEN
+      RAISE EXCEPTION 'item not found' USING ERRCODE = 'P0002';
+    END IF;
+  END IF;
 
   -- 新項目，或換了天／時段的項目，排到該時段手動順序的最後（Q22）。
-  if v_item_id is null or v_old_day_id <> p_day_id or v_old_slot <> p_time_slot then
-    select coalesce(max(i.position) + 1, 0) into v_position
-    from public.items i
-    where i.day_id = p_day_id and i.time_slot = p_time_slot and i.deleted_at is null
-      and i.id is distinct from v_item_id;
-  end if;
+  IF v_item_id IS NULL OR v_old_day_id <> p_day_id OR v_old_slot <> p_time_slot THEN
+    SELECT coalesce(max(i.position) + 1, 0) INTO v_position
+    FROM public.items i
+    WHERE i.day_id = p_day_id AND i.time_slot = p_time_slot AND i.deleted_at IS NULL
+      AND i.id IS DISTINCT FROM v_item_id;
+  END IF;
 
-  if v_item_id is null then
-    insert into public.items (
+  IF v_item_id IS NULL THEN
+    INSERT INTO public.items (
       trip_id, day_id, title, time_slot, category, start_time, end_time, description, url, position
     )
-    values (
+    VALUES (
       v_trip_id, p_day_id, p_title, p_time_slot, p_category, p_start_time, p_end_time,
       p_description, p_url, v_position
     )
-    returning id into v_item_id;
-  else
-    update public.items
-    set day_id = p_day_id,
+    RETURNING id INTO v_item_id;
+  ELSE
+    UPDATE public.items
+    SET day_id = p_day_id,
         title = p_title,
         time_slot = p_time_slot,
         category = p_category,
@@ -92,30 +92,30 @@ begin
         description = p_description,
         url = p_url,
         position = coalesce(v_position, position)
-    where id = v_item_id;
-  end if;
+    WHERE id = v_item_id;
+  END IF;
 
-  delete from public.item_places where item_id = v_item_id;
-  insert into public.item_places (trip_id, item_id, name, position)
-  select v_trip_id, v_item_id, place.name, (place.ordinality - 1)::integer
-  from unnest(coalesce(p_places, '{}')) with ordinality as place (name, ordinality);
+  DELETE FROM public.item_places WHERE item_id = v_item_id;
+  INSERT INTO public.item_places (trip_id, item_id, name, position)
+  SELECT v_trip_id, v_item_id, place.name, (place.ordinality - 1)::integer
+  FROM unnest(coalesce(p_places, '{}')) WITH ORDINALITY AS place (name, ordinality);
 
-  delete from public.fallbacks where item_id = v_item_id;
-  insert into public.fallbacks (trip_id, item_id, condition, alternative, position)
-  select v_trip_id, v_item_id, fallback.condition, fallback.alternative,
+  DELETE FROM public.fallbacks WHERE item_id = v_item_id;
+  INSERT INTO public.fallbacks (trip_id, item_id, condition, alternative, position)
+  SELECT v_trip_id, v_item_id, fallback.condition, fallback.alternative,
          (fallback.ordinality - 1)::integer
   -- 有欄位定義的函式要包在 rows from (...) 裡才能加 with ordinality。
-  from rows from (
-         jsonb_to_recordset(coalesce(p_fallbacks, '[]'::jsonb)) as (condition text, alternative text)
-       ) with ordinality as fallback (condition, alternative, ordinality);
+  FROM ROWS FROM (
+         jsonb_to_recordset(coalesce(p_fallbacks, '[]'::jsonb)) AS (condition text, alternative text)
+       ) WITH ORDINALITY AS fallback (condition, alternative, ordinality);
 
-  return v_item_id;
-end;
+  RETURN v_item_id;
+END;
 $$;
 
-revoke execute on function public.save_item(
+REVOKE EXECUTE ON FUNCTION public.save_item(
   uuid, text, public.time_slot, public.item_category, uuid, time, time, text, text, text[], jsonb
-) from public, anon;
-grant execute on function public.save_item(
+) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.save_item(
   uuid, text, public.time_slot, public.item_category, uuid, time, time, text, text, text[], jsonb
-) to authenticated;
+) TO authenticated;

@@ -7,31 +7,31 @@
 -- security invoker：照常套用 RLS。
 -- ---------------------------------------------------------------------------
 
-create or replace function public.reorder_trip_notes(p_trip_id uuid, p_note_ids uuid[])
-returns void
-language plpgsql
-security invoker
-set search_path = ''
-as $$
-declare
+CREATE OR REPLACE FUNCTION public.reorder_trip_notes(p_trip_id uuid, p_note_ids uuid[])
+RETURNS void
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+DECLARE
   v_updated integer;
   v_total integer;
-begin
-  update public.trip_notes n
-  set position = (ordered.ordinality - 1)::integer
-  from unnest(p_note_ids) with ordinality as ordered (id, ordinality)
-  where n.id = ordered.id and n.trip_id = p_trip_id and n.deleted_at is null;
+BEGIN
+  UPDATE public.trip_notes n
+  SET position = (ordered.ordinality - 1)::integer
+  FROM unnest(p_note_ids) WITH ORDINALITY AS ordered (id, ordinality)
+  WHERE n.id = ordered.id AND n.trip_id = p_trip_id AND n.deleted_at IS NULL;
 
-  get diagnostics v_updated = row_count;
-  select count(*) into v_total
-  from public.trip_notes
-  where trip_id = p_trip_id and deleted_at is null;
+  GET DIAGNOSTICS v_updated = ROW_COUNT;
+  SELECT count(*) INTO v_total
+  FROM public.trip_notes
+  WHERE trip_id = p_trip_id AND deleted_at IS NULL;
 
-  if v_updated <> coalesce(array_length(p_note_ids, 1), 0) or v_updated <> v_total then
-    raise exception 'notes changed' using errcode = '40001';
-  end if;
-end;
+  IF v_updated <> coalesce(array_length(p_note_ids, 1), 0) OR v_updated <> v_total THEN
+    RAISE EXCEPTION 'notes changed' USING ERRCODE = '40001';
+  END IF;
+END;
 $$;
 
-revoke execute on function public.reorder_trip_notes(uuid, uuid[]) from public, anon;
-grant execute on function public.reorder_trip_notes(uuid, uuid[]) to authenticated;
+REVOKE EXECUTE ON FUNCTION public.reorder_trip_notes(uuid, uuid[]) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.reorder_trip_notes(uuid, uuid[]) TO authenticated;

@@ -9,32 +9,32 @@
 -- shift_trip：整趟平移 p_days 天（例如延後一週）。每天的內容跟著第 N 天移動。
 -- ---------------------------------------------------------------------------
 
-create or replace function public.shift_trip(p_trip_id uuid, p_days integer)
-returns void
-language plpgsql
-security definer
-set search_path = ''
-as $$
-begin
-  if not public.can_access_trip(p_trip_id) then
-    raise exception 'trip not found' using errcode = 'P0002';
-  end if;
-  if p_days is null or p_days = 0 then
-    return;
-  end if;
-  if abs(p_days) > 3650 then
-    raise exception 'invalid_shift' using errcode = '22023';
-  end if;
+CREATE OR REPLACE FUNCTION public.shift_trip(p_trip_id uuid, p_days integer)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+  IF NOT public.can_access_trip(p_trip_id) THEN
+    RAISE EXCEPTION 'trip not found' USING ERRCODE = 'P0002';
+  END IF;
+  IF p_days IS NULL OR p_days = 0 THEN
+    RETURN;
+  END IF;
+  IF abs(p_days) > 3650 THEN
+    RAISE EXCEPTION 'invalid_shift' USING ERRCODE = '22023';
+  END IF;
 
-  update public.trips
-  set start_date = start_date + p_days, end_date = end_date + p_days
-  where id = p_trip_id;
+  UPDATE public.trips
+  SET start_date = start_date + p_days, end_date = end_date + p_days
+  WHERE id = p_trip_id;
   -- days_trip_date_key 是 deferrable，整批改日期時中途撞到同一天沒關係。
-  update public.days set date = date + p_days where trip_id = p_trip_id;
-  update public.stays
-  set check_in = check_in + p_days, check_out = check_out + p_days
-  where trip_id = p_trip_id;
-end;
+  UPDATE public.days SET date = date + p_days WHERE trip_id = p_trip_id;
+  UPDATE public.stays
+  SET check_in = check_in + p_days, check_out = check_out + p_days
+  WHERE trip_id = p_trip_id;
+END;
 $$;
 
 -- ---------------------------------------------------------------------------
@@ -42,48 +42,48 @@ $$;
 -- 要刪掉的天只要還有項目（未刪除）就整筆擋下，detail 是那些日期（逗號分隔）。
 -- ---------------------------------------------------------------------------
 
-create or replace function public.set_trip_dates(
+CREATE OR REPLACE FUNCTION public.set_trip_dates(
   p_trip_id uuid,
   p_start_date date,
   p_end_date date
 )
-returns void
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
   v_blocked text;
-begin
-  if not public.can_access_trip(p_trip_id) then
-    raise exception 'trip not found' using errcode = 'P0002';
-  end if;
-  if p_start_date is null or p_end_date is null or p_end_date < p_start_date
-     or p_end_date - p_start_date >= 60 then
-    raise exception 'invalid_range' using errcode = '22023';
-  end if;
+BEGIN
+  IF NOT public.can_access_trip(p_trip_id) THEN
+    RAISE EXCEPTION 'trip not found' USING ERRCODE = 'P0002';
+  END IF;
+  IF p_start_date IS NULL OR p_end_date IS NULL OR p_end_date < p_start_date
+     OR p_end_date - p_start_date >= 60 THEN
+    RAISE EXCEPTION 'invalid_range' USING ERRCODE = '22023';
+  END IF;
 
-  select string_agg(distinct d.date::text, ',' order by d.date::text) into v_blocked
-  from public.days d
-  join public.items i on i.day_id = d.id and i.deleted_at is null
-  where d.trip_id = p_trip_id and (d.date < p_start_date or d.date > p_end_date);
-  if v_blocked is not null then
-    raise exception 'days_have_items' using errcode = 'P0001', detail = v_blocked;
-  end if;
+  SELECT string_agg(DISTINCT d.date::text, ',' ORDER BY d.date::text) INTO v_blocked
+  FROM public.days d
+  JOIN public.items i ON i.day_id = d.id AND i.deleted_at IS NULL
+  WHERE d.trip_id = p_trip_id AND (d.date < p_start_date OR d.date > p_end_date);
+  IF v_blocked IS NOT NULL THEN
+    RAISE EXCEPTION 'days_have_items' USING ERRCODE = 'P0001', DETAIL = v_blocked;
+  END IF;
 
-  delete from public.days
-  where trip_id = p_trip_id and (date < p_start_date or date > p_end_date);
+  DELETE FROM public.days
+  WHERE trip_id = p_trip_id AND (date < p_start_date OR date > p_end_date);
 
-  insert into public.days (trip_id, date)
-  select p_trip_id, p_start_date + offset_days
-  from generate_series(0, p_end_date - p_start_date) as offset_days
-  where not exists (
-    select 1 from public.days d
-    where d.trip_id = p_trip_id and d.date = p_start_date + offset_days
+  INSERT INTO public.days (trip_id, date)
+  SELECT p_trip_id, p_start_date + offset_days
+  FROM generate_series(0, p_end_date - p_start_date) AS offset_days
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.days d
+    WHERE d.trip_id = p_trip_id AND d.date = p_start_date + offset_days
   );
 
-  update public.trips set start_date = p_start_date, end_date = p_end_date where id = p_trip_id;
-end;
+  UPDATE public.trips SET start_date = p_start_date, end_date = p_end_date WHERE id = p_trip_id;
+END;
 $$;
 
 -- ---------------------------------------------------------------------------
@@ -91,40 +91,40 @@ $$;
 -- 插入點之後的住宿一起往後移；跨過插入點的住宿多住一晚。
 -- ---------------------------------------------------------------------------
 
-create or replace function public.insert_day_after(p_day_id uuid)
-returns uuid
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
+CREATE OR REPLACE FUNCTION public.insert_day_after(p_day_id uuid)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
   v_trip_id uuid;
   v_date date;
   v_day_count integer;
   v_new_day_id uuid;
-begin
-  select d.trip_id, d.date into v_trip_id, v_date from public.days d where d.id = p_day_id;
-  if v_trip_id is null or not public.can_access_trip(v_trip_id) then
-    raise exception 'day not found' using errcode = 'P0002';
-  end if;
+BEGIN
+  SELECT d.trip_id, d.date INTO v_trip_id, v_date FROM public.days d WHERE d.id = p_day_id;
+  IF v_trip_id IS NULL OR NOT public.can_access_trip(v_trip_id) THEN
+    RAISE EXCEPTION 'day not found' USING ERRCODE = 'P0002';
+  END IF;
 
-  select count(*) into v_day_count from public.days where trip_id = v_trip_id;
-  if v_day_count >= 60 then
-    raise exception 'trip_too_long' using errcode = '22023';
-  end if;
+  SELECT count(*) INTO v_day_count FROM public.days WHERE trip_id = v_trip_id;
+  IF v_day_count >= 60 THEN
+    RAISE EXCEPTION 'trip_too_long' USING ERRCODE = '22023';
+  END IF;
 
-  update public.days set date = date + 1 where trip_id = v_trip_id and date > v_date;
-  update public.stays
-  set check_in = check_in + case when check_in > v_date then 1 else 0 end,
+  UPDATE public.days SET date = date + 1 WHERE trip_id = v_trip_id AND date > v_date;
+  UPDATE public.stays
+  SET check_in = check_in + CASE WHEN check_in > v_date THEN 1 ELSE 0 END,
       check_out = check_out + 1
-  where trip_id = v_trip_id and check_out > v_date;
+  WHERE trip_id = v_trip_id AND check_out > v_date;
 
-  insert into public.days (trip_id, date) values (v_trip_id, v_date + 1)
-  returning id into v_new_day_id;
+  INSERT INTO public.days (trip_id, date) VALUES (v_trip_id, v_date + 1)
+  RETURNING id INTO v_new_day_id;
 
-  update public.trips set end_date = end_date + 1 where id = v_trip_id;
-  return v_new_day_id;
-end;
+  UPDATE public.trips SET end_date = end_date + 1 WHERE id = v_trip_id;
+  RETURN v_new_day_id;
+END;
 $$;
 
 -- ---------------------------------------------------------------------------
@@ -132,49 +132,49 @@ $$;
 -- 至少要留一天。只住被刪那一晚的住宿改成軟刪除（往前移會變成入住日 = 退房日）。
 -- ---------------------------------------------------------------------------
 
-create or replace function public.delete_day(p_day_id uuid)
-returns void
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
+CREATE OR REPLACE FUNCTION public.delete_day(p_day_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
   v_trip_id uuid;
   v_date date;
   v_day_count integer;
-begin
-  select d.trip_id, d.date into v_trip_id, v_date from public.days d where d.id = p_day_id;
-  if v_trip_id is null or not public.can_access_trip(v_trip_id) then
-    raise exception 'day not found' using errcode = 'P0002';
-  end if;
+BEGIN
+  SELECT d.trip_id, d.date INTO v_trip_id, v_date FROM public.days d WHERE d.id = p_day_id;
+  IF v_trip_id IS NULL OR NOT public.can_access_trip(v_trip_id) THEN
+    RAISE EXCEPTION 'day not found' USING ERRCODE = 'P0002';
+  END IF;
 
-  select count(*) into v_day_count from public.days where trip_id = v_trip_id;
-  if v_day_count <= 1 then
-    raise exception 'last_day' using errcode = '22023';
-  end if;
+  SELECT count(*) INTO v_day_count FROM public.days WHERE trip_id = v_trip_id;
+  IF v_day_count <= 1 THEN
+    RAISE EXCEPTION 'last_day' USING ERRCODE = '22023';
+  END IF;
 
-  delete from public.days where id = p_day_id;
+  DELETE FROM public.days WHERE id = p_day_id;
 
-  update public.stays set deleted_at = coalesce(deleted_at, now())
-  where trip_id = v_trip_id and check_in = v_date and check_out = v_date + 1;
+  UPDATE public.stays SET deleted_at = coalesce(deleted_at, now())
+  WHERE trip_id = v_trip_id AND check_in = v_date AND check_out = v_date + 1;
 
-  update public.stays
-  set check_in = check_in - case when check_in > v_date then 1 else 0 end,
+  UPDATE public.stays
+  SET check_in = check_in - CASE WHEN check_in > v_date THEN 1 ELSE 0 END,
       check_out = check_out - 1
-  where trip_id = v_trip_id
-    and check_out > v_date
-    and not (check_in = v_date and check_out = v_date + 1);
+  WHERE trip_id = v_trip_id
+    AND check_out > v_date
+    AND NOT (check_in = v_date AND check_out = v_date + 1);
 
-  update public.days set date = date - 1 where trip_id = v_trip_id and date > v_date;
-  update public.trips set end_date = end_date - 1 where id = v_trip_id;
-end;
+  UPDATE public.days SET date = date - 1 WHERE trip_id = v_trip_id AND date > v_date;
+  UPDATE public.trips SET end_date = end_date - 1 WHERE id = v_trip_id;
+END;
 $$;
 
-revoke execute on function public.shift_trip(uuid, integer) from public, anon;
-revoke execute on function public.set_trip_dates(uuid, date, date) from public, anon;
-revoke execute on function public.insert_day_after(uuid) from public, anon;
-revoke execute on function public.delete_day(uuid) from public, anon;
-grant execute on function public.shift_trip(uuid, integer) to authenticated;
-grant execute on function public.set_trip_dates(uuid, date, date) to authenticated;
-grant execute on function public.insert_day_after(uuid) to authenticated;
-grant execute on function public.delete_day(uuid) to authenticated;
+REVOKE EXECUTE ON FUNCTION public.shift_trip(uuid, integer) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.set_trip_dates(uuid, date, date) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.insert_day_after(uuid) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.delete_day(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.shift_trip(uuid, integer) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.set_trip_dates(uuid, date, date) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.insert_day_after(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.delete_day(uuid) TO authenticated;

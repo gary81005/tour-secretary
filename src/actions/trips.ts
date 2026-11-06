@@ -15,7 +15,6 @@ import {
 } from '@/lib/form';
 import { blockedDatesOf, rpcErrorKey } from '@/lib/rpc-errors';
 import { tripCreateSchema, tripDateRangeSchema, tripUpdateSchema } from '@/lib/trip/schemas';
-import { countDays } from '@/lib/trip/trip-dates';
 import { isUuid } from '@/lib/uuid';
 
 // 行程的 Server Actions（Q11）。每個 action 都重新確認登入，權限最後由 RLS 把關。
@@ -145,7 +144,7 @@ export async function updateTrip(tripId: string, formData: FormData): Promise<Fo
   return { ok: true };
 }
 
-// 整趟平移：使用者選新的出發日，平移天數以資料庫裡目前的出發日計算。
+// 整趟平移：使用者選新的出發日，平移天數由 shift_trip() 用當下的出發日計算（避免先讀後算的競態）。
 export async function shiftTrip(tripId: string, formData: FormData): Promise<FormResult> {
   if (!isUuid(tripId)) return { ok: false, error: 'notFound' };
 
@@ -157,17 +156,9 @@ export async function shiftTrip(tripId: string, formData: FormData): Promise<For
   const supabase = await getSignedInClient();
   if (!supabase) return { ok: false, error: 'unauthorized' };
 
-  const { data: trip } = await supabase
-    .from('trips')
-    .select('start_date')
-    .eq('id', tripId)
-    .is('deleted_at', null)
-    .maybeSingle();
-  if (!trip) return { ok: false, error: 'notFound' };
-
   const { error } = await supabase.rpc('shift_trip', {
     p_trip_id: tripId,
-    p_days: countDays(trip.start_date, parsed.data.startDate) - 1,
+    p_start_date: parsed.data.startDate,
   });
   if (error) return { ok: false, error: rpcErrorKey(error) };
 

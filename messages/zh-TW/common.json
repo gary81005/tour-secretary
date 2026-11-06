@@ -29,5 +29,17 @@
     "Asia/Kuala_Lumpur": "吉隆坡（GMT+8）",
     "Asia/Ho_Chi_Minh": "胡志明市（GMT+7）",
     "Asia/Manila": "馬尼拉（GMT+8）"
+  },
+  "notFound": {
+    "title": "找不到這個頁面",
+    "description": "網址可能打錯了，或這個行程已經被刪除。",
+    "backHome": "回到我的行程"
+  },
+  "errorPage": {
+    "title": "發生錯誤",
+    "description": "頁面載入失敗，請再試一次。如果一直發生，請稍後再回來。",
+    "retry": "再試一次",
+    "backHome": "回到我的行程",
+    "reference": "錯誤代碼：{digest}"
   }
 }

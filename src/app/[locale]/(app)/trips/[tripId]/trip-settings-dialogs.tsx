@@ -245,19 +245,13 @@ export function ChangeDatesDialog({
 
   const isValid =
     DATE_PATTERN.test(startDate) && DATE_PATTERN.test(endDate) && endDate >= startDate;
-  const plan = isValid
-    ? planDateRangeChange(
-        days.map((day) => ({ ...day, itemCount: 0 })),
-        startDate,
-        endDate,
-      )
-    : null;
+  const plan = isValid ? planDateRangeChange(days, startDate, endDate) : null;
   const unchanged = startDate === trip.start_date && endDate === trip.end_date;
 
   // 日期 → 「第 N 天（3/5）」，N 是目前的第幾天。
   function describeDays(dates: string[]) {
-    return dates
-      .map((date) =>
+    return format.list(
+      dates.map((date) =>
         t('trips.settings.dates.dayWithDate', {
           day: days.findIndex((day) => day.date === date) + 1,
           date: format.dateTime(localDateToUtc(date), {
@@ -266,8 +260,9 @@ export function ChangeDatesDialog({
             timeZone: 'UTC',
           }),
         }),
-      )
-      .join('、');
+      ),
+      { type: 'conjunction' },
+    );
   }
 
   const blockedDates = result && !result.ok && 'blockedDates' in result ? result.blockedDates : [];

@@ -175,6 +175,7 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, onDone }: Props
       <Field>
         <FieldLabel htmlFor='item-day'>{t('trips.item.dayLabel')}</FieldLabel>
         <NativeSelect
+          size='lg'
           id='item-day'
           name={ITEM_FIELDS.dayId}
           defaultValue={dayId}
@@ -225,6 +226,7 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, onDone }: Props
       <Field data-invalid={!!fieldErrors?.timeSlot}>
         <FieldLabel htmlFor='item-slot'>{t('trips.item.timeSlotLabel')}</FieldLabel>
         <NativeSelect
+          size='lg'
           id='item-slot'
           name={ITEM_FIELDS.timeSlot}
           value={timeSlot}

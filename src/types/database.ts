@@ -486,7 +486,7 @@ export type Database = {
       }
       shares_trip_with: { Args: { p_user_id: string }; Returns: boolean }
       shift_trip: {
-        Args: { p_days: number; p_trip_id: string }
+        Args: { p_start_date: string; p_trip_id: string }
         Returns: undefined
       }
     }

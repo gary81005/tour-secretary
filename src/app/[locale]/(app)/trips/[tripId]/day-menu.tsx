@@ -184,7 +184,13 @@ function EditDayDialog({
           {laterDays.length > 0 && (
             <Field>
               <FieldLabel htmlFor='day-city-until'>{t('trips.dayMenu.cityUntilLabel')}</FieldLabel>
-              <NativeSelect id='day-city-until' name='cityUntil' defaultValue='' className='w-full'>
+              <NativeSelect
+                size='lg'
+                id='day-city-until'
+                name='cityUntil'
+                defaultValue=''
+                className='w-full'
+              >
                 <NativeSelectOption value=''>
                   {t('trips.dayMenu.cityUntilOnlyThisDay')}
                 </NativeSelectOption>
