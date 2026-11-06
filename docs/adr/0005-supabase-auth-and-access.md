@@ -45,4 +45,5 @@
 ### M5 之前要處理
 
 - 目前任何成員都能移到垃圾桶（`trips` 的 update policy 與 `deleted_at` grant），也能平移、修改起訖日、插入或刪除一天（`shift_trip`、`set_trip_dates`、`insert_day_after`、`delete_day` 只檢查 `can_access_trip()`）。M1 只有 owner，M5 加入旅伴時要**同時**改 policy 與這四個函式，決定哪些只有 owner 能做。
+- xlsx 匯入的「覆蓋」與「復原上次匯入」（`import_trip`、`undo_import`）目前任何成員都能做，與上一條一起決定是否只限 owner。
 - 接自己的 SMTP（例如 Resend）。
