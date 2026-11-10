@@ -143,3 +143,6 @@ export type ItemInput = z.output<typeof itemSchema>;
 export type StayInput = z.output<typeof staySchema>;
 export type TripNoteInput = z.output<typeof tripNoteSchema>;
 export type TravelerConstraintInput = z.output<typeof travelerConstraintSchema>;
+
+// 欄位規則也給匯入的 payload 驗證用（src/lib/import/payload-schema.ts）。
+export { date as isoDate, optionalText, optionalTime, optionalUrl, requiredText, timezone };

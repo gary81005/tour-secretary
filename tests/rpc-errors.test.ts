@@ -9,6 +9,9 @@ describe('rpcErrorKey', () => {
     [{ code: '22023', message: 'trip_too_long' }, 'tripTooLong'],
     [{ code: '22023', message: 'invalid_range' }, 'tripTooLong'],
     [{ code: '22023', message: 'last_day' }, 'lastDay'],
+    [{ code: '22023', message: 'invalid_payload' }, 'invalidImport'],
+    [{ code: 'P0001', message: 'import_not_undoable' }, 'importNotUndoable'],
+    [{ code: 'P0002', message: 'import not found' }, 'notFound'],
     [{ code: '23514', message: 'new row violates check constraint' }, 'unknown'],
   ] as const)('%j → %s', (error, key) => {
     expect(rpcErrorKey(error)).toBe(key);

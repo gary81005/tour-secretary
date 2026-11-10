@@ -22,6 +22,8 @@ export type ActionErrorKey =
   | 'daysHaveItems'
   | 'tripTooLong'
   | 'lastDay'
+  | 'invalidImport'
+  | 'importNotUndoable'
   | 'unknown';
 
 export type ActionResult = { ok: true } | { ok: false; error: ActionErrorKey };

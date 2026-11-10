@@ -16,7 +16,9 @@
     "conflict": "行程內容已經有變動，已重新載入最新內容。",
     "daysHaveItems": "要刪除的日期裡還有行程項目，請先搬到其他天或刪除。",
     "tripTooLong": "行程最多 60 天。",
-    "lastDay": "行程至少要保留一天。"
+    "lastDay": "行程至少要保留一天。",
+    "invalidImport": "匯入的資料有誤，請重新上傳檔案。",
+    "importNotUndoable": "這次匯入已經無法復原：超過 30 天、已經復原過，或之後又匯入過其他檔案。"
   },
   "timezones": {
     "Asia/Tokyo": "東京（GMT+9）",

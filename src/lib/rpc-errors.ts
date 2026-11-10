@@ -13,6 +13,10 @@ export function rpcErrorKey(error: { code: string; message: string }): ActionErr
       return 'tripTooLong';
     case 'last_day':
       return 'lastDay';
+    case 'invalid_payload':
+      return 'invalidImport';
+    case 'import_not_undoable':
+      return 'importNotUndoable';
     default:
       return 'unknown';
   }
