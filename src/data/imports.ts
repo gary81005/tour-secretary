@@ -46,14 +46,14 @@ async function getTripItemTitles(tripId: string) {
   return data.map((item) => ({ id: item.id, date: item.days.date, title: item.title }));
 }
 
-// 行程選單的「復原上次匯入」：最近一次匯入還能復原時回傳它，否則 null。
-export async function getUndoableImport(tripId: string) {
+// 行程選單的「復原上次匯入」：最近一次匯入還能復原時回傳它的 id，否則 null。
+export async function getUndoableImportId(tripId: string): Promise<string | null> {
   if (!isUuid(tripId)) return null;
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('trip_imports')
-    .select('id, mode, created_at, undone_at')
+    .select('id, created_at, undone_at')
     .eq('trip_id', tripId)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -62,7 +62,5 @@ export async function getUndoableImport(tripId: string) {
   if (!data) return null;
 
   // new Date() 要在讀過請求資料之後（Cache Components 的 blocking-prerender-current-time）。
-  return isImportUndoable(data, new Date())
-    ? { id: data.id, mode: data.mode, createdAt: data.created_at }
-    : null;
+  return isImportUndoable(data, new Date()) ? data.id : null;
 }

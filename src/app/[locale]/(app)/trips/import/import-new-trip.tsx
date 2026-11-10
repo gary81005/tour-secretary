@@ -1,20 +1,19 @@
 'use client';
 
-import { FileSpreadsheetIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { importNewTrip } from '@/actions/imports';
-import { ImportBlockers } from '@/components/import/import-blockers';
+import { ImportFileBar } from '@/components/import/import-file-bar';
+import { ImportFooter } from '@/components/import/import-footer';
 import { ImportIssues } from '@/components/import/import-issues';
 import { ImportPreview } from '@/components/import/import-preview';
 import { XlsxFilePicker, type LoadedFile } from '@/components/import/xlsx-file-picker';
 import { TimezoneField } from '@/components/trip/timezone-field';
 import { TripDateRange } from '@/components/trip/trip-date-range';
-import { Button, buttonVariants } from '@/components/ui/button';
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { useFormSubmit } from '@/hooks/use-form-submit';
-import { Link, useRouter } from '@/i18n/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { formString } from '@/lib/form';
 import { planImport, type ImportTarget } from '@/lib/import/plan';
 import { buildImportPayload, importBlockers, initialSelection } from '@/lib/import/selection';
@@ -62,15 +61,7 @@ function NewTripPreview({ file, onReset }: { file: LoadedFile; onReset: () => vo
 
   return (
     <form onSubmit={handleSubmit} noValidate className='flex flex-col gap-8'>
-      <div className='flex items-center justify-between gap-3 rounded-lg border bg-card p-3'>
-        <span className='flex min-w-0 items-center gap-2 text-sm'>
-          <FileSpreadsheetIcon className='size-4 shrink-0 text-primary' aria-hidden='true' />
-          <span className='truncate'>{t('import.file.fileName', { name: file.fileName })}</span>
-        </span>
-        <Button type='button' variant='outline' size='sm' onClick={onReset} disabled={isPending}>
-          {t('import.file.change')}
-        </Button>
-      </div>
+      <ImportFileBar fileName={file.fileName} onReset={onReset} disabled={isPending} />
 
       <ImportIssues issues={draft.issues} />
 
@@ -128,28 +119,13 @@ function NewTripPreview({ file, onReset }: { file: LoadedFile; onReset: () => vo
         onSelectionChange={setSelection}
       />
 
-      <div className='sticky bottom-0 -mx-4 flex flex-col gap-3 border-t bg-background px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]'>
-        <ImportBlockers id='import-blockers' blockers={blockers} />
-        {failure?.error && (
-          <p role='alert' className='text-sm text-destructive'>
-            {t(`errors.${failure.error}`)}
-          </p>
-        )}
-        <div className='flex justify-end gap-3'>
-          <Link href='/' className={buttonVariants({ variant: 'outline', size: 'lg' })}>
-            {t('import.cancel')}
-          </Link>
-          <Button
-            type='submit'
-            size='lg'
-            disabled={isPending || blockers.length > 0}
-            aria-busy={isPending}
-            aria-describedby={blockers.length > 0 ? 'import-blockers' : undefined}
-          >
-            {isPending ? t('import.submitting') : t('import.submit')}
-          </Button>
-        </div>
-      </div>
+      <ImportFooter
+        blockers={blockers}
+        error={failure?.error}
+        cancelHref='/'
+        submitLabel={t('import.submit')}
+        isPending={isPending}
+      />
     </form>
   );
 }
