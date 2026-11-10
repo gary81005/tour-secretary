@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { fallbackCandidates, planImport } from '@/lib/import/plan';
+import { importBlockers, initialSelection } from '@/lib/import/selection';
 import { draft, draftFallback, draftItem, draftStay, existingTrip } from './draft-fixtures';
 
 describe('planImport：新建行程', () => {
@@ -132,9 +133,9 @@ describe('planImport：附加', () => {
     const plan = planImport(
       draft({
         days: [{ date: '2027-03-06', city: null }],
-        items: [draftItem('行程!D3', '2027-03-06', '晴空塔')],
+        items: [draftItem('行程!D3', '2027-03-06', '上野公園')],
         fallbacks: [
-          draftFallback('備案!2', '2027-03-06', '晴空塔'),
+          draftFallback('備案!2', '2027-03-06', '上野公園'),
           draftFallback('備案!3', '2027-03-05', '淺草寺'),
           draftFallback('備案!4', '2027-03-07', '松島'),
         ],
@@ -144,6 +145,19 @@ describe('planImport：附加', () => {
     expect(plan.fallbackTargets.get('備案!2')).toMatchObject({ source: 'file', key: '行程!D3' });
     expect(plan.fallbackTargets.get('備案!3')).toMatchObject({ source: 'existing', id: 'i1' });
     expect(plan.fallbackTargets.get('備案!4')).toBeNull();
+  });
+
+  it('檔案的項目已存在時，備案掛到既有的那一個，不會擋住匯入', () => {
+    // 重新附加同一份檔案：3/6 晴空塔已存在，預設不匯入。
+    const fileDraft = draft({
+      days: [{ date: '2027-03-06', city: null }],
+      items: [draftItem('行程!D3', '2027-03-06', '晴空塔')],
+      fallbacks: [draftFallback('備案!2', '2027-03-06', '晴空塔')],
+    });
+    const plan = planImport(fileDraft, { mode: 'append', trip: existingTrip() });
+    expect(plan.duplicates.has('行程!D3')).toBe(true);
+    expect(plan.fallbackTargets.get('備案!2')).toMatchObject({ source: 'existing', id: 'i2' });
+    expect(importBlockers(fileDraft, plan, initialSelection(plan))).toEqual([]);
   });
 });
 

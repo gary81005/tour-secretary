@@ -4,6 +4,7 @@ import {
   buildImportPayload,
   importBlockers,
   initialSelection,
+  MAX_IMPORT_ROWS,
   MAX_PAYLOAD_BYTES,
   resolveFallbackTarget,
   setFallbackTarget,
@@ -148,6 +149,22 @@ describe('resolveFallbackTarget / importBlockers', () => {
     expect(importBlockers(same, appendPlan, initialSelection(appendPlan))).toEqual([
       { code: 'nothingToImport' },
     ]);
+  });
+
+  it('任何一類超過筆數上限時擋下', () => {
+    const many = draft({
+      days: [{ date: '2027-03-05', city: null }],
+      items: Array.from({ length: MAX_IMPORT_ROWS + 1 }, (_, i) =>
+        draftItem(`行程!B${i + 3}`, '2027-03-05', `項目 ${i}`),
+      ),
+    });
+    const manyPlan = planImport(many, { mode: 'new' });
+    expect(importBlockers(many, manyPlan, initialSelection(manyPlan))).toEqual([
+      { code: 'tooManyRows', max: MAX_IMPORT_ROWS },
+    ]);
+    // 取消勾選一筆就可以匯入
+    const fewer = setIncluded(initialSelection(manyPlan), '行程!B3', false);
+    expect(importBlockers(many, manyPlan, fewer)).toEqual([]);
   });
 
   it('資料超過 Server Action 的上限時擋下', () => {

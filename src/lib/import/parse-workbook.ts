@@ -1,3 +1,4 @@
+import { isBlankRow } from './cells';
 import { parseScheduleSheet } from './schedule-sheet';
 import {
   parseConstraintsSheet,
@@ -11,8 +12,11 @@ import { NON_SCHEDULE_SHEET_NAMES, SHEET_NAMES } from './vocabulary';
 // 讀進來的工作表 → 匯入草稿（ADR 0008）。
 // 每日行程是第一張「不是」住宿／提醒事項／備案／旅伴限制／說明的工作表，名稱不限；
 // 其他四張依名稱比對，沒有的那一類是 null。
+// 只有標題列、沒有資料的工作表也當作沒有：範本一律附上這幾張，只填「行程」就覆蓋時，
+// 不應該把住宿等資料整批清空（ADR 0008）。
 export function parseWorkbook(sheets: readonly SheetData[]): ImportDraft {
-  const named = (name: string) => sheets.find((sheet) => sheet.name.trim() === name);
+  const named = (name: string) =>
+    sheets.find((sheet) => sheet.name.trim() === name && hasDataRows(sheet));
   const scheduleSheet = sheets.find(
     (sheet) => !NON_SCHEDULE_SHEET_NAMES.includes(sheet.name.trim()),
   );
@@ -45,4 +49,8 @@ export function parseWorkbook(sheets: readonly SheetData[]): ImportDraft {
       ...(constraints?.issues ?? []),
     ],
   };
+}
+
+function hasDataRows(sheet: SheetData): boolean {
+  return sheet.rows.slice(1).some((cells) => !isBlankRow(cells));
 }

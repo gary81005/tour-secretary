@@ -26,3 +26,5 @@ M2 留到之後處理：
 - 匯入不拆地點（ADR 0008 Q5），M3 接上地圖搜尋後再補。
 - 格式不固定的行程表（例如範例檔第 14 列以後的區塊）交給 M7 的 AI 匯入。
 - 匯入資料超過 Server Action 的 1 MB 上限時只在預覽擋下，提示拆檔分次附加；實際遇到再考慮調高 `serverActions.bodySizeLimit`。
+- M5 前：`trip_imports.created_at` 是交易開始時間（`now()`），兩位旅伴幾乎同時匯入時，「最近一次匯入」可能判斷顛倒；改用取得行程鎖之後的時間或序號，與 owner 權限一起改。`previous_start_date` / `previous_end_date` 目前沒有用到（復原用剩下的天重算起訖日），一併決定保留或移除。
+- M5 前：migration 只在 Docker 手動驗證過（第 4 步的 9 個情境），把它們整理成 repo 裡的 SQL 測試腳本，之後改 migration 才有回歸測試。

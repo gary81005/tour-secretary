@@ -75,6 +75,9 @@ export function planImport(draft: ImportDraft, target: ImportTarget): ImportPlan
   const extended =
     trip && range && (range.startDate < trip.startDate || range.endDate > trip.endDate);
 
+  const duplicates =
+    target.mode === 'append' ? findDuplicates(draft, target.trip) : new Set<string>();
+
   const blockers: PlanBlocker[] = [];
   if (hasErrors(draft.issues)) blockers.push({ code: 'fileErrors' });
   if (target.mode === 'new' && draft.days.length === 0) blockers.push({ code: 'noSchedule' });
@@ -87,7 +90,7 @@ export function planImport(draft: ImportDraft, target: ImportTarget): ImportPlan
     range,
     extendedFrom: extended ? { startDate: trip.startDate, endDate: trip.endDate } : null,
     ...planCities(draft, target),
-    duplicates: target.mode === 'append' ? findDuplicates(draft, target.trip) : new Set(),
+    duplicates,
     staysOutsideTrip: new Set(
       range
         ? (draft.stays ?? [])
@@ -101,7 +104,7 @@ export function planImport(draft: ImportDraft, target: ImportTarget): ImportPlan
             .map((stay) => stay.key)
         : [],
     ),
-    fallbackTargets: planFallbacks(draft, target),
+    fallbackTargets: planFallbacks(draft, target, duplicates),
     replaced: target.mode === 'overwrite' ? planReplaced(draft, target.trip) : null,
     blockers,
   };
@@ -168,11 +171,19 @@ function findDuplicates(draft: ImportDraft, trip: ExistingTrip): Set<string> {
   ]);
 }
 
+// 已存在的檔案項目（附加模式，預設不匯入）排到最後，備案改對到行程裡同一個既有項目；
+// 否則重新附加同一份檔案時，每筆備案都會對到不匯入的項目而擋住匯入。
 function planFallbacks(
   draft: ImportDraft,
   target: ImportTarget,
+  duplicates: ReadonlySet<string>,
 ): Map<string, FallbackTarget | null> {
-  return matchFallbacks(draft.fallbacks ?? [], fallbackCandidates(draft, target));
+  const isDuplicate = (c: FallbackTarget) => c.source === 'file' && duplicates.has(c.key);
+  const candidates = fallbackCandidates(draft, target);
+  return matchFallbacks(draft.fallbacks ?? [], [
+    ...candidates.filter((c) => !isDuplicate(c)),
+    ...candidates.filter(isDuplicate),
+  ]);
 }
 
 // 備案可以掛的項目，也是預覽中改選的選項：檔案裡的項目優先；附加模式再加上行程裡的既有項目（Q16）。

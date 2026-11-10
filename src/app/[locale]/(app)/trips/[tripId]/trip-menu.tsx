@@ -32,6 +32,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useRouter } from '@/i18n/navigation';
+import type { ActionResult } from '@/lib/form';
 import {
   ChangeDatesDialog,
   EditTripDialog,
@@ -174,7 +175,10 @@ function UndoImportDialog({
 
   function confirm() {
     startTransition(async () => {
-      const result = await undoImport(importId);
+      const result = await undoImport(importId).catch((): ActionResult => ({
+        ok: false,
+        error: 'unknown',
+      }));
       onOpenChange(false);
       if (result.ok) toast.success(t('import.undo.done'));
       else toast.error(t(`errors.${result.error}`));

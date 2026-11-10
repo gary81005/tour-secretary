@@ -15,7 +15,9 @@ export function ImportBlockers({ id, blockers }: { id: string; blockers: ImportB
     <ul id={id} className='flex flex-col gap-1 text-sm text-destructive'>
       {unique.map((blocker) => (
         <li key={blocker.code}>
-          {blocker.code === 'tooManyDays' ? t(blocker.code, { max: blocker.max }) : t(blocker.code)}
+          {blocker.code === 'tooManyDays' || blocker.code === 'tooManyRows'
+            ? t(blocker.code, { max: blocker.max })
+            : t(blocker.code)}
         </li>
       ))}
     </ul>

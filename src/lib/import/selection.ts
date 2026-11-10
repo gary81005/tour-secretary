@@ -70,6 +70,10 @@ export function setFallbackTarget(
   return { ...selection, fallbackTargets };
 }
 
+// 每一類（項目、備案、住宿、提醒事項、旅伴限制）一次最多匯入的筆數，與 import_trip 的項目上限一致。
+// 橫向的每日行程最多 2000 列 × 60 天，所以要另外檢查。
+export const MAX_IMPORT_ROWS = 2000;
+
 // Server Action 的請求上限是 1 MB（next.config 的 serverActions.bodySizeLimit 預設值），
 // 留一些空間給請求本身的編碼。
 export const MAX_PAYLOAD_BYTES = 900_000;
@@ -82,6 +86,7 @@ export type ImportBlocker =
   | PlanBlocker
   | { code: 'stayOutsideTrip'; key: string }
   | { code: 'fallbackUnresolved'; key: string }
+  | { code: 'tooManyRows'; max: number }
   | { code: 'tooLarge' }
   | { code: 'nothingToImport' };
 
@@ -107,8 +112,20 @@ export function importBlockers(
   if (blockers.length > 0) return blockers;
 
   const payload = buildImportPayload(draft, plan, selection);
-  if (payloadBytes(payload) > MAX_PAYLOAD_BYTES) blockers.push({ code: 'tooLarge' });
-  else if (isEmptyImport(plan, payload)) blockers.push({ code: 'nothingToImport' });
+  const rowCounts = [
+    payload.items,
+    payload.fallbacks,
+    payload.stays,
+    payload.notes,
+    payload.constraints,
+  ].map((rows) => rows?.length ?? 0);
+  if (rowCounts.some((count) => count > MAX_IMPORT_ROWS)) {
+    blockers.push({ code: 'tooManyRows', max: MAX_IMPORT_ROWS });
+  } else if (payloadBytes(payload) > MAX_PAYLOAD_BYTES) {
+    blockers.push({ code: 'tooLarge' });
+  } else if (isEmptyImport(plan, payload)) {
+    blockers.push({ code: 'nothingToImport' });
+  }
   return blockers;
 }
 

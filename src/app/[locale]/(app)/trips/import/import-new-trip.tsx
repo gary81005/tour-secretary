@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { importNewTrip } from '@/actions/imports';
+import { importNewTrip, type ImportTripResult } from '@/actions/imports';
 import { ImportFileBar } from '@/components/import/import-file-bar';
 import { ImportFooter } from '@/components/import/import-footer';
 import { ImportIssues } from '@/components/import/import-issues';
@@ -46,11 +46,12 @@ function NewTripPreview({ file, onReset }: { file: LoadedFile; onReset: () => vo
   const blockers = importBlockers(draft, plan, selection);
 
   const { result, isPending, handleSubmit } = useFormSubmit(
+    // 請求本身失敗（離線、超過請求上限、重新部署後 action 失效）時不會有回傳值，當成一般錯誤顯示。
     (formData) =>
       importNewTrip(
         { name: formString(formData, 'name'), timezone: formString(formData, 'timezone') },
         buildImportPayload(draft, plan, selection),
-      ),
+      ).catch((): ImportTripResult => ({ ok: false, error: 'unknown' })),
     (success) => {
       if (success.ok) router.push(`/trips/${success.tripId}`);
     },

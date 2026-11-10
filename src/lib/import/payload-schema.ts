@@ -10,13 +10,11 @@ import {
 } from '@/lib/trip/schemas';
 import { TIME_SLOTS } from '@/lib/trip/time-slot';
 import { countDays, MAX_TRIP_DAYS } from '@/lib/trip/trip-dates';
+import { MAX_IMPORT_ROWS } from './selection';
 
 // Server Action 收到的匯入資料（selection.ts 的 buildImportPayload 產生）再驗一次（ADR 0008 Q11）。
 // 瀏覽器端的預覽已經擋過，這裡失敗表示資料被竄改或程式有錯，所以不回傳逐欄錯誤。
 // 長度上限與資料表的 check constraint、src/lib/trip/schemas.ts 一致。
-
-// 與 read-workbook 的列數上限、import_trip 的項目上限一致。
-const MAX_ROWS = 2000;
 
 const daySchema = z.object({ date: isoDate, city: optionalText(50) });
 
@@ -64,7 +62,7 @@ const constraintSchema = z.object({
   content: requiredText(1000),
 });
 
-const rows = <T extends z.ZodType>(schema: T) => z.array(schema).max(MAX_ROWS);
+const rows = <T extends z.ZodType>(schema: T) => z.array(schema).max(MAX_IMPORT_ROWS);
 
 export const importPayloadSchema = z
   .object({

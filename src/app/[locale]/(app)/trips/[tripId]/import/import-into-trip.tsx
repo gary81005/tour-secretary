@@ -3,7 +3,7 @@
 import { useFormatter, useTranslations } from 'next-intl';
 import { useState, useTransition, type FormEvent } from 'react';
 import { toast } from 'sonner';
-import { importIntoTrip, undoImport } from '@/actions/imports';
+import { importIntoTrip, undoImport, type ImportTripResult } from '@/actions/imports';
 import { ImportFileBar } from '@/components/import/import-file-bar';
 import { ImportFooter } from '@/components/import/import-footer';
 import { ImportIssues } from '@/components/import/import-issues';
@@ -21,7 +21,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useRouter } from '@/i18n/navigation';
-import type { ActionErrorKey } from '@/lib/form';
+import type { ActionErrorKey, ActionResult } from '@/lib/form';
 import { planImport, type ExistingTrip, type ImportPlan } from '@/lib/import/plan';
 import { buildImportPayload, importBlockers, initialSelection } from '@/lib/import/selection';
 import type { ImportDraft } from '@/lib/import/types';
@@ -111,6 +111,7 @@ function ModePreview({
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (blockers.length > 0) return;
     if (mode === 'overwrite' && !confirming) setConfirming(true);
     else submit();
   }
@@ -118,7 +119,12 @@ function ModePreview({
   function submit() {
     setError(undefined);
     startTransition(async () => {
-      const result = await importIntoTrip(tripId, mode, buildImportPayload(draft, plan, selection));
+      // 請求本身失敗（離線、超過請求上限、重新部署後 action 失效）時不會有回傳值，當成一般錯誤顯示。
+      const result = await importIntoTrip(
+        tripId,
+        mode,
+        buildImportPayload(draft, plan, selection),
+      ).catch((): ImportTripResult => ({ ok: false, error: 'unknown' }));
       setConfirming(false);
       if (!result.ok) {
         setError(result.error ?? 'unknown');
@@ -130,7 +136,10 @@ function ModePreview({
           ? {
               label: t('import.undo.action'),
               onClick: async () => {
-                const undone = await undoImport(importId);
+                const undone = await undoImport(importId).catch((): ActionResult => ({
+                  ok: false,
+                  error: 'unknown',
+                }));
                 if (undone.ok) toast.success(t('import.undo.done'));
                 else toast.error(t(`errors.${undone.error}`));
               },
