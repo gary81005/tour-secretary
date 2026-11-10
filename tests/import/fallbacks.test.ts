@@ -19,7 +19,7 @@ describe('matchFallbacks', () => {
       ],
       [{ key: 'i1', date: '2027-03-09', title: '藏王纜車／樹冰' }],
     );
-    expect(result.get('f1')).toBe('i1');
+    expect(result.get('f1')?.key).toBe('i1');
     expect(result.get('f2')).toBeNull();
   });
 
@@ -31,6 +31,6 @@ describe('matchFallbacks', () => {
         { key: 'existing', date: '2027-03-09', title: '樹冰' },
       ],
     );
-    expect(result.get('f1')).toBe('file');
+    expect(result.get('f1')?.key).toBe('file');
   });
 });

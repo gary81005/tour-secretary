@@ -42,7 +42,7 @@ describe('buildTemplate', () => {
   it('範例備案掛得到範例項目', async () => {
     const { draft } = await roundTrip();
     const matches = matchFallbacks(draft.fallbacks ?? [], draft.items);
-    expect([...matches.values()]).toEqual(['行程!D5']);
+    expect([...matches.values()].map((item) => item?.key)).toEqual(['行程!D5']);
   });
 
   it('工作表順序與下拉選單', async () => {
