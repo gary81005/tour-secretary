@@ -326,6 +326,80 @@ export type Database = {
           },
         ]
       }
+      trip_imports: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          created_constraint_ids: string[]
+          created_day_ids: string[]
+          created_fallback_ids: string[]
+          created_item_ids: string[]
+          created_note_ids: string[]
+          created_stay_ids: string[]
+          id: string
+          mode: Database["public"]["Enums"]["trip_import_mode"]
+          previous_cities: Json
+          previous_end_date: string
+          previous_start_date: string
+          replaced_constraint_ids: string[]
+          replaced_item_ids: string[]
+          replaced_note_ids: string[]
+          replaced_stay_ids: string[]
+          trip_id: string
+          undone_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          created_constraint_ids?: string[]
+          created_day_ids?: string[]
+          created_fallback_ids?: string[]
+          created_item_ids?: string[]
+          created_note_ids?: string[]
+          created_stay_ids?: string[]
+          id?: string
+          mode: Database["public"]["Enums"]["trip_import_mode"]
+          previous_cities?: Json
+          previous_end_date: string
+          previous_start_date: string
+          replaced_constraint_ids?: string[]
+          replaced_item_ids?: string[]
+          replaced_note_ids?: string[]
+          replaced_stay_ids?: string[]
+          trip_id: string
+          undone_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          created_constraint_ids?: string[]
+          created_day_ids?: string[]
+          created_fallback_ids?: string[]
+          created_item_ids?: string[]
+          created_note_ids?: string[]
+          created_stay_ids?: string[]
+          id?: string
+          mode?: Database["public"]["Enums"]["trip_import_mode"]
+          previous_cities?: Json
+          previous_end_date?: string
+          previous_start_date?: string
+          replaced_constraint_ids?: string[]
+          replaced_item_ids?: string[]
+          replaced_note_ids?: string[]
+          replaced_stay_ids?: string[]
+          trip_id?: string
+          undone_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_imports_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trip_members: {
         Row: {
           created_at: string
@@ -448,6 +522,19 @@ export type Database = {
         Returns: string
       }
       delete_day: { Args: { p_day_id: string }; Returns: undefined }
+      import_trip: {
+        Args: {
+          p_mode?: Database["public"]["Enums"]["trip_import_mode"]
+          p_name?: string
+          p_payload: Json
+          p_timezone?: string
+          p_trip_id?: string
+        }
+        Returns: {
+          import_id: string
+          trip_id: string
+        }[]
+      }
       insert_day_after: { Args: { p_day_id: string }; Returns: string }
       is_trip_member: { Args: { p_trip_id: string }; Returns: boolean }
       is_trip_owner: { Args: { p_trip_id: string }; Returns: boolean }
@@ -489,6 +576,7 @@ export type Database = {
         Args: { p_start_date: string; p_trip_id: string }
         Returns: undefined
       }
+      undo_import: { Args: { p_import_id: string }; Returns: undefined }
     }
     Enums: {
       item_category:
@@ -513,6 +601,7 @@ export type Database = {
         | "mobility"
         | "preference"
         | "other"
+      trip_import_mode: "append" | "overwrite"
       trip_role: "owner" | "member"
     }
     CompositeTypes: {
@@ -666,6 +755,7 @@ export const Constants = {
         "preference",
         "other",
       ],
+      trip_import_mode: ["append", "overwrite"],
       trip_role: ["owner", "member"],
     },
   },
