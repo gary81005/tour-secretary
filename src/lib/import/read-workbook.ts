@@ -1,17 +1,15 @@
 import type { CellValue as ExcelCellValue, Worksheet } from 'exceljs';
 import { parseRange } from './cells';
+import { loadExcelJS } from './exceljs';
 import type { CellRange, CellValue, SheetData } from './types';
 
 // 只讀這個範圍內的儲存格；範本與一般行程表遠小於此，避免格式化過的空白欄列拖慢解析。
 const MAX_ROWS = 2000;
 const MAX_COLUMNS = 200;
 
-// xlsx → SheetData[]。exceljs 很大，只在真的要讀檔時動態載入（ADR 0008）。
-// 檔案不是 xlsx 或已損毀時，exceljs 會丟出例外，由呼叫端處理。
+// xlsx → SheetData[]。檔案不是 xlsx 或已損毀時，exceljs 會丟出例外，由呼叫端處理。
 export async function readWorkbook(data: ArrayBuffer): Promise<SheetData[]> {
-  const mod = await import('exceljs');
-  // exceljs 是 CommonJS 套件：依打包工具不同，類別可能在 default 底下。
-  const ExcelJS = (mod as unknown as { default?: typeof mod }).default ?? mod;
+  const ExcelJS = await loadExcelJS();
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(data);
   // 隱藏的工作表不讀。
