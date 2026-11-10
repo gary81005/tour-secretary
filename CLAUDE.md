@@ -38,6 +38,7 @@ npm run db:types      # 由已 link 的專案產生 src/types/database.ts
 - `src/data/`：讀取資料的查詢（`server-only`，呼叫端要在 `<Suspense>` 裡）；`src/actions/`：Server Actions（`'use server'`，每個都重新確認登入，回傳 `ActionResult` / `FormState`）。
 - `src/hooks/`：共用的 client hook（例如 `useFormSubmit`：對話框表單送出 Server Action，失敗時保留輸入）。
 - `src/lib/trip/`：行程的純邏輯與 zod schema（有測試）；`src/lib/auth/`：登入相關的路徑判斷與 `getCurrentUser()`。
+- `src/lib/import/`：xlsx 匯入的純邏輯（解析、範本、合併規劃、payload schema，有測試）。exceljs 只能用 `loadExcelJS()` 動態載入，不要靜態 import。
 - `src/lib/dayjs.ts`：已載入 utc / timezone plugin 的 dayjs，專案內一律從這裡 import。
 - `src/proxy.ts`：Next 16 的 proxy（原 middleware）：先跑 next-intl，再在同一個 response 上刷新 Supabase session。
 - `messages/<locale>/*.json`：翻譯檔。`common.json` 展開在頂層，之後的 namespace 各自一檔（照 clinico-official-nx-web）。
