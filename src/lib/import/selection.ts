@@ -38,10 +38,51 @@ export function resolveFallbackTarget(
   return target;
 }
 
+// 預覽中的修改：每次回傳新的 selection（React state 不能原地修改）。
+export function setIncluded(
+  selection: ImportSelection,
+  key: string,
+  included: boolean,
+): ImportSelection {
+  const excluded = new Set(selection.excluded);
+  if (included) excluded.delete(key);
+  else excluded.add(key);
+  return { ...selection, excluded };
+}
+
+export function setItemOverride(
+  selection: ImportSelection,
+  key: string,
+  override: ItemOverride,
+): ImportSelection {
+  const itemOverrides = new Map(selection.itemOverrides);
+  itemOverrides.set(key, { ...itemOverrides.get(key), ...override });
+  return { ...selection, itemOverrides };
+}
+
+export function setFallbackTarget(
+  selection: ImportSelection,
+  key: string,
+  target: FallbackTarget | null,
+): ImportSelection {
+  const fallbackTargets = new Map(selection.fallbackTargets);
+  fallbackTargets.set(key, target);
+  return { ...selection, fallbackTargets };
+}
+
+// Server Action 的請求上限是 1 MB（next.config 的 serverActions.bodySizeLimit 預設值），
+// 留一些空間給請求本身的編碼。
+export const MAX_PAYLOAD_BYTES = 900_000;
+
+export function payloadBytes(payload: ImportPayload): number {
+  return new TextEncoder().encode(JSON.stringify(payload)).length;
+}
+
 export type ImportBlocker =
   | PlanBlocker
   | { code: 'stayOutsideTrip'; key: string }
   | { code: 'fallbackUnresolved'; key: string }
+  | { code: 'tooLarge' }
   | { code: 'nothingToImport' };
 
 // 擋住匯入的原因；空陣列才能按「確認匯入」。
@@ -63,9 +104,11 @@ export function importBlockers(
       blockers.push({ code: 'fallbackUnresolved', key: fallback.key });
     }
   }
-  if (blockers.length === 0 && isEmptyImport(plan, buildImportPayload(draft, plan, selection))) {
-    blockers.push({ code: 'nothingToImport' });
-  }
+  if (blockers.length > 0) return blockers;
+
+  const payload = buildImportPayload(draft, plan, selection);
+  if (payloadBytes(payload) > MAX_PAYLOAD_BYTES) blockers.push({ code: 'tooLarge' });
+  else if (isEmptyImport(plan, payload)) blockers.push({ code: 'nothingToImport' });
   return blockers;
 }
 

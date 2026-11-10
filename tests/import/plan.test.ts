@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { planImport } from '@/lib/import/plan';
+import { fallbackCandidates, planImport } from '@/lib/import/plan';
 import { draft, draftFallback, draftItem, draftStay, existingTrip } from './draft-fixtures';
 
 describe('planImport：新建行程', () => {
@@ -177,5 +177,26 @@ describe('planImport：覆蓋', () => {
   it('備案只比對檔案裡的項目', () => {
     const plan = overwrite({ fallbacks: [draftFallback('備案!2', '2027-03-06', '晴空塔')] });
     expect(plan.fallbackTargets.get('備案!2')).toBeNull();
+  });
+});
+
+describe('fallbackCandidates', () => {
+  const fileDraft = draft({
+    days: [{ date: '2027-03-05', city: null }],
+    items: [draftItem('行程!B3', '2027-03-05', '溫泉街')],
+  });
+  const trip = existingTrip();
+
+  it('附加模式：檔案的項目在前，再接既有項目', () => {
+    expect(
+      fallbackCandidates(fileDraft, { mode: 'append', trip }).map((c) =>
+        c.source === 'file' ? c.key : c.id,
+      ),
+    ).toEqual(['行程!B3', 'i1', 'i2']);
+  });
+
+  it('新建與覆蓋只有檔案的項目', () => {
+    expect(fallbackCandidates(fileDraft, { mode: 'new' })).toHaveLength(1);
+    expect(fallbackCandidates(fileDraft, { mode: 'overwrite', trip })).toHaveLength(1);
   });
 });

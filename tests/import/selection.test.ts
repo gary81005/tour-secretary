@@ -4,7 +4,11 @@ import {
   buildImportPayload,
   importBlockers,
   initialSelection,
+  MAX_PAYLOAD_BYTES,
   resolveFallbackTarget,
+  setFallbackTarget,
+  setIncluded,
+  setItemOverride,
   type ImportSelection,
 } from '@/lib/import/selection';
 import { draft, draftFallback, draftItem, draftStay, existingTrip } from './draft-fixtures';
@@ -146,9 +150,53 @@ describe('resolveFallbackTarget / importBlockers', () => {
     ]);
   });
 
+  it('資料超過 Server Action 的上限時擋下', () => {
+    const description = '說'.repeat(4000);
+    const large = draft({
+      days: [{ date: '2027-03-05', city: null }],
+      items: Array.from({ length: 80 }, (_, i) => ({
+        ...draftItem(`行程!B${i + 3}`, '2027-03-05', `項目 ${i}`),
+        description,
+      })),
+    });
+    const largePlan = planImport(large, { mode: 'new' });
+    expect(MAX_PAYLOAD_BYTES).toBeLessThan(80 * 4000 * 3);
+    expect(importBlockers(large, largePlan, initialSelection(largePlan))).toEqual([
+      { code: 'tooLarge' },
+    ]);
+  });
+
   it('覆蓋時即使沒有新資料，會清掉既有資料就可以匯入', () => {
     const empty = draft({ days: [{ date: '2027-03-05', city: null }] });
     const overwritePlan = planImport(empty, { mode: 'overwrite', trip: existingTrip() });
     expect(importBlockers(empty, overwritePlan, initialSelection(overwritePlan))).toEqual([]);
+  });
+});
+
+describe('預覽中的修改', () => {
+  const plan = planImport(fileDraft, { mode: 'new' });
+  const initial = initialSelection(plan);
+
+  it('勾選與取消勾選，不改動原本的 selection', () => {
+    const skipped = setIncluded(initial, '行程!B3', false);
+    expect(skipped.excluded.has('行程!B3')).toBe(true);
+    expect(initial.excluded.has('行程!B3')).toBe(false);
+    expect(setIncluded(skipped, '行程!B3', true).excluded.has('行程!B3')).toBe(false);
+  });
+
+  it('時段與類別分開修改，會合併', () => {
+    const next = setItemOverride(
+      setItemOverride(initial, '行程!B3', { timeSlot: 'noon' }),
+      '行程!B3',
+      { category: 'meal' },
+    );
+    expect(next.itemOverrides.get('行程!B3')).toEqual({ timeSlot: 'noon', category: 'meal' });
+    expect(initial.itemOverrides.size).toBe(0);
+  });
+
+  it('清掉備案的選擇後視為對不到', () => {
+    const cleared = setFallbackTarget(initial, '備案!2', null);
+    expect(resolveFallbackTarget('備案!2', plan, cleared)).toBeNull();
+    expect(initial.fallbackTargets.size).toBe(0);
   });
 });

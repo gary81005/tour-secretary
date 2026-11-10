@@ -1,4 +1,4 @@
-import { MapPinIcon, PlusIcon } from 'lucide-react';
+import { FileSpreadsheetIcon, MapPinIcon, PlusIcon } from 'lucide-react';
 import type { Metadata } from 'next';
 import { useTranslations } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
@@ -28,12 +28,15 @@ export default function TripListPage() {
 
   return (
     <div className='flex flex-col gap-6 py-6'>
-      <div className='flex items-center justify-between gap-4'>
+      <div className='flex flex-wrap items-center justify-between gap-x-4 gap-y-3'>
         <h1 className='text-2xl font-semibold tracking-tight'>{t('title')}</h1>
-        <Link href='/trips/new' className={buttonVariants({ size: 'lg' })}>
-          <PlusIcon />
-          {t('create')}
-        </Link>
+        <div className='flex gap-2'>
+          <ImportLink />
+          <Link href='/trips/new' className={buttonVariants({ size: 'lg' })}>
+            <PlusIcon />
+            {t('create')}
+          </Link>
+        </div>
       </div>
       <Suspense fallback={<TripListSkeleton />}>
         <TripList />
@@ -124,13 +127,26 @@ function EmptyTrips() {
         <EmptyTitle>{t('empty.title')}</EmptyTitle>
         <EmptyDescription>{t('empty.description')}</EmptyDescription>
       </EmptyHeader>
-      <EmptyContent>
+      <EmptyContent className='flex-row justify-center'>
+        <ImportLink />
         <Link href='/trips/new' className={buttonVariants({ size: 'lg' })}>
           <PlusIcon />
           {t('create')}
         </Link>
       </EmptyContent>
     </Empty>
+  );
+}
+
+// 匯入 xlsx 建立行程（ADR 0008 Q12：放在「建立行程」旁邊）。
+function ImportLink() {
+  const t = useTranslations('import');
+
+  return (
+    <Link href='/trips/import' className={buttonVariants({ variant: 'outline', size: 'lg' })}>
+      <FileSpreadsheetIcon />
+      {t('entry')}
+    </Link>
   );
 }
 

@@ -168,17 +168,21 @@ function findDuplicates(draft: ImportDraft, trip: ExistingTrip): Set<string> {
   ]);
 }
 
-// 檔案裡的項目優先；附加模式再比對行程裡的既有項目（Q16）。
-// 覆蓋模式只比對檔案：檔案涵蓋的日期，既有項目會被換掉。
 function planFallbacks(
   draft: ImportDraft,
   target: ImportTarget,
 ): Map<string, FallbackTarget | null> {
-  const candidates: FallbackTarget[] = draft.items.map((item) => fileTarget(item));
+  return matchFallbacks(draft.fallbacks ?? [], fallbackCandidates(draft, target));
+}
+
+// 備案可以掛的項目，也是預覽中改選的選項：檔案裡的項目優先；附加模式再加上行程裡的既有項目（Q16）。
+// 覆蓋模式只用檔案：檔案涵蓋的日期，既有項目會被換掉。
+export function fallbackCandidates(draft: ImportDraft, target: ImportTarget): FallbackTarget[] {
+  const candidates = draft.items.map((item) => fileTarget(item));
   if (target.mode === 'append') {
     candidates.push(...target.trip.items.map((item) => existingTarget(item)));
   }
-  return matchFallbacks(draft.fallbacks ?? [], candidates);
+  return candidates;
 }
 
 export function fileTarget(item: DraftItem): FallbackTarget {

@@ -1,5 +1,6 @@
 import type auth from '../../messages/zh-TW/auth.json';
 import type common from '../../messages/zh-TW/common.json';
+import type importMessages from '../../messages/zh-TW/import.json';
 import type trips from '../../messages/zh-TW/trips.json';
 import type validation from '../../messages/zh-TW/validation.json';
 import type { routing } from './routing';
@@ -11,6 +12,7 @@ declare module 'next-intl' {
     Locale: (typeof routing.locales)[number];
     Messages: typeof common & {
       auth: typeof auth;
+      import: typeof importMessages;
       trips: typeof trips;
       validation: typeof validation;
     };
