@@ -29,7 +29,10 @@ describe('parseItemFormData', () => {
       ]),
     );
 
-    expect(parsed.places).toEqual([{ name: '藏王纜車' }, { name: '樹冰' }]);
+    expect(parsed.places).toEqual([
+      { name: '藏王纜車', placeId: '', sessionToken: '' },
+      { name: '樹冰', placeId: '', sessionToken: '' },
+    ]);
     expect(parsed.fallbacks).toEqual([
       { condition: '纜車停駛', alternative: '改逛溫泉街' },
       { condition: '', alternative: '回旅館泡湯' },
@@ -55,7 +58,10 @@ describe('parseItemFormData', () => {
         [ITEM_FIELDS.place, '  '],
       ]),
     );
-    expect(parsed.places).toEqual([{ name: '淺草寺' }, { name: '  ' }]);
+    expect(parsed.places).toEqual([
+      { name: '淺草寺', placeId: '', sessionToken: '' },
+      { name: '  ', placeId: '', sessionToken: '' },
+    ]);
     expect(parsed.fallbacks).toEqual([]);
   });
 
@@ -65,6 +71,57 @@ describe('parseItemFormData', () => {
       timeSlot: '',
       places: [],
       fallbacks: [],
+    });
+  });
+
+  it('連結的地點帶地點 ID 與搜尋 session；空白表示只有文字', () => {
+    const parsed = parseItemFormData(
+      formData([
+        [ITEM_FIELDS.dayId, DAY_ID],
+        [ITEM_FIELDS.title, '淺草'],
+        [ITEM_FIELDS.timeSlot, 'morning'],
+        [ITEM_FIELDS.category, 'sightseeing'],
+        [ITEM_FIELDS.place, '淺草寺'],
+        [ITEM_FIELDS.placeId, 'ChIJ0YwG28aOGGARvRKAXIBWqNk'],
+        [ITEM_FIELDS.placeSessionToken, 'a1b2c3'],
+        [ITEM_FIELDS.place, '仲見世通'],
+        [ITEM_FIELDS.placeId, ''],
+        [ITEM_FIELDS.placeSessionToken, ''],
+      ]),
+    );
+    const result = itemSchema.safeParse(parsed);
+    expect(result.success && result.data.places).toEqual([
+      { name: '淺草寺', placeId: 'ChIJ0YwG28aOGGARvRKAXIBWqNk', sessionToken: 'a1b2c3' },
+      { name: '仲見世通', placeId: null, sessionToken: null },
+    ]);
+  });
+
+  it('地點 ID 格式不對時擋下；session token 格式不對時當作沒有', () => {
+    const base: [string, string][] = [
+      [ITEM_FIELDS.dayId, DAY_ID],
+      [ITEM_FIELDS.title, '淺草'],
+      [ITEM_FIELDS.timeSlot, 'morning'],
+      [ITEM_FIELDS.category, 'sightseeing'],
+      [ITEM_FIELDS.place, '淺草寺'],
+    ];
+    const badId = itemSchema.safeParse(
+      parseItemFormData(formData([...base, [ITEM_FIELDS.placeId, '../places']])),
+    );
+    expect(badId.success).toBe(false);
+
+    const badToken = itemSchema.safeParse(
+      parseItemFormData(
+        formData([
+          ...base,
+          [ITEM_FIELDS.placeId, 'ChIJabc'],
+          [ITEM_FIELDS.placeSessionToken, 'not a token!'],
+        ]),
+      ),
+    );
+    expect(badToken.success && badToken.data.places[0]).toEqual({
+      name: '淺草寺',
+      placeId: 'ChIJabc',
+      sessionToken: null,
     });
   });
 });

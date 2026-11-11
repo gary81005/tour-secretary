@@ -36,11 +36,13 @@ import { TIME_SLOTS, type TimeSlot } from '@/lib/trip/time-slot';
 import { useDndAccessibility } from './dnd-accessibility';
 import { ItemCard } from './item-card';
 import { ItemForm, type DayOption } from './item-form';
+import type { PlaceSearchContext } from './place-search-input';
 
 type Props = {
   dayId: string;
   dayOptions: DayOption[];
   items: DayItem[];
+  placeSearch: PlaceSearchContext | null;
 };
 
 type SlotOrder = Partial<Record<TimeSlot, string[]>>;
@@ -63,7 +65,7 @@ function sameOrder(a: readonly string[], b: readonly string[]) {
 // - 依時段分組，只顯示有項目的時段；有精確時間的項目排前面、不能拖
 // - 沒有時間的項目可在同時段內排序，也能拖到別的時段組（改成那個時段）
 // - 放下後先用 useOptimistic 顯示新順序，伺服器失敗時自動還原
-export function DayItems({ dayId, dayOptions, items }: Props) {
+export function DayItems({ dayId, dayOptions, items, placeSearch }: Props) {
   const t = useTranslations();
   const dndId = useId();
   const [optimisticItems, applyOptimistic] = useOptimistic(
@@ -197,6 +199,7 @@ export function DayItems({ dayId, dayOptions, items }: Props) {
             dayId={dayId}
             defaultSlot={groups.at(-1)?.slot ?? 'morning'}
             dayOptions={dayOptions}
+            placeSearch={placeSearch}
             onDone={() => editor.setOpen(false)}
           />
         </ResponsiveDialogContent>

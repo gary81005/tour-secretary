@@ -4,6 +4,15 @@ import { refresh } from 'next/cache';
 import { z } from 'zod';
 import { getSignedInClient } from '@/lib/auth/session';
 import { fieldErrorsOf, type ActionResult, type FormResult } from '@/lib/form';
+import { getMapProvider } from '@/lib/maps/google';
+import {
+  placeIdsToLocate,
+  reusableLocations,
+  toSavedPlaces,
+  type PlaceInput,
+  type SavedPlace,
+  type StoredLocation,
+} from '@/lib/maps/place-links';
 import { parseItemFormData } from '@/lib/trip/item-form';
 import { itemSchema } from '@/lib/trip/schemas';
 import { TIME_SLOTS, type TimeSlot } from '@/lib/trip/time-slot';
@@ -24,6 +33,7 @@ export async function saveItem(itemId: string | null, formData: FormData): Promi
   if (!supabase) return { ok: false, error: 'unauthorized' };
 
   const item = parsed.data;
+  const places = await resolvePlaces(supabase, itemId, item.places);
   // 空值不傳，交給函式的 default null（產生的型別裡這些參數是選填）。
   const { error } = await supabase.rpc('save_item', {
     p_item_id: itemId ?? undefined,
@@ -35,7 +45,7 @@ export async function saveItem(itemId: string | null, formData: FormData): Promi
     p_end_time: item.endTime ?? undefined,
     p_description: item.description ?? undefined,
     p_url: item.url ?? undefined,
-    p_places: item.places.map((place) => place.name),
+    p_places: places,
     p_fallbacks: item.fallbacks,
   });
   // P0002：天或項目不存在、不是成員，或行程已進垃圾桶。
@@ -43,6 +53,52 @@ export async function saveItem(itemId: string | null, formData: FormData): Promi
 
   refresh();
   return { ok: true };
+}
+
+type SignedInClient = NonNullable<Awaited<ReturnType<typeof getSignedInClient>>>;
+
+// 連結的地點補上座標（ADR 0006 Q14）：沿用這個項目原本 30 天內的座標，其餘向地圖服務查。
+// 查不到（沒有金鑰、地點已失效、逾時）時仍保留連結，只是沒有座標，不讓存檔失敗。
+async function resolvePlaces(
+  supabase: SignedInClient,
+  itemId: string | null,
+  places: (PlaceInput & { sessionToken: string | null })[],
+): Promise<SavedPlace[]> {
+  if (places.every((place) => !place.placeId)) return toSavedPlaces(places, new Map());
+
+  const { data: existing } = itemId
+    ? await supabase
+        .from('item_places')
+        .select('place_id, lat, lng, location_fetched_at')
+        .eq('item_id', itemId)
+        .not('place_id', 'is', null)
+    : { data: [] };
+  const now = new Date();
+  const locations: Map<string, StoredLocation> = reusableLocations(existing ?? [], now);
+
+  const provider = getMapProvider();
+  const missing = placeIdsToLocate(places, locations);
+  if (provider && missing.length > 0) {
+    const located = await Promise.all(
+      missing.map(async (placeId) => {
+        const sessionToken = places.find((place) => place.placeId === placeId)?.sessionToken;
+        try {
+          return [
+            placeId,
+            await provider.getPlaceLocation(placeId, sessionToken ?? undefined),
+          ] as const;
+        } catch (error) {
+          console.error('getPlaceLocation failed', error instanceof Error ? error.message : error);
+          return [placeId, null] as const;
+        }
+      }),
+    );
+    located.forEach(([placeId, location]) => {
+      if (location) locations.set(placeId, { ...location, fetchedAt: now.toISOString() });
+    });
+  }
+
+  return toSavedPlaces(places, locations);
 }
 
 // 刪除是軟刪除，畫面上提供「復原」（Q13）。

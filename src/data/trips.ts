@@ -69,7 +69,7 @@ export async function getDayItems(dayId: string) {
     .from('items')
     // select 字串要是單一字面值，supabase-js 才推得出回傳型別（用 + 串接會變成錯誤型別）。
     .select(
-      'id, title, time_slot, category, start_time, end_time, description, url, position, item_places (id, name, position), fallbacks (id, condition, alternative, position)',
+      'id, title, time_slot, category, start_time, end_time, description, url, position, item_places (id, name, position, place_id, lat, lng, location_fetched_at), fallbacks (id, condition, alternative, position)',
     )
     .eq('day_id', dayId)
     .is('deleted_at', null)
@@ -88,7 +88,9 @@ export const getTripStays = cache(async (tripId: string) => {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('stays')
-    .select('id, name, check_in, check_out, address, status, confirmation_code, url, note')
+    .select(
+      'id, name, check_in, check_out, address, status, confirmation_code, url, note, place_id, lat, lng, location_fetched_at',
+    )
     .eq('trip_id', tripId)
     .is('deleted_at', null)
     .order('check_in')

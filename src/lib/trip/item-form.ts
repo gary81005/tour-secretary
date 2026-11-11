@@ -11,6 +11,9 @@ export const ITEM_FIELDS = {
   description: 'description',
   url: 'url',
   place: 'place',
+  // 地點列的隱藏欄位：連結的地點 ID 與搜尋 session token，沒有時送空字串，與 place 一一對應。
+  placeId: 'placeId',
+  placeSessionToken: 'placeSessionToken',
   fallbackCondition: 'fallbackCondition',
   fallbackAlternative: 'fallbackAlternative',
 } as const;
@@ -24,6 +27,8 @@ function formStrings(formData: FormData, key: string): string[] {
 export function parseItemFormData(formData: FormData) {
   const conditions = formStrings(formData, ITEM_FIELDS.fallbackCondition);
   const alternatives = formStrings(formData, ITEM_FIELDS.fallbackAlternative);
+  const placeIds = formStrings(formData, ITEM_FIELDS.placeId);
+  const sessionTokens = formStrings(formData, ITEM_FIELDS.placeSessionToken);
 
   return {
     dayId: formString(formData, ITEM_FIELDS.dayId),
@@ -34,7 +39,11 @@ export function parseItemFormData(formData: FormData) {
     endTime: formString(formData, ITEM_FIELDS.endTime),
     description: formString(formData, ITEM_FIELDS.description),
     url: formString(formData, ITEM_FIELDS.url),
-    places: formStrings(formData, ITEM_FIELDS.place).map((name) => ({ name })),
+    places: formStrings(formData, ITEM_FIELDS.place).map((name, index) => ({
+      name,
+      placeId: placeIds[index] ?? '',
+      sessionToken: sessionTokens[index] ?? '',
+    })),
     fallbacks: alternatives.map((alternative, index) => ({
       condition: conditions[index] ?? '',
       alternative,

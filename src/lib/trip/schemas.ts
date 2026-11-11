@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isPlaceId } from '@/lib/maps/location';
 import { ITEM_CATEGORIES, STAY_STATUSES, TRAVELER_CONSTRAINT_KINDS } from './enums';
 import { TIME_SLOTS } from './time-slot';
 import { isValidTimezone } from './timezones';
@@ -48,6 +49,13 @@ const optionalUrl = optionalField(
 
 const timezone = z.string(error('required')).refine(isValidTimezone, error('invalidTimezone'));
 
+// 連結到地圖服務的地點 ID（ADR 0006 Q14）；空白表示只有文字。
+const optionalPlaceId = optionalField(z.string().refine(isPlaceId, error('invalidOption')));
+
+// 地點搜尋的 session token：選定地點後查座標時帶上，結束這個搜尋 session（只影響計費）。
+// 格式不對時當作沒有，不擋存檔。
+const optionalSessionToken = optionalField(z.string().regex(/^[A-Za-z0-9_-]{1,64}$/)).catch(null);
+
 // ---------------------------------------------------------------------------
 // Trip / Day
 // ---------------------------------------------------------------------------
@@ -89,7 +97,15 @@ export const itemSchema = z
     endTime: optionalTime,
     description: optionalText(5000),
     url: optionalUrl,
-    places: z.array(z.object({ name: requiredText(200) })).max(20, error('tooMany')),
+    places: z
+      .array(
+        z.object({
+          name: requiredText(200),
+          placeId: optionalPlaceId,
+          sessionToken: optionalSessionToken,
+        }),
+      )
+      .max(20, error('tooMany')),
     fallbacks: z
       .array(z.object({ condition: optionalText(500), alternative: requiredText(1000) }))
       .max(20, error('tooMany')),

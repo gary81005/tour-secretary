@@ -16,7 +16,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVerticalIcon, PlusIcon, XIcon } from 'lucide-react';
+import { ExternalLinkIcon, GripVerticalIcon, MapPinIcon, PlusIcon, XIcon } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useId, useRef, useState, useTransition, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
@@ -36,12 +36,14 @@ import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { Textarea } from '@/components/ui/textarea';
 import type { DayItem } from '@/data/trips';
 import type { FormResult } from '@/lib/form';
+import { googlePlaceUrl } from '@/lib/maps/links';
 import { ITEM_CATEGORIES } from '@/lib/trip/enums';
 import { ITEM_FIELDS } from '@/lib/trip/item-form';
 import { TIME_SLOTS, timeSlotForTime, toHourMinute, type TimeSlot } from '@/lib/trip/time-slot';
 import { localDateToUtc } from '@/lib/trip/trip-dates';
 import { useDndAccessibility } from './dnd-accessibility';
 import { EditorError, EditorFormShell } from './editor-form-shell';
+import { PlaceSearchInput, type PlaceSearchContext } from './place-search-input';
 
 export type DayOption = { id: string; dayNumber: number; date: string; city: string | null };
 
@@ -51,20 +53,30 @@ type Props = {
   dayId: string;
   defaultSlot: TimeSlot;
   dayOptions: DayOption[];
+  placeSearch: PlaceSearchContext | null;
   onDone: () => void;
 };
 
 type Row<T> = T & { key: string };
 
+// 一列地點。placeId 是連結的地圖地點（null＝只有文字）；sessionToken 是選定這個地點時的搜尋 session，
+// 存檔時讓伺服器查座標並結束 session，既有的連結是空字串。
+type PlaceRow = Row<{ name: string; placeId: string | null; sessionToken: string }>;
+
 // 行程項目的新增／編輯表單（Q7、Q16、Q19）。
 // 不用 <form action>：React 19 在 action 結束後會重設非受控欄位，驗證失敗時使用者加的地點、備案會消失。
 // 改成 onSubmit 自己呼叫 Server Action，欄位維持原樣，只顯示錯誤。
-export function ItemForm({ item, dayId, defaultSlot, dayOptions, onDone }: Props) {
+export function ItemForm({ item, dayId, defaultSlot, dayOptions, placeSearch, onDone }: Props) {
   const t = useTranslations();
   const format = useFormatter();
   const [timeSlot, setTimeSlot] = useState<TimeSlot>(item?.time_slot ?? defaultSlot);
-  const [places, setPlaces] = useState<Row<{ name: string }>[]>(() =>
-    (item?.item_places ?? []).map((place) => ({ key: place.id, name: place.name })),
+  const [places, setPlaces] = useState<PlaceRow[]>(() =>
+    (item?.item_places ?? []).map((place) => ({
+      key: place.id,
+      name: place.name,
+      placeId: place.place_id,
+      sessionToken: '',
+    })),
   );
   const [fallbacks, setFallbacks] = useState<Row<{ condition: string; alternative: string }>[]>(
     () =>
@@ -91,6 +103,10 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, onDone }: Props
   const [isSaving, startSave] = useTransition();
   const [isDeleting, startDelete] = useTransition();
   const fieldErrors = result && !result.ok ? result.fieldErrors : undefined;
+
+  function updatePlace(key: string, patch: Partial<PlaceRow>) {
+    setPlaces((rows) => rows.map((row) => (row.key === key ? { ...row, ...patch } : row)));
+  }
 
   function errorFor(path: string) {
     const key = fieldErrors?.[path];
@@ -267,7 +283,7 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, onDone }: Props
 
       <FieldSet>
         <FieldLegend variant='label'>{t('trips.item.placesLabel')}</FieldLegend>
-        {/* 地點可以拖拉調整順序；輸入框是非受控的，靠 key 跟著列移動，已輸入的文字不會遺失。 */}
+        {/* 地點可以拖拉調整順序；每列的名稱與連結存在 places，靠 key 跟著列移動。 */}
         <DndContext
           id={placesDndId}
           sensors={placeSensors}
@@ -289,11 +305,12 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, onDone }: Props
             {places.map((place, index) => (
               <SortablePlaceRow
                 key={place.key}
-                id={place.key}
+                place={place}
                 index={index}
-                defaultValue={place.name}
+                search={placeSearch}
                 invalid={!!fieldErrors?.[`places.${index}.name`]}
                 error={errorFor(`places.${index}.name`)}
+                onChange={(patch) => updatePlace(place.key, patch)}
                 onRemove={() => setPlaces((rows) => rows.filter((row) => row.key !== place.key))}
               />
             ))}
@@ -303,7 +320,12 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, onDone }: Props
           type='button'
           variant='outline'
           className='w-fit'
-          onClick={() => setPlaces((rows) => [...rows, { key: newRowKey(), name: '' }])}
+          onClick={() =>
+            setPlaces((rows) => [
+              ...rows,
+              { key: newRowKey(), name: '', placeId: null, sessionToken: '' },
+            ])
+          }
         >
           <PlusIcon />
           {t('trips.item.addPlace')}
@@ -398,21 +420,24 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, onDone }: Props
 }
 
 type SortablePlaceRowProps = {
-  id: string;
+  place: PlaceRow;
   index: number;
-  defaultValue: string;
+  search: PlaceSearchContext | null;
   invalid: boolean;
   error: ReactNode;
+  onChange: (patch: Partial<PlaceRow>) => void;
   onRemove: () => void;
 };
 
-// 一列地點：左邊是拖拉把手，右邊是移除按鈕。
+// 一列地點：左邊是拖拉把手，右邊是移除按鈕。有地圖金鑰時輸入框兼搜尋框；
+// 連結的地點下方顯示「在 Google 地圖查看」與「取消連結」。
 function SortablePlaceRow({
-  id,
+  place,
   index,
-  defaultValue,
+  search,
   invalid,
   error,
+  onChange,
   onRemove,
 }: SortablePlaceRowProps) {
   const t = useTranslations('trips');
@@ -424,7 +449,16 @@ function SortablePlaceRow({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id, attributes: { roleDescription: t('dnd.roleDescription') } });
+  } = useSortable({ id: place.key, attributes: { roleDescription: t('dnd.roleDescription') } });
+
+  const inputProps = {
+    name: ITEM_FIELDS.place,
+    placeholder: t(search ? 'item.placeSearchPlaceholder' : 'item.placePlaceholder'),
+    maxLength: 200,
+    'aria-label': `${t('item.placesLabel')} ${index + 1}`,
+    className: 'h-11 text-base',
+    'aria-invalid': invalid,
+  };
 
   return (
     <Field
@@ -444,15 +478,28 @@ function SortablePlaceRow({
         >
           <GripVerticalIcon className='size-4' />
         </button>
-        <Input
-          name={ITEM_FIELDS.place}
-          defaultValue={defaultValue}
-          placeholder={t('item.placePlaceholder')}
-          maxLength={200}
-          aria-label={`${t('item.placesLabel')} ${index + 1}`}
-          className='h-11 text-base'
-          aria-invalid={invalid}
-        />
+        <div className='min-w-0 flex-1'>
+          {search ? (
+            <PlaceSearchInput
+              {...inputProps}
+              value={place.name}
+              onValueChange={(name) => onChange({ name })}
+              onPlaceSelect={(suggestion, sessionToken) =>
+                onChange({ name: suggestion.mainText, placeId: suggestion.placeId, sessionToken })
+              }
+              search={search}
+              linked={place.placeId !== null}
+            />
+          ) : (
+            <Input
+              {...inputProps}
+              value={place.name}
+              onChange={(event) => onChange({ name: event.target.value })}
+            />
+          )}
+        </div>
+        <input type='hidden' name={ITEM_FIELDS.placeId} value={place.placeId ?? ''} />
+        <input type='hidden' name={ITEM_FIELDS.placeSessionToken} value={place.sessionToken} />
         <Button
           type='button'
           variant='ghost'
@@ -464,6 +511,31 @@ function SortablePlaceRow({
           <XIcon />
         </Button>
       </div>
+      {place.placeId && (
+        <div className='flex flex-wrap items-center gap-x-3 gap-y-1 pl-8 text-xs text-muted-foreground'>
+          <span className='flex items-center gap-1 text-primary'>
+            <MapPinIcon className='size-3.5' aria-hidden='true' />
+            {t('item.placeLinked')}
+          </span>
+          <a
+            href={googlePlaceUrl({ name: place.name, placeId: place.placeId })}
+            target='_blank'
+            rel='noreferrer'
+            className='flex items-center gap-1 underline-offset-4 hover:underline'
+          >
+            {t('item.placeOpenInMaps')}
+            <ExternalLinkIcon className='size-3' aria-hidden='true' />
+          </a>
+          <button
+            type='button'
+            className='underline-offset-4 hover:underline'
+            aria-label={t('item.placeUnlinkLabel', { index: index + 1 })}
+            onClick={() => onChange({ placeId: null, sessionToken: '' })}
+          >
+            {t('item.placeUnlink')}
+          </button>
+        </div>
+      )}
       {error}
     </Field>
   );

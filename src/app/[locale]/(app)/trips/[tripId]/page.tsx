@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation';
 import { Suspense, type ReactNode } from 'react';
 import { getDayItems, getTrip, getTripDays, getTripStays, type DayItem } from '@/data/trips';
 import { Link } from '@/i18n/navigation';
+import { getMapsApiKey } from '@/lib/maps/env';
+import { searchBias } from '@/lib/maps/search-bias';
 import type { StayStatus } from '@/lib/trip/enums';
 import { resolveSelectedDayIndex } from '@/lib/trip/day-selection';
 import { staysForNight } from '@/lib/trip/stays';
@@ -12,6 +14,7 @@ import { currentDayIndex, resolveTimezone } from '@/lib/trip/trip-phase';
 import { DayItems } from './day-items';
 import { DayMenu } from './day-menu';
 import type { DayOption } from './item-form';
+import type { PlaceSearchContext } from './place-search-input';
 import { DaySelector } from './day-selector';
 
 type Props = PageProps<'/[locale]/trips/[tripId]'>;
@@ -46,6 +49,20 @@ async function Itinerary({ params, searchParams }: Props) {
   const [items, stays] = await Promise.all([getDayItems(selectedDay.id), getTripStays(tripId)]);
   // 最後一天是回程日，不需要住宿。
   const isLastDay = selectedIndex === days.length - 1;
+  // 沒有地圖金鑰時地點只能輸入文字（ADR 0006 Q15）。
+  // 搜尋偏向當天已連結的地點，其次是前一晚（退房日＝當天）與當晚的住宿。
+  const placeSearch: PlaceSearchContext | null = getMapsApiKey()
+    ? {
+        bias: searchBias({
+          places: items.flatMap((item) => item.item_places),
+          stays: stays.filter(
+            (stay) => stay.check_in <= selectedDay.date && selectedDay.date <= stay.check_out,
+          ),
+          timezone: timezones[selectedIndex],
+          now,
+        }),
+      }
+    : null;
 
   return (
     <>
@@ -72,6 +89,7 @@ async function Itinerary({ params, searchParams }: Props) {
         // 只有和行程預設不同時才標示當地時區，例如回程那天在台北。
         customTimezone={selectedDay.timezone !== null ? timezones[selectedIndex] : null}
         items={items}
+        placeSearch={placeSearch}
         tonight={
           isLastDay ? null : (
             <TonightStay
@@ -115,6 +133,7 @@ type DayViewProps = {
   city: string | null;
   customTimezone: string | null;
   items: DayItem[];
+  placeSearch: PlaceSearchContext | null;
   tonight: ReactNode;
   menu: ReactNode;
 };
@@ -127,6 +146,7 @@ function DayView({
   city,
   customTimezone,
   items,
+  placeSearch,
   tonight,
   menu,
 }: DayViewProps) {
@@ -158,7 +178,7 @@ function DayView({
         {menu}
       </header>
 
-      <DayItems dayId={dayId} dayOptions={dayOptions} items={items} />
+      <DayItems dayId={dayId} dayOptions={dayOptions} items={items} placeSearch={placeSearch} />
       {tonight}
     </section>
   );
