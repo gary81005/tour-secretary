@@ -250,7 +250,13 @@ BEGIN
     )
     SELECT v_trip_id, btrim(x.name), x.check_in, x.check_out, x.address,
            coalesce(x.status, 'candidate'), x.confirmation_code, x.url, x.note
-    FROM jsonb_to_recordset(CASE WHEN jsonb_typeof(p_payload -> 'stays') = 'array' THEN p_payload -> 'stays' ELSE '[]' END) AS x (
+    -- 沒有住宿工作表時是 JSON null（見檔案開頭），只有陣列才展開。提醒事項、旅伴限制同理。
+    FROM jsonb_to_recordset(
+      CASE WHEN jsonb_typeof(p_payload -> 'stays') = 'array'
+        THEN p_payload -> 'stays'
+        ELSE '[]'
+      END
+    ) AS x (
       name text, check_in date, check_out date, address text, status public.stay_status,
       confirmation_code text, url text, note text
     )
@@ -265,7 +271,12 @@ BEGIN
     INSERT INTO public.trip_notes (trip_id, topic, content, position)
     SELECT v_trip_id, btrim(x.topic), x.content, v_note_position + (x.ordinality - 1)::integer
     FROM ROWS FROM (
-      jsonb_to_recordset(CASE WHEN jsonb_typeof(p_payload -> 'notes') = 'array' THEN p_payload -> 'notes' ELSE '[]' END) AS (topic text, content text)
+      jsonb_to_recordset(
+        CASE WHEN jsonb_typeof(p_payload -> 'notes') = 'array'
+          THEN p_payload -> 'notes'
+          ELSE '[]'
+        END
+      ) AS (topic text, content text)
     ) WITH ORDINALITY AS x (topic, content, ordinality)
     RETURNING id
   )
@@ -274,7 +285,12 @@ BEGIN
   WITH inserted AS (
     INSERT INTO public.traveler_constraints (trip_id, kind, subject, content)
     SELECT v_trip_id, x.kind, nullif(btrim(x.subject), ''), btrim(x.content)
-    FROM jsonb_to_recordset(CASE WHEN jsonb_typeof(p_payload -> 'constraints') = 'array' THEN p_payload -> 'constraints' ELSE '[]' END) AS x (
+    FROM jsonb_to_recordset(
+      CASE WHEN jsonb_typeof(p_payload -> 'constraints') = 'array'
+        THEN p_payload -> 'constraints'
+        ELSE '[]'
+      END
+    ) AS x (
       kind public.traveler_constraint_kind, subject text, content text
     )
     RETURNING id
