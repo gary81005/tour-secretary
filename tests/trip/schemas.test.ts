@@ -135,6 +135,33 @@ describe('staySchema', () => {
     });
     expect(errorsOf(result)).toEqual({ checkOut: 'checkOutNotAfterCheckIn' });
   });
+
+  const stay = {
+    name: '藏王溫泉旅館',
+    checkIn: '2027-03-08',
+    checkOut: '2027-03-09',
+    status: 'booked',
+  };
+
+  it('連結的地點：空白表示沒有連結，格式不對的 session token 當作沒有', () => {
+    const linked = staySchema.safeParse({
+      ...stay,
+      placeId: 'ChIJ_abc-1',
+      sessionToken: 'bad token!',
+    });
+    expect(linked.success && linked.data).toMatchObject({
+      placeId: 'ChIJ_abc-1',
+      sessionToken: null,
+    });
+
+    const unlinked = staySchema.safeParse({ ...stay, placeId: '', sessionToken: '' });
+    expect(unlinked.success && unlinked.data).toMatchObject({ placeId: null, sessionToken: null });
+  });
+
+  it('地點 ID 格式不對時擋下', () => {
+    const result = staySchema.safeParse({ ...stay, placeId: '../x' });
+    expect(errorsOf(result)).toEqual({ placeId: 'invalidOption' });
+  });
 });
 
 describe('dayUpdateSchema', () => {

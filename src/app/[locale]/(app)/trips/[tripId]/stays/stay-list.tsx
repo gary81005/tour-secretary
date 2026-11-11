@@ -8,6 +8,7 @@ import {
   TriangleAlertIcon,
 } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
+import type { PlaceSearchContext } from '@/components/maps/place-search-input';
 import { ResponsiveDialog, ResponsiveDialogContent } from '@/components/responsive-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,7 @@ import {
 } from '@/components/ui/empty';
 import type { TripStay } from '@/data/trips';
 import { useEditorState } from '@/hooks/use-editor-state';
+import { googlePlaceUrl } from '@/lib/maps/links';
 import type { StayStatus } from '@/lib/trip/enums';
 import { findOverlappingStayIds, validateStayRange } from '@/lib/trip/stays';
 import { addDays, countDays, localDateToUtc } from '@/lib/trip/trip-dates';
@@ -40,7 +42,13 @@ function defaultStayDates(trip: StayTrip, stays: TripStay[]) {
   return { checkIn, checkOut: nextDay <= trip.endDate ? nextDay : trip.endDate };
 }
 
-export function StayList({ trip, stays }: { trip: StayTrip; stays: TripStay[] }) {
+type Props = {
+  trip: StayTrip;
+  stays: TripStay[];
+  placeSearch: PlaceSearchContext | null;
+};
+
+export function StayList({ trip, stays, placeSearch }: Props) {
   const t = useTranslations('trips.stays');
   const editor = useEditorState<TripStay>();
   const overlapping = findOverlappingStayIds(stays);
@@ -89,6 +97,7 @@ export function StayList({ trip, stays }: { trip: StayTrip; stays: TripStay[] })
             trip={trip}
             stay={editor.target}
             defaults={defaultStayDates(trip, stays)}
+            placeSearch={placeSearch}
             onDone={() => editor.setOpen(false)}
           />
         </ResponsiveDialogContent>
@@ -155,6 +164,19 @@ function StayCard({
           <MapPinIcon className='mt-0.5 size-3.5 shrink-0' aria-hidden='true' />
           <span className='break-words'>{stay.address}</span>
         </p>
+      )}
+
+      {/* 地圖連結不需要金鑰，沒有設定金鑰時也顯示（ADR 0006 Q15）。 */}
+      {stay.place_id && (
+        <a
+          href={googlePlaceUrl({ name: stay.name, placeId: stay.place_id })}
+          target='_blank'
+          rel='noopener noreferrer'
+          className='relative z-10 flex w-fit items-center gap-1 text-sm text-primary underline-offset-4 hover:underline'
+        >
+          <ExternalLinkIcon className='size-3.5' aria-hidden='true' />
+          {t('place.openInMaps')}
+        </a>
       )}
 
       {stay.confirmation_code && (

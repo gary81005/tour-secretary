@@ -1,9 +1,11 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { deleteStay, restoreStay, saveStay } from '@/actions/stays';
+import { PlaceLinkStatus } from '@/components/maps/place-link-status';
+import { PlaceSearchInput, type PlaceSearchContext } from '@/components/maps/place-search-input';
 import { Field, FieldError, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,13 +21,18 @@ type Props = {
   // null 表示新增
   stay: TripStay | null;
   defaults: { checkIn: string; checkOut: string };
+  // 有地圖金鑰時名稱欄兼地點搜尋框（ADR 0006 Q6、Q15）
+  placeSearch: PlaceSearchContext | null;
   onDone: () => void;
 };
 
 // 住宿的新增／編輯表單（Q8）。入住到退房要在行程日期內（伺服器端也會檢查）。
-export function StayForm({ trip, stay, defaults, onDone }: Props) {
+export function StayForm({ trip, stay, defaults, placeSearch, onDone }: Props) {
   const t = useTranslations();
   const [isDeleting, startDelete] = useTransition();
+  // 名稱與連結的地點。選了 Google 的地點時預填 Google 的名稱，可以再改；地址文字不動（Q14）。
+  const [name, setName] = useState(stay?.name ?? '');
+  const [place, setPlace] = useState({ placeId: stay?.place_id ?? null, sessionToken: '' });
   const { result, isPending, handleSubmit } = useFormSubmit(
     (formData) => saveStay(trip.id, stay?.id ?? null, formData),
     () => {
@@ -39,6 +46,16 @@ export function StayForm({ trip, stay, defaults, onDone }: Props) {
     const key = errors?.[field];
     return key && <FieldError>{t(`validation.${key}`)}</FieldError>;
   }
+
+  const nameProps = {
+    id: 'stay-name',
+    name: 'name',
+    maxLength: 200,
+    required: true,
+    autoFocus: !stay,
+    className: 'h-11 text-base',
+    'aria-invalid': !!errors?.name,
+  };
 
   function handleDelete() {
     if (!stay) return;
@@ -76,17 +93,36 @@ export function StayForm({ trip, stay, defaults, onDone }: Props) {
     >
       <Field data-invalid={!!errors?.name}>
         <FieldLabel htmlFor='stay-name'>{t('trips.stays.nameLabel')}</FieldLabel>
-        <Input
-          id='stay-name'
-          name='name'
-          defaultValue={stay?.name}
-          placeholder={t('trips.stays.namePlaceholder')}
-          maxLength={200}
-          required
-          autoFocus={!stay}
-          className='h-11 text-base'
-          aria-invalid={!!errors?.name}
-        />
+        {placeSearch ? (
+          <PlaceSearchInput
+            {...nameProps}
+            placeholder={t('trips.stays.nameSearchPlaceholder')}
+            value={name}
+            onValueChange={setName}
+            onPlaceSelect={(suggestion, sessionToken) => {
+              setName(suggestion.mainText);
+              setPlace({ placeId: suggestion.placeId, sessionToken });
+            }}
+            search={placeSearch}
+            linked={place.placeId !== null}
+          />
+        ) : (
+          <Input
+            {...nameProps}
+            placeholder={t('trips.stays.namePlaceholder')}
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+          />
+        )}
+        <input type='hidden' name='placeId' value={place.placeId ?? ''} />
+        <input type='hidden' name='placeSessionToken' value={place.sessionToken} />
+        {place.placeId && (
+          <PlaceLinkStatus
+            name={name}
+            placeId={place.placeId}
+            onUnlink={() => setPlace({ placeId: null, sessionToken: '' })}
+          />
+        )}
         {errorFor('name')}
       </Field>
 

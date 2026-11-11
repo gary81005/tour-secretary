@@ -4,15 +4,8 @@ import { refresh } from 'next/cache';
 import { z } from 'zod';
 import { getSignedInClient } from '@/lib/auth/session';
 import { fieldErrorsOf, type ActionResult, type FormResult } from '@/lib/form';
-import { getMapProvider } from '@/lib/maps/google';
-import {
-  placeIdsToLocate,
-  reusableLocations,
-  toSavedPlaces,
-  type PlaceInput,
-  type SavedPlace,
-  type StoredLocation,
-} from '@/lib/maps/place-links';
+import { locatePlaces, type PlaceToLocate } from '@/lib/maps/locate';
+import { reusableLocations, toSavedPlaces, type SavedPlace } from '@/lib/maps/place-links';
 import { parseItemFormData } from '@/lib/trip/item-form';
 import { itemSchema } from '@/lib/trip/schemas';
 import { TIME_SLOTS, type TimeSlot } from '@/lib/trip/time-slot';
@@ -57,12 +50,11 @@ export async function saveItem(itemId: string | null, formData: FormData): Promi
 
 type SignedInClient = NonNullable<Awaited<ReturnType<typeof getSignedInClient>>>;
 
-// 連結的地點補上座標（ADR 0006 Q14）：沿用這個項目原本 30 天內的座標，其餘向地圖服務查。
-// 查不到（沒有金鑰、地點已失效、逾時）時仍保留連結，只是沒有座標，不讓存檔失敗。
+// 連結的地點補上座標：沿用這個項目原本 30 天內的座標，其餘向地圖服務查（locatePlaces）。
 async function resolvePlaces(
   supabase: SignedInClient,
   itemId: string | null,
-  places: (PlaceInput & { sessionToken: string | null })[],
+  places: PlaceToLocate[],
 ): Promise<SavedPlace[]> {
   if (places.every((place) => !place.placeId)) return toSavedPlaces(places, new Map());
 
@@ -74,30 +66,7 @@ async function resolvePlaces(
         .not('place_id', 'is', null)
     : { data: [] };
   const now = new Date();
-  const locations: Map<string, StoredLocation> = reusableLocations(existing ?? [], now);
-
-  const provider = getMapProvider();
-  const missing = placeIdsToLocate(places, locations);
-  if (provider && missing.length > 0) {
-    const located = await Promise.all(
-      missing.map(async (placeId) => {
-        const sessionToken = places.find((place) => place.placeId === placeId)?.sessionToken;
-        try {
-          return [
-            placeId,
-            await provider.getPlaceLocation(placeId, sessionToken ?? undefined),
-          ] as const;
-        } catch (error) {
-          console.error('getPlaceLocation failed', error instanceof Error ? error.message : error);
-          return [placeId, null] as const;
-        }
-      }),
-    );
-    located.forEach(([placeId, location]) => {
-      if (location) locations.set(placeId, { ...location, fetchedAt: now.toISOString() });
-    });
-  }
-
+  const locations = await locatePlaces(places, reusableLocations(existing ?? [], now), now);
   return toSavedPlaces(places, locations);
 }
 

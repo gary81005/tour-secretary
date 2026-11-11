@@ -33,7 +33,8 @@ type Props = Omit<ComponentProps<'input'>, 'value' | 'onChange' | 'defaultValue'
 
 type Status = 'idle' | 'searching' | 'done' | 'failed';
 
-// 地點名稱欄位兼搜尋框（ADR 0006 Q5）：輸入時列出 Google 的建議，選了就連結；不選就存成文字。
+// 地點名稱欄位兼搜尋框（ADR 0006 Q5、Q6）：輸入時列出 Google 的建議，選了就連結；不選就存成文字。
+// 項目的地點列與住宿名稱共用。
 export function PlaceSearchInput({
   value,
   onValueChange,
@@ -42,7 +43,7 @@ export function PlaceSearchInput({
   linked,
   ...inputProps
 }: Props) {
-  const t = useTranslations('trips.item');
+  const t = useTranslations('trips.place');
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
   const [status, setStatus] = useState<Status>('idle');
   const [open, setOpen] = useState(false);
@@ -109,9 +110,9 @@ export function PlaceSearchInput({
         <Autocomplete.Positioner className='isolate z-50 outline-none' sideOffset={4}>
           <Autocomplete.Popup className='z-50 max-h-[min(var(--available-height),20rem)] w-(--anchor-width) overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-none'>
             <Autocomplete.Status className='px-2 py-1.5 text-sm text-muted-foreground empty:hidden'>
-              {status === 'searching' && t('placeSearching')}
-              {status === 'failed' && t('placeSearchFailed')}
-              {status === 'done' && suggestions.length === 0 && t('placeNoResults')}
+              {status === 'searching' && t('searching')}
+              {status === 'failed' && t('searchFailed')}
+              {status === 'done' && suggestions.length === 0 && t('noResults')}
             </Autocomplete.Status>
             <Autocomplete.List>
               {(suggestion: PlaceSuggestion) => (

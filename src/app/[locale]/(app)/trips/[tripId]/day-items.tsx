@@ -30,13 +30,13 @@ import { useEditorState } from '@/hooks/use-editor-state';
 import { ResponsiveDialog, ResponsiveDialogContent } from '@/components/responsive-dialog';
 import { Button } from '@/components/ui/button';
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
+import type { PlaceSearchContext } from '@/components/maps/place-search-input';
 import type { DayItem } from '@/data/trips';
 import { applySlotOrder, groupItemsBySlot, untimedIdsBySlot } from '@/lib/trip/item-order';
 import { TIME_SLOTS, type TimeSlot } from '@/lib/trip/time-slot';
 import { useDndAccessibility } from './dnd-accessibility';
 import { ItemCard } from './item-card';
 import { ItemForm, type DayOption } from './item-form';
-import type { PlaceSearchContext } from './place-search-input';
 
 type Props = {
   dayId: string;

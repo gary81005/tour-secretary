@@ -3,6 +3,8 @@
 import { refresh } from 'next/cache';
 import { getSignedInClient } from '@/lib/auth/session';
 import { fieldErrorsOf, formString, type ActionResult, type FormResult } from '@/lib/form';
+import { locatePlaces, type PlaceToLocate } from '@/lib/maps/locate';
+import { reusableLocations, toSavedPlaces, type SavedPlace } from '@/lib/maps/place-links';
 import { setDeletedAt } from '@/lib/supabase/soft-delete';
 import { staySchema } from '@/lib/trip/schemas';
 import { validateStayRange } from '@/lib/trip/stays';
@@ -24,6 +26,8 @@ export async function saveStay(
     checkIn: formString(formData, 'checkIn'),
     checkOut: formString(formData, 'checkOut'),
     address: formString(formData, 'address'),
+    placeId: formString(formData, 'placeId'),
+    sessionToken: formString(formData, 'placeSessionToken'),
     status: formString(formData, 'status'),
     confirmationCode: formString(formData, 'confirmationCode'),
     url: formString(formData, 'url'),
@@ -48,8 +52,14 @@ export async function saveStay(
     return { ok: false, fieldErrors: { checkIn: 'outsideTrip' } };
   }
 
+  const place = await resolveStayPlace(supabase, tripId, stayId, stay);
   const row = {
     name: stay.name,
+    provider: place.provider,
+    place_id: place.place_id,
+    lat: place.lat,
+    lng: place.lng,
+    location_fetched_at: place.location_fetched_at,
     check_in: stay.checkIn,
     check_out: stay.checkOut,
     address: stay.address,
@@ -75,6 +85,29 @@ export async function saveStay(
 
   refresh();
   return { ok: true };
+}
+
+type SignedInClient = NonNullable<Awaited<ReturnType<typeof getSignedInClient>>>;
+
+// 住宿連結的地點補上座標：地點沒變且座標在 30 天內時沿用，否則向地圖服務查（locatePlaces）。
+async function resolveStayPlace(
+  supabase: SignedInClient,
+  tripId: string,
+  stayId: string | null,
+  stay: PlaceToLocate,
+): Promise<SavedPlace> {
+  if (!stay.placeId) return toSavedPlaces([stay], new Map())[0];
+
+  const { data: existing } = stayId
+    ? await supabase
+        .from('stays')
+        .select('place_id, lat, lng, location_fetched_at')
+        .eq('id', stayId)
+        .eq('trip_id', tripId)
+    : { data: [] };
+  const now = new Date();
+  const locations = await locatePlaces([stay], reusableLocations(existing ?? [], now), now);
+  return toSavedPlaces([stay], locations)[0];
 }
 
 export async function deleteStay(stayId: string): Promise<ActionResult> {

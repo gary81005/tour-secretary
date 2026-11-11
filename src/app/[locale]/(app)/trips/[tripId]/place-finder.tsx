@@ -4,6 +4,7 @@ import { XIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Suspense, use, useId, useState } from 'react';
 import { findPlaces, type FindPlacesResult } from '@/actions/places';
+import { newSessionToken, type PlaceSearchContext } from '@/components/maps/place-search-input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -14,7 +15,6 @@ import {
   type PlaceQuery,
 } from '@/lib/maps/place-queries';
 import type { PlaceSuggestion } from '@/lib/maps/types';
-import { newSessionToken, type PlaceSearchContext } from './place-search-input';
 
 // 一次「幫我找地點」：要搜尋的段落（各自一個 session token）與搜尋結果。
 export type PlaceFinderSearch = {
@@ -72,7 +72,7 @@ export function PlaceFinder({ search, addedPlaceIds, onAdd, onClose }: Props) {
         <Suspense
           fallback={
             <p role='status' className='text-sm text-muted-foreground'>
-              {t('item.placeSearching')}
+              {t('place.searching')}
             </p>
           }
         >
@@ -84,7 +84,7 @@ export function PlaceFinder({ search, addedPlaceIds, onAdd, onClose }: Props) {
 }
 
 function FinderResults({ search, addedPlaceIds, onAdd }: Omit<Props, 'onClose'>) {
-  const t = useTranslations('trips.item');
+  const t = useTranslations('trips');
   const result = use(search.results);
   // 每一段最多選一個候選（段落順序對應地點 ID）。
   const [picked, setPicked] = useState<(string | null)[]>(() => search.queries.map(() => null));
@@ -92,7 +92,7 @@ function FinderResults({ search, addedPlaceIds, onAdd }: Omit<Props, 'onClose'>)
   if (!result.ok) {
     return (
       <p role='alert' className='text-sm text-destructive'>
-        {t('placeSearchFailed')}
+        {t('place.searchFailed')}
       </p>
     );
   }
@@ -117,13 +117,13 @@ function FinderResults({ search, addedPlaceIds, onAdd }: Omit<Props, 'onClose'>)
 
   return (
     <>
-      <p className='text-xs text-muted-foreground'>{t('finderHint')}</p>
+      <p className='text-xs text-muted-foreground'>{t('item.finderHint')}</p>
       {search.queries.map((query, index) => (
         <fieldset key={query.text} className='flex min-w-0 flex-col gap-1'>
           <legend className='mb-1 flex items-center gap-2 text-sm font-medium'>
             <span className='break-words'>{query.text}</span>
             {isAlternativeGroup(search.queries, query.group) && (
-              <Badge variant='secondary'>{t('finderAlternative')}</Badge>
+              <Badge variant='secondary'>{t('item.finderAlternative')}</Badge>
             )}
           </legend>
           <Candidates
@@ -135,14 +135,14 @@ function FinderResults({ search, addedPlaceIds, onAdd }: Omit<Props, 'onClose'>)
         </fieldset>
       ))}
       {/* 沒有搭配 Google 地圖顯示 Places 結果時，服務條款要求標示來源。 */}
-      <p className='text-right text-xs text-muted-foreground'>{t('poweredByGoogle')}</p>
+      <p className='text-right text-xs text-muted-foreground'>{t('place.poweredByGoogle')}</p>
       <Button
         type='button'
         className='self-end'
         disabled={found.length === 0}
         onClick={() => onAdd(found)}
       >
-        {t('finderAdd', { count: found.length })}
+        {t('item.finderAdd', { count: found.length })}
       </Button>
     </>
   );

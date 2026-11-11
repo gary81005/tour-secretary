@@ -2,6 +2,7 @@ import { BedDoubleIcon } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
 import { notFound } from 'next/navigation';
 import { Suspense, type ReactNode } from 'react';
+import type { PlaceSearchContext } from '@/components/maps/place-search-input';
 import { getDayItems, getTrip, getTripDays, getTripStays, type DayItem } from '@/data/trips';
 import { Link } from '@/i18n/navigation';
 import { getMapsApiKey } from '@/lib/maps/env';
@@ -14,7 +15,6 @@ import { currentDayIndex, resolveTimezone } from '@/lib/trip/trip-phase';
 import { DayItems } from './day-items';
 import { DayMenu } from './day-menu';
 import type { DayOption } from './item-form';
-import type { PlaceSearchContext } from './place-search-input';
 import { DaySelector } from './day-selector';
 
 type Props = PageProps<'/[locale]/trips/[tripId]'>;

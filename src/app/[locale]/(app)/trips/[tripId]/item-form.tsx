@@ -16,14 +16,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import {
-  ExternalLinkIcon,
-  GripVerticalIcon,
-  MapPinIcon,
-  PlusIcon,
-  SearchIcon,
-  XIcon,
-} from 'lucide-react';
+import { GripVerticalIcon, PlusIcon, SearchIcon, XIcon } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useId, useRef, useState, useTransition, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
@@ -38,12 +31,13 @@ import {
   FieldLegend,
   FieldSet,
 } from '@/components/ui/field';
+import { PlaceLinkStatus } from '@/components/maps/place-link-status';
+import { PlaceSearchInput, type PlaceSearchContext } from '@/components/maps/place-search-input';
 import { Input } from '@/components/ui/input';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { Textarea } from '@/components/ui/textarea';
 import type { DayItem } from '@/data/trips';
 import type { FormResult } from '@/lib/form';
-import { googlePlaceUrl } from '@/lib/maps/links';
 import { mergeFoundPlaces } from '@/lib/maps/place-queries';
 import { ITEM_CATEGORIES } from '@/lib/trip/enums';
 import { ITEM_FIELDS } from '@/lib/trip/item-form';
@@ -52,7 +46,6 @@ import { localDateToUtc } from '@/lib/trip/trip-dates';
 import { useDndAccessibility } from './dnd-accessibility';
 import { EditorError, EditorFormShell } from './editor-form-shell';
 import { PlaceFinder, startPlaceFinder, type PlaceFinderSearch } from './place-finder';
-import { PlaceSearchInput, type PlaceSearchContext } from './place-search-input';
 
 export type DayOption = { id: string; dayNumber: number; date: string; city: string | null };
 
@@ -470,7 +463,7 @@ type SortablePlaceRowProps = {
 };
 
 // 一列地點：左邊是拖拉把手，右邊是移除按鈕。有地圖金鑰時輸入框兼搜尋框；
-// 連結的地點下方顯示「在 Google 地圖查看」與「取消連結」。
+// 連結的地點下方顯示 PlaceLinkStatus。
 function SortablePlaceRow({
   place,
   index,
@@ -552,29 +545,13 @@ function SortablePlaceRow({
         </Button>
       </div>
       {place.placeId && (
-        <div className='flex flex-wrap items-center gap-x-3 gap-y-1 pl-8 text-xs text-muted-foreground'>
-          <span className='flex items-center gap-1 text-primary'>
-            <MapPinIcon className='size-3.5' aria-hidden='true' />
-            {t('item.placeLinked')}
-          </span>
-          <a
-            href={googlePlaceUrl({ name: place.name, placeId: place.placeId })}
-            target='_blank'
-            rel='noreferrer'
-            className='flex items-center gap-1 underline-offset-4 hover:underline'
-          >
-            {t('item.placeOpenInMaps')}
-            <ExternalLinkIcon className='size-3' aria-hidden='true' />
-          </a>
-          <button
-            type='button'
-            className='underline-offset-4 hover:underline'
-            aria-label={t('item.placeUnlinkLabel', { index: index + 1 })}
-            onClick={() => onChange({ placeId: null, sessionToken: '' })}
-          >
-            {t('item.placeUnlink')}
-          </button>
-        </div>
+        <PlaceLinkStatus
+          name={place.name}
+          placeId={place.placeId}
+          unlinkLabel={t('item.placeUnlinkLabel', { index: index + 1 })}
+          onUnlink={() => onChange({ placeId: null, sessionToken: '' })}
+          className='pl-8'
+        />
       )}
       {error}
     </Field>

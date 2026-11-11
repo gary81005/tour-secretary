@@ -131,6 +131,9 @@ export const staySchema = z
     checkIn: date,
     checkOut: date,
     address: optionalText(500),
+    // 住宿名稱連結的地圖地點（ADR 0006 Q6）；地址文字維持使用者寫的。
+    placeId: optionalPlaceId,
+    sessionToken: optionalSessionToken,
     status: z.enum(STAY_STATUSES, error('invalidOption')),
     confirmationCode: optionalText(100),
     url: optionalUrl,

@@ -112,13 +112,6 @@
     "placesLabel": "地點",
     "placePlaceholder": "地點名稱",
     "placeSearchPlaceholder": "搜尋或輸入地點名稱",
-    "placeSearching": "搜尋中…",
-    "placeSearchFailed": "搜尋失敗，仍可直接存成文字。",
-    "placeNoResults": "找不到符合的地點，會存成文字。",
-    "poweredByGoogle": "資料來源：Google Maps",
-    "placeLinked": "已連結 Google 地點",
-    "placeOpenInMaps": "在 Google 地圖查看",
-    "placeUnlink": "取消連結",
     "placeUnlinkLabel": "取消連結地點 {index}",
     "findPlaces": "幫我找地點",
     "finderHint": "依標題與還沒連結的地點搜尋，每段最多選一個。",
@@ -139,6 +132,16 @@
     "alternativePlaceholder": "替代方案",
     "addFallback": "新增備案",
     "removeFallback": "移除備案 {index}"
+  },
+  "place": {
+    "searching": "搜尋中…",
+    "searchFailed": "搜尋失敗，仍可直接存成文字。",
+    "noResults": "找不到符合的地點，會存成文字。",
+    "poweredByGoogle": "資料來源：Google Maps",
+    "linked": "已連結 Google 地點",
+    "openInMaps": "在 Google 地圖查看",
+    "unlink": "取消連結",
+    "unlinkLabel": "取消連結地點"
   },
   "dnd": {
     "itemHandle": "拖拉調整「{title}」的順序",
@@ -248,7 +251,8 @@
       "description": "新增住宿後，每天的行程最下方會顯示「今晚住」。"
     },
     "tonight": "今晚住",
-    "tonightNone": "今晚還沒有安排住宿"
+    "tonightNone": "今晚還沒有安排住宿",
+    "nameSearchPlaceholder": "搜尋或輸入住宿名稱"
   },
   "notes": {
     "add": "新增提醒",
