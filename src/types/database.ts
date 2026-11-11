@@ -102,24 +102,39 @@ export type Database = {
           created_at: string
           id: string
           item_id: string
+          lat: number | null
+          lng: number | null
+          location_fetched_at: string | null
           name: string
+          place_id: string | null
           position: number
+          provider: Database["public"]["Enums"]["map_provider"] | null
           trip_id: string
         }
         Insert: {
           created_at?: string
           id?: string
           item_id: string
+          lat?: number | null
+          lng?: number | null
+          location_fetched_at?: string | null
           name: string
+          place_id?: string | null
           position?: number
+          provider?: Database["public"]["Enums"]["map_provider"] | null
           trip_id: string
         }
         Update: {
           created_at?: string
           id?: string
           item_id?: string
+          lat?: number | null
+          lng?: number | null
+          location_fetched_at?: string | null
           name?: string
+          place_id?: string | null
           position?: number
+          provider?: Database["public"]["Enums"]["map_provider"] | null
           trip_id?: string
         }
         Relationships: [
@@ -238,8 +253,13 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           id: string
+          lat: number | null
+          lng: number | null
+          location_fetched_at: string | null
           name: string
           note: string | null
+          place_id: string | null
+          provider: Database["public"]["Enums"]["map_provider"] | null
           status: Database["public"]["Enums"]["stay_status"]
           trip_id: string
           updated_at: string
@@ -253,8 +273,13 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           id?: string
+          lat?: number | null
+          lng?: number | null
+          location_fetched_at?: string | null
           name: string
           note?: string | null
+          place_id?: string | null
+          provider?: Database["public"]["Enums"]["map_provider"] | null
           status?: Database["public"]["Enums"]["stay_status"]
           trip_id: string
           updated_at?: string
@@ -268,8 +293,13 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           id?: string
+          lat?: number | null
+          lng?: number | null
+          location_fetched_at?: string | null
           name?: string
           note?: string | null
+          place_id?: string | null
+          provider?: Database["public"]["Enums"]["map_provider"] | null
           status?: Database["public"]["Enums"]["stay_status"]
           trip_id?: string
           updated_at?: string
@@ -559,7 +589,7 @@ export type Database = {
           p_end_time?: string
           p_fallbacks?: Json
           p_item_id?: string
-          p_places?: string[]
+          p_places?: Json
           p_start_time?: string
           p_time_slot: Database["public"]["Enums"]["time_slot"]
           p_title: string
@@ -586,6 +616,7 @@ export type Database = {
         | "lodging"
         | "shopping"
         | "reminder"
+      map_provider: "google"
       stay_status: "candidate" | "booked" | "paid"
       time_slot:
         | "all_day"
@@ -738,6 +769,7 @@ export const Constants = {
         "shopping",
         "reminder",
       ],
+      map_provider: ["google"],
       stay_status: ["candidate", "booked", "paid"],
       time_slot: [
         "all_day",
