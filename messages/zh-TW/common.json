@@ -8,6 +8,11 @@
     "accountMenu": "帳號選單",
     "trash": "垃圾桶"
   },
+  "siteFooter": {
+    "label": "網站資訊",
+    "privacy": "隱私權政策",
+    "terms": "服務條款"
+  },
   "errors": {
     "unauthorized": "登入已過期，請重新登入。",
     "notFound": "找不到這個行程，可能已經被刪除。",

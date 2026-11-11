@@ -18,6 +18,8 @@ export default getRequestConfig(async ({ locale }) => {
       ...(await import(`../../messages/${requested}/common.json`)).default,
       auth: (await import(`../../messages/${requested}/auth.json`)).default,
       import: (await import(`../../messages/${requested}/import.json`)).default,
+      privacy: (await import(`../../messages/${requested}/privacy.json`)).default,
+      terms: (await import(`../../messages/${requested}/terms.json`)).default,
       trips: (await import(`../../messages/${requested}/trips.json`)).default,
       validation: (await import(`../../messages/${requested}/validation.json`)).default,
     },

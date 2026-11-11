@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { locale } from 'next/root-params';
+import { SiteFooter } from '@/components/app-shell/site-footer';
 import { Toaster } from '@/components/ui/sonner';
 import { routing } from '@/i18n/routing';
 import '../globals.css';
@@ -44,7 +45,11 @@ export default async function RootLayout({ children }: LayoutProps<'/[locale]'>)
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className='flex min-h-full flex-col'>
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        {/* SiteFooter 的 Link 是 Client Component，要從 provider 取得語系，所以放在裡面。 */}
+        <NextIntlClientProvider>
+          {children}
+          <SiteFooter />
+        </NextIntlClientProvider>
         {/* 「已刪除・復原」等提示（Q26-6）；手機上放下方中間，拇指好按。 */}
         <Toaster position='bottom-center' />
       </body>

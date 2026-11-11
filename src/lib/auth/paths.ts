@@ -4,7 +4,7 @@ export const LOGIN_PATH = '/login';
 export const HOME_PATH = '/';
 
 // 不用登入就能進的路徑（含子路徑）。/auth 底下是登入完成後回來的 Route Handler。
-const PUBLIC_PATHS = [LOGIN_PATH, '/auth'];
+const PUBLIC_PATHS = [LOGIN_PATH, '/auth', '/privacy', '/terms'];
 
 // 去掉語系前綴：/zh-TW/login → /login。
 export function stripLocale(pathname: string): string {
