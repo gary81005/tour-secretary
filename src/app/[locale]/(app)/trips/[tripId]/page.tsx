@@ -3,7 +3,7 @@ import { useFormatter, useTranslations } from 'next-intl';
 import { notFound } from 'next/navigation';
 import { Suspense, type ReactNode } from 'react';
 import type { PlaceSearchContext } from '@/components/maps/place-search-input';
-import { GoogleAddress } from '@/components/maps/google-address';
+import { GoogleAddress, type PlaceAddresses } from '@/components/maps/google-address';
 import { getItemPlaceHours, getPlaceAddresses } from '@/data/places';
 import { getDayItems, getTrip, getTripDays, getTripStays, type DayItem } from '@/data/trips';
 import { Link } from '@/i18n/navigation';
@@ -103,7 +103,8 @@ async function Itinerary({ params, searchParams }: Props) {
   const unaddressed = tonightStays.flatMap((stay) =>
     stay.place_id && !stay.address ? [stay.place_id] : [],
   );
-  const addresses = mapsEnabled && unaddressed.length > 0 ? getPlaceAddresses(unaddressed) : null;
+  const addresses =
+    mapsEnabled && unaddressed.length > 0 ? getPlaceAddresses(unaddressed, timezone) : null;
 
   return (
     <>
@@ -264,6 +265,7 @@ function DayView({
 
 // 單日畫面最下方的「今晚住」（Q8），由住宿日期推算；點了到住宿分頁。
 // placeId：沒寫地址、有連結地點時才有，用來顯示 Google 的地址。
+// 整塊可以點：連結用 after: 蓋住整塊，地址的語言切換按鈕再浮到上層（連結裡不能放按鈕）。
 function TonightStay({
   tripId,
   stays,
@@ -271,23 +273,28 @@ function TonightStay({
 }: {
   tripId: string;
   stays: { id: string; name: string; status: StayStatus; placeId: string | null }[];
-  addresses: Promise<Record<string, string>> | null;
+  addresses: PlaceAddresses | null;
 }) {
   const t = useTranslations('trips');
+  const coverLink = 'outline-none after:absolute after:inset-0 after:rounded-lg';
 
   return (
-    <Link
-      href={`/trips/${tripId}/stays`}
-      className='flex items-center gap-3 rounded-lg border border-dashed p-3 text-sm transition-colors outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50'
-    >
+    <div className='relative flex items-center gap-3 rounded-lg border border-dashed p-3 text-sm transition-colors hover:bg-muted/50 has-[a:focus-visible]:ring-3 has-[a:focus-visible]:ring-ring/50'>
       <BedDoubleIcon className='size-4 shrink-0 text-muted-foreground' aria-hidden='true' />
       {stays.length === 0 ? (
-        <span className='text-muted-foreground'>{t('stays.tonightNone')}</span>
+        <Link href={`/trips/${tripId}/stays`} className={`text-muted-foreground ${coverLink}`}>
+          {t('stays.tonightNone')}
+        </Link>
       ) : (
-        <span className='flex min-w-0 flex-col gap-0.5'>
-          <span className='text-xs text-muted-foreground'>{t('stays.tonight')}</span>
+        <div className='flex min-w-0 flex-col gap-0.5'>
+          <Link
+            href={`/trips/${tripId}/stays`}
+            className={`text-xs text-muted-foreground ${coverLink}`}
+          >
+            {t('stays.tonight')}
+          </Link>
           {stays.map((stay) => (
-            <span key={stay.id} className='break-words'>
+            <div key={stay.id} className='break-words'>
               {stay.name}
               <span className='ml-1.5 text-xs text-muted-foreground'>
                 {t(`stayStatus.${stay.status}`)}
@@ -295,11 +302,11 @@ function TonightStay({
               {addresses && stay.placeId && (
                 <GoogleAddress addresses={addresses} placeId={stay.placeId} className='text-xs' />
               )}
-            </span>
+            </div>
           ))}
-        </span>
+        </div>
       )}
-    </Link>
+    </div>
   );
 }
 

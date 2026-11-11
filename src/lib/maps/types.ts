@@ -54,8 +54,8 @@ export interface MapProvider {
   searchPlaces(input: PlaceSearchInput): Promise<PlaceSuggestion[]>;
   // 存檔時用：只查座標（費用最低的欄位）。查不到時回傳 null。
   getPlaceLocation(placeId: string, sessionToken?: string): Promise<LatLng | null>;
-  // 顯示用：只查地址（Essentials）。查不到時回傳 null。
-  getPlaceAddress(placeId: string): Promise<string | null>;
+  // 顯示用：只查地址（Essentials）。language 省略時用繁中。查不到時回傳 null。
+  getPlaceAddress(placeId: string, language?: string): Promise<string | null>;
   // 顯示用：地址、營業狀態、營業時間（Enterprise）。查不到時回傳 null。
   getPlaceDetails(placeId: string): Promise<PlaceDetails | null>;
   // 算不出路線時回傳 null。

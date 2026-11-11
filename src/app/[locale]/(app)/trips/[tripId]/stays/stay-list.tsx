@@ -8,7 +8,7 @@ import {
   TriangleAlertIcon,
 } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
-import { GoogleAddress } from '@/components/maps/google-address';
+import { GoogleAddress, type PlaceAddresses } from '@/components/maps/google-address';
 import type { PlaceSearchContext } from '@/components/maps/place-search-input';
 import { ResponsiveDialog, ResponsiveDialogContent } from '@/components/responsive-dialog';
 import { Badge } from '@/components/ui/badge';
@@ -48,7 +48,7 @@ type Props = {
   stays: TripStay[];
   placeSearch: PlaceSearchContext | null;
   // 沒寫地址的住宿的 Google 地址，以地點 ID 對應；沒有要查的時是 null。
-  addresses: Promise<Record<string, string>> | null;
+  addresses: PlaceAddresses | null;
 };
 
 export function StayList({ trip, stays, placeSearch, addresses }: Props) {
@@ -127,7 +127,7 @@ function StayCard({
   overlapping: boolean;
   outsideTrip: boolean;
   onEdit: () => void;
-  addresses: Promise<Record<string, string>> | null;
+  addresses: PlaceAddresses | null;
 }) {
   const t = useTranslations('trips');
   const format = useFormatter();

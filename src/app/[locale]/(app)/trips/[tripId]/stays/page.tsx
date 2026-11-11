@@ -33,7 +33,10 @@ async function Stays({ params }: Pick<Props, 'params'>) {
   const unaddressed = stays.flatMap((stay) =>
     stay.place_id && !stay.address ? [stay.place_id] : [],
   );
-  const addresses = mapsEnabled && unaddressed.length > 0 ? getPlaceAddresses(unaddressed) : null;
+  const addresses =
+    mapsEnabled && unaddressed.length > 0
+      ? getPlaceAddresses(unaddressed, trip.default_timezone)
+      : null;
 
   return (
     <StayList

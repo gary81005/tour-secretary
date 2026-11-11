@@ -152,7 +152,8 @@
       "closedThatDay": "當天公休",
       "maybeClosed": "可能未營業"
     },
-    "attribution": "營業時間與地址資料來源：Google Maps"
+    "attribution": "營業時間與地址資料來源：Google Maps",
+    "switchAddressLanguage": "切換地址語言"
   },
   "dnd": {
     "itemHandle": "拖拉調整「{title}」的順序",

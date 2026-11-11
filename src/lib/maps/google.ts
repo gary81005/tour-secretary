@@ -46,10 +46,13 @@ export function createGoogleMapProvider(apiKey: string): MapProvider {
     return response.json();
   }
 
-  function placeUrl(placeId: string, sessionToken?: string): string | null {
+  function placeUrl(
+    placeId: string,
+    { sessionToken, language = GOOGLE_LANGUAGE }: { sessionToken?: string; language?: string } = {},
+  ): string | null {
     if (!isPlaceId(placeId)) return null;
     const url = new URL(`${PLACES_URL}/places/${placeId}`);
-    url.searchParams.set('languageCode', GOOGLE_LANGUAGE);
+    url.searchParams.set('languageCode', language);
     if (sessionToken) url.searchParams.set('sessionToken', sessionToken);
     return url.toString();
   }
@@ -68,12 +71,12 @@ export function createGoogleMapProvider(apiKey: string): MapProvider {
     },
 
     async getPlaceLocation(placeId, sessionToken) {
-      const url = placeUrl(placeId, sessionToken);
+      const url = placeUrl(placeId, { sessionToken });
       return url ? toPlaceLocation(await request(url, FIELD_MASKS.location)) : null;
     },
 
-    async getPlaceAddress(placeId) {
-      const url = placeUrl(placeId);
+    async getPlaceAddress(placeId, language) {
+      const url = placeUrl(placeId, { language });
       return url ? toPlaceAddress(await request(url, FIELD_MASKS.address)) : null;
     },
 

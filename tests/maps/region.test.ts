@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { regionCodeForTimezone, routesSupported } from '@/lib/maps/region';
+import { localAddressLanguage, regionCodeForTimezone, routesSupported } from '@/lib/maps/region';
 import { COMMON_TIMEZONES } from '@/lib/trip/timezones';
 
 describe('regionCodeForTimezone', () => {
@@ -19,5 +19,14 @@ describe('routesSupported', () => {
     expect(routesSupported('Asia/Seoul')).toBe(false);
     expect(routesSupported('Asia/Tokyo')).toBe(true);
     expect(routesSupported('Europe/Paris')).toBe(true);
+  });
+});
+
+describe('localAddressLanguage', () => {
+  it('日本、韓國、泰國、越南用當地語言，其他只用繁中', () => {
+    expect(localAddressLanguage('Asia/Tokyo')).toBe('ja');
+    expect(localAddressLanguage('Asia/Seoul')).toBe('ko');
+    expect(localAddressLanguage('Asia/Taipei')).toBeNull();
+    expect(localAddressLanguage('Europe/Paris')).toBeNull();
   });
 });

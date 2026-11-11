@@ -1,7 +1,10 @@
 import 'server-only';
 import { cacheLife } from 'next/cache';
+import { pairAddresses, type PlaceAddress } from '@/lib/maps/address';
 import { getMapProvider } from '@/lib/maps/google';
+import { GOOGLE_LANGUAGE } from '@/lib/maps/google-response';
 import { placeHours, type PlaceHours } from '@/lib/maps/opening-hours';
+import { localAddressLanguage } from '@/lib/maps/region';
 import type { PlaceDetails } from '@/lib/maps/types';
 
 // 顯示用的地點資訊（ADR 0006）：營業時間、地址不存資料庫，顯示時才向地圖服務查。
@@ -17,10 +20,10 @@ async function cachedPlaceDetails(placeId: string): Promise<PlaceDetails | null>
   return (await getMapProvider()?.getPlaceDetails(placeId)) ?? null;
 }
 
-async function cachedPlaceAddress(placeId: string): Promise<string | null> {
+async function cachedPlaceAddress(placeId: string, language: string): Promise<string | null> {
   'use cache';
   cacheLife(PLACE_CACHE_LIFE);
-  return (await getMapProvider()?.getPlaceAddress(placeId)) ?? null;
+  return (await getMapProvider()?.getPlaceAddress(placeId, language)) ?? null;
 }
 
 // 各地點 ID 各查一次（不重複），回傳查得到的。
@@ -69,8 +72,19 @@ export async function getItemPlaceHours(
 }
 
 // 住宿沒寫地址時顯示的 Google 地址，以地點 ID 對應（ADR 0006「地點連結」）。
+// timezone 決定國家：有當地語言（日本、韓國…）時預設顯示當地語言，並一起查好繁中版本供切換。
 export async function getPlaceAddresses(
   placeIds: readonly string[],
-): Promise<Record<string, string>> {
-  return Object.fromEntries(await lookup(placeIds, cachedPlaceAddress));
+  timezone: string,
+): Promise<Record<string, PlaceAddress>> {
+  const local = localAddressLanguage(timezone);
+  const inLanguage = async (language: string) => ({
+    language,
+    addresses: await lookup(placeIds, (placeId) => cachedPlaceAddress(placeId, language)),
+  });
+  const [primary, alternate] = await Promise.all([
+    inLanguage(local ?? GOOGLE_LANGUAGE),
+    local ? inLanguage(GOOGLE_LANGUAGE) : null,
+  ]);
+  return pairAddresses([...new Set(placeIds)], primary, alternate);
 }
