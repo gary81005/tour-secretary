@@ -16,7 +16,14 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { ExternalLinkIcon, GripVerticalIcon, MapPinIcon, PlusIcon, XIcon } from 'lucide-react';
+import {
+  ExternalLinkIcon,
+  GripVerticalIcon,
+  MapPinIcon,
+  PlusIcon,
+  SearchIcon,
+  XIcon,
+} from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useId, useRef, useState, useTransition, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
@@ -37,12 +44,14 @@ import { Textarea } from '@/components/ui/textarea';
 import type { DayItem } from '@/data/trips';
 import type { FormResult } from '@/lib/form';
 import { googlePlaceUrl } from '@/lib/maps/links';
+import { mergeFoundPlaces } from '@/lib/maps/place-queries';
 import { ITEM_CATEGORIES } from '@/lib/trip/enums';
 import { ITEM_FIELDS } from '@/lib/trip/item-form';
 import { TIME_SLOTS, timeSlotForTime, toHourMinute, type TimeSlot } from '@/lib/trip/time-slot';
 import { localDateToUtc } from '@/lib/trip/trip-dates';
 import { useDndAccessibility } from './dnd-accessibility';
 import { EditorError, EditorFormShell } from './editor-form-shell';
+import { PlaceFinder, startPlaceFinder, type PlaceFinderSearch } from './place-finder';
 import { PlaceSearchInput, type PlaceSearchContext } from './place-search-input';
 
 export type DayOption = { id: string; dayNumber: number; date: string; city: string | null };
@@ -91,6 +100,9 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, placeSearch, on
   const nextRowKey = useRef(0);
   const newRowKey = () => `new-${nextRowKey.current++}`;
   const placesDndId = useId();
+  // 「幫我找地點」要讀標題；標題欄是非受控的，按下時才讀。
+  const titleRef = useRef<HTMLInputElement>(null);
+  const [finder, setFinder] = useState<PlaceFinderSearch | null>(null);
   const placeSensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -175,6 +187,7 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, placeSearch, on
       <Field data-invalid={!!fieldErrors?.title}>
         <FieldLabel htmlFor='item-title'>{t('trips.item.titleLabel')}</FieldLabel>
         <Input
+          ref={titleRef}
           id='item-title'
           name={ITEM_FIELDS.title}
           defaultValue={item?.title}
@@ -316,20 +329,47 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, placeSearch, on
             ))}
           </SortableContext>
         </DndContext>
-        <Button
-          type='button'
-          variant='outline'
-          className='w-fit'
-          onClick={() =>
-            setPlaces((rows) => [
-              ...rows,
-              { key: newRowKey(), name: '', placeId: null, sessionToken: '' },
-            ])
-          }
-        >
-          <PlusIcon />
-          {t('trips.item.addPlace')}
-        </Button>
+        <div className='flex flex-wrap gap-2'>
+          <Button
+            type='button'
+            variant='outline'
+            onClick={() =>
+              setPlaces((rows) => [
+                ...rows,
+                { key: newRowKey(), name: '', placeId: null, sessionToken: '' },
+              ])
+            }
+          >
+            <PlusIcon />
+            {t('trips.item.addPlace')}
+          </Button>
+          {/* 沒有地圖金鑰時不顯示（ADR 0006 Q15）。 */}
+          {placeSearch && !finder && (
+            <Button
+              type='button'
+              variant='outline'
+              onClick={() =>
+                setFinder(startPlaceFinder(titleRef.current?.value ?? '', places, placeSearch))
+              }
+            >
+              <SearchIcon />
+              {t('trips.item.findPlaces')}
+            </Button>
+          )}
+        </div>
+        {finder && (
+          <PlaceFinder
+            search={finder}
+            addedPlaceIds={new Set(places.flatMap((place) => place.placeId ?? []))}
+            onAdd={(found) => {
+              setPlaces((rows) =>
+                mergeFoundPlaces(rows, found, (place) => ({ key: newRowKey(), ...place })),
+              );
+              setFinder(null);
+            }}
+            onClose={() => setFinder(null)}
+          />
+        )}
         {errorFor('places')}
       </FieldSet>
 
