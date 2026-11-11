@@ -43,6 +43,25 @@ export function googleDayRouteUrl(places: readonly PlaceRef[]): string | null {
   return url.toString();
 }
 
+// 當天路線經過的地點：前一晚的住宿 → 各項目的地點（依當天順序）→ 當晚的住宿。
+// 連續兩個相同的地點只算一次（例如住宿就是第一個景點）。
+export function dayRoutePlaces(input: {
+  items: readonly { places: readonly PlaceRef[] }[];
+  startStay: PlaceRef | null;
+  endStay: PlaceRef | null;
+}): PlaceRef[] {
+  const places = [
+    ...(input.startStay ? [input.startStay] : []),
+    ...input.items.flatMap((item) => item.places),
+    ...(input.endStay ? [input.endStay] : []),
+  ];
+  return places.filter((place, index) => index === 0 || !samePlace(places[index - 1], place));
+}
+
+function samePlace(a: PlaceRef, b: PlaceRef): boolean {
+  return a.placeId && b.placeId ? a.placeId === b.placeId : a.name === b.name;
+}
+
 function directionsUrl(from: PlaceRef, to: PlaceRef): URL {
   const url = new URL('https://www.google.com/maps/dir/');
   url.searchParams.set('api', '1');

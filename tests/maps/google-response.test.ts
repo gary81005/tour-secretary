@@ -4,6 +4,7 @@ import {
   routeRequest,
   SEARCH_BIAS_RADIUS_METERS,
   toPlaceDetails,
+  toPlaceAddress,
   toPlaceLocation,
   toPlaceSuggestions,
   toRouteResult,
@@ -156,6 +157,14 @@ describe('toPlaceDetails', () => {
       lng: 2,
     });
     expect(toPlaceLocation({ id: 'p1' })).toBeNull();
+  });
+
+  it('toPlaceAddress 只取地址', () => {
+    expect(toPlaceAddress({ id: 'p1', formattedAddress: '日本宮城縣仙台市青葉區' })).toBe(
+      '日本宮城縣仙台市青葉區',
+    );
+    expect(toPlaceAddress({ id: 'p1', formattedAddress: '' })).toBeNull();
+    expect(toPlaceAddress({ id: 'p1' })).toBeNull();
   });
 });
 

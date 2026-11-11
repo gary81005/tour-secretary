@@ -8,6 +8,7 @@ import {
   TriangleAlertIcon,
 } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
+import { GoogleAddress } from '@/components/maps/google-address';
 import type { PlaceSearchContext } from '@/components/maps/place-search-input';
 import { ResponsiveDialog, ResponsiveDialogContent } from '@/components/responsive-dialog';
 import { Badge } from '@/components/ui/badge';
@@ -46,9 +47,12 @@ type Props = {
   trip: StayTrip;
   stays: TripStay[];
   placeSearch: PlaceSearchContext | null;
+  // 沒寫地址的住宿的 Google 地址，以地點 ID 對應；沒有要查的時是 null。
+  addresses: Promise<Record<string, string>> | null;
 };
 
-export function StayList({ trip, stays, placeSearch }: Props) {
+export function StayList({ trip, stays, placeSearch, addresses }: Props) {
+  const tPlace = useTranslations('trips.place');
   const t = useTranslations('trips.stays');
   const editor = useEditorState<TripStay>();
   const overlapping = findOverlappingStayIds(stays);
@@ -79,10 +83,16 @@ export function StayList({ trip, stays, placeSearch }: Props) {
                   }) === 'outsideTrip'
                 }
                 onEdit={() => editor.openEditor(stay)}
+                addresses={addresses}
               />
             </li>
           ))}
         </ul>
+      )}
+
+      {/* Google 的地址要標示來源（服務條款）。 */}
+      {addresses && (
+        <p className='text-right text-xs text-muted-foreground'>{tPlace('attribution')}</p>
       )}
 
       <Button variant='outline' size='lg' className='h-11' onClick={() => editor.openEditor(null)}>
@@ -111,11 +121,13 @@ function StayCard({
   overlapping,
   outsideTrip,
   onEdit,
+  addresses,
 }: {
   stay: TripStay;
   overlapping: boolean;
   outsideTrip: boolean;
   onEdit: () => void;
+  addresses: Promise<Record<string, string>> | null;
 }) {
   const t = useTranslations('trips');
   const format = useFormatter();
@@ -159,11 +171,14 @@ function StayCard({
         </p>
       )}
 
-      {stay.address && (
+      {stay.address ? (
         <p className='flex items-start gap-1 text-sm text-muted-foreground'>
           <MapPinIcon className='mt-0.5 size-3.5 shrink-0' aria-hidden='true' />
           <span className='break-words'>{stay.address}</span>
         </p>
+      ) : (
+        addresses &&
+        stay.place_id && <GoogleAddress addresses={addresses} placeId={stay.place_id} />
       )}
 
       {/* 地圖連結不需要金鑰，沒有設定金鑰時也顯示（ADR 0006 Q15）。 */}

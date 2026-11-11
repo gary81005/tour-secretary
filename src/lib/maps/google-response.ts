@@ -25,6 +25,8 @@ export const FIELD_MASKS = {
     'suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat',
   // Essentials
   location: 'id,location',
+  // Essentials：住宿沒寫地址時顯示 Google 的地址
+  address: 'id,formattedAddress',
   // 含營業時間：Enterprise
   details: 'id,formattedAddress,location,businessStatus,regularOpeningHours,currentOpeningHours',
   // Essentials（不考慮即時路況）
@@ -135,6 +137,11 @@ const placeSchema = z.object({
 export function toPlaceLocation(json: unknown): LatLng | null {
   const parsed = placeSchema.safeParse(json);
   return parsed.success ? toLatLng(parsed.data.location) : null;
+}
+
+export function toPlaceAddress(json: unknown): string | null {
+  const parsed = placeSchema.safeParse(json);
+  return (parsed.success && parsed.data.formattedAddress) || null;
 }
 
 export function toPlaceDetails(json: unknown): PlaceDetails | null {

@@ -92,7 +92,9 @@
     },
     "fallback": "備案",
     "fallbackWithCondition": "{condition} → {alternative}",
-    "openLink": "開啟連結"
+    "openLink": "開啟連結",
+    "openPlaceInMaps": "在 Google 地圖開啟「{name}」",
+    "dayRoute": "在 Google 地圖看今天的路線"
   },
   "item": {
     "add": "新增項目",
@@ -141,7 +143,16 @@
     "linked": "已連結 Google 地點",
     "openInMaps": "在 Google 地圖查看",
     "unlink": "取消連結",
-    "unlinkLabel": "取消連結地點"
+    "unlinkLabel": "取消連結地點",
+    "hours": "營業 {hours}",
+    "allDay": "24 小時營業",
+    "status": {
+      "closedPermanently": "已歇業",
+      "closedTemporarily": "暫停營業",
+      "closedThatDay": "當天公休",
+      "maybeClosed": "可能未營業"
+    },
+    "attribution": "營業時間與地址資料來源：Google Maps"
   },
   "dnd": {
     "itemHandle": "拖拉調整「{title}」的順序",

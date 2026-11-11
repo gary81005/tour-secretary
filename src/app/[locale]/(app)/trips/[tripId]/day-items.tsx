@@ -35,7 +35,7 @@ import type { DayItem } from '@/data/trips';
 import { applySlotOrder, groupItemsBySlot, untimedIdsBySlot } from '@/lib/trip/item-order';
 import { TIME_SLOTS, type TimeSlot } from '@/lib/trip/time-slot';
 import { useDndAccessibility } from './dnd-accessibility';
-import { ItemCard } from './item-card';
+import { ItemCard, type ItemPlaceHours } from './item-card';
 import { ItemForm, type DayOption } from './item-form';
 
 type Props = {
@@ -43,6 +43,7 @@ type Props = {
   dayOptions: DayOption[];
   items: DayItem[];
   placeSearch: PlaceSearchContext | null;
+  placeHours: ItemPlaceHours | null;
 };
 
 type SlotOrder = Partial<Record<TimeSlot, string[]>>;
@@ -65,7 +66,7 @@ function sameOrder(a: readonly string[], b: readonly string[]) {
 // - 依時段分組，只顯示有項目的時段；有精確時間的項目排前面、不能拖
 // - 沒有時間的項目可在同時段內排序，也能拖到別的時段組（改成那個時段）
 // - 放下後先用 useOptimistic 顯示新順序，伺服器失敗時自動還原
-export function DayItems({ dayId, dayOptions, items, placeSearch }: Props) {
+export function DayItems({ dayId, dayOptions, items, placeSearch, placeHours }: Props) {
   const t = useTranslations();
   const dndId = useId();
   const [optimisticItems, applyOptimistic] = useOptimistic(
@@ -164,6 +165,7 @@ export function DayItems({ dayId, dayOptions, items, placeSearch }: Props) {
                       item={item}
                       onEdit={() => editor.openEditor(item)}
                       handle={<TimedMarker />}
+                      placeHours={placeHours}
                     />
                   </li>
                 ))}
@@ -176,7 +178,12 @@ export function DayItems({ dayId, dayOptions, items, placeSearch }: Props) {
                   const item = itemsById.get(id);
                   return (
                     item && (
-                      <SortableItem key={id} item={item} onEdit={() => editor.openEditor(item)} />
+                      <SortableItem
+                        key={id}
+                        item={item}
+                        onEdit={() => editor.openEditor(item)}
+                        placeHours={placeHours}
+                      />
                     )
                   );
                 })}
@@ -228,7 +235,15 @@ function SlotSection({ slot, children }: { slot: TimeSlot; children: ReactNode }
   );
 }
 
-function SortableItem({ item, onEdit }: { item: DayItem; onEdit: () => void }) {
+function SortableItem({
+  item,
+  onEdit,
+  placeHours,
+}: {
+  item: DayItem;
+  onEdit: () => void;
+  placeHours: ItemPlaceHours | null;
+}) {
   const t = useTranslations('trips.dnd');
   const {
     attributes,
@@ -249,6 +264,7 @@ function SortableItem({ item, onEdit }: { item: DayItem; onEdit: () => void }) {
       <ItemCard
         item={item}
         onEdit={onEdit}
+        placeHours={placeHours}
         handle={
           <button
             type='button'

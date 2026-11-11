@@ -2,23 +2,29 @@
 
 import { ExternalLinkIcon, GitBranchIcon, MapPinIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import type { ReactNode } from 'react';
+import { Suspense, use, type ReactNode } from 'react';
 import { CategoryIcon } from '@/components/trip/category-icon';
+import { Badge } from '@/components/ui/badge';
 import type { DayItem } from '@/data/trips';
+import { googlePlaceUrl } from '@/lib/maps/links';
+import { formatHoursRange, isAllDay, type PlaceHours } from '@/lib/maps/opening-hours';
 import { toHourMinute } from '@/lib/trip/time-slot';
 import { isSafeHttpUrl } from '@/lib/url';
 
 // 行程項目卡片。整張卡可以點開編輯：標題按鈕用 after: 蓋住整張卡，
 // 卡片裡的連結與拖拉把手再用 relative z-10 浮到上層，避免在 <button> 裡放互動元素。
 // handle：左側的拖拉把手，或有精確時間時的時鐘圖示（Q22）。
+// placeHours：伺服器查營業時間的 Promise（以 item_places.id 對應），沒有地圖金鑰時是 null。
 export function ItemCard({
   item,
   onEdit,
   handle,
+  placeHours,
 }: {
   item: DayItem;
   onEdit: () => void;
   handle?: ReactNode;
+  placeHours: ItemPlaceHours | null;
 }) {
   const t = useTranslations('trips');
   const time = item.start_time
@@ -55,11 +61,29 @@ export function ItemCard({
           )}
         </div>
 
+        {/* 每個地點都能在 Google 地圖開啟（只有文字的地點用名稱搜尋，不需要金鑰）。 */}
         {item.item_places.length > 0 && (
-          <p className='flex items-start gap-1 text-sm text-muted-foreground'>
-            <MapPinIcon className='mt-0.5 size-3.5 shrink-0' aria-hidden='true' />
-            <span>{item.item_places.map((place) => place.name).join(' → ')}</span>
-          </p>
+          <ul className='flex flex-col gap-0.5 text-sm text-muted-foreground'>
+            {item.item_places.map((place) => (
+              <li key={place.id} className='flex flex-wrap items-center gap-x-2 gap-y-0.5'>
+                <a
+                  href={googlePlaceUrl({ name: place.name, placeId: place.place_id })}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  aria-label={t('day.openPlaceInMaps', { name: place.name })}
+                  className='relative z-10 flex min-w-0 items-start gap-1 underline-offset-4 hover:underline'
+                >
+                  <MapPinIcon className='mt-0.5 size-3.5 shrink-0' aria-hidden='true' />
+                  <span className='break-words'>{place.name}</span>
+                </a>
+                {placeHours && place.place_id && (
+                  <Suspense fallback={null}>
+                    <PlaceHoursInfo placeHours={placeHours} itemPlaceId={place.id} />
+                  </Suspense>
+                )}
+              </li>
+            ))}
+          </ul>
         )}
 
         {item.description && (
@@ -98,5 +122,34 @@ export function ItemCard({
         )}
       </div>
     </article>
+  );
+}
+
+export type ItemPlaceHours = Promise<Record<string, PlaceHours>>;
+
+// 地點後面的營業時間與標記（ADR 0006 Q8）：「營業 09:00–17:00」「當天公休」「可能未營業」…
+function PlaceHoursInfo({
+  placeHours,
+  itemPlaceId,
+}: {
+  placeHours: ItemPlaceHours;
+  itemPlaceId: string;
+}) {
+  const t = useTranslations('trips.place');
+  const info = use(placeHours)[itemPlaceId];
+  if (!info) return null;
+
+  const ranges = info.ranges ?? [];
+  const hours = ranges.some(isAllDay) ? t('allDay') : ranges.map(formatHoursRange).join('、');
+
+  return (
+    <>
+      {hours && <span className='text-xs tabular-nums'>{t('hours', { hours })}</span>}
+      {info.status && (
+        <Badge variant={info.status === 'maybeClosed' ? 'outline' : 'destructive'}>
+          {t(`status.${info.status}`)}
+        </Badge>
+      )}
+    </>
   );
 }

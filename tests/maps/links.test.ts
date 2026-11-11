@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  dayRoutePlaces,
   googleDayRouteUrl,
   googlePlaceUrl,
   googleTransitUrl,
@@ -86,5 +87,38 @@ describe('韓國的地圖連結', () => {
         { name: 'C/D', location: { lat: 37.6, lng: 127.1 } },
       ),
     ).toBe('https://map.kakao.com/link/from/A%20B,37.5,127/to/C%20D,37.6,127.1');
+  });
+});
+
+describe('dayRoutePlaces', () => {
+  const hotel = { name: '仙台飯店', placeId: 'hotel' };
+
+  it('前一晚的住宿 → 各項目的地點 → 當晚的住宿', () => {
+    expect(
+      dayRoutePlaces({
+        items: [
+          { places: [{ name: '瑞鳳殿', placeId: 'a' }] },
+          { places: [] },
+          {
+            places: [
+              { name: '午餐', placeId: null },
+              { name: '定禪寺通', placeId: 'b' },
+            ],
+          },
+        ],
+        startStay: hotel,
+        endStay: hotel,
+      }).map((place) => place.name),
+    ).toEqual(['仙台飯店', '瑞鳳殿', '午餐', '定禪寺通', '仙台飯店']);
+  });
+
+  it('連續相同的地點只算一次', () => {
+    expect(
+      dayRoutePlaces({
+        items: [{ places: [hotel] }, { places: [{ name: '朝市', placeId: null }] }],
+        startStay: hotel,
+        endStay: null,
+      }).map((place) => place.name),
+    ).toEqual(['仙台飯店', '朝市']);
   });
 });

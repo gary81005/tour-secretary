@@ -63,6 +63,36 @@ export function hoursStatus(
     : 'maybeClosed';
 }
 
+// 項目卡片上一個地點的營業資訊。ranges 只含當天開始的時段（前一天延續到凌晨的不顯示）；
+// null 表示 Google 沒有營業時間資料。
+export type PlaceHours = { status: HoursStatus | null; ranges: HoursRange[] | null };
+
+export function placeHours(
+  details: Pick<PlaceDetails, 'businessStatus' | 'regularHours' | 'currentHours'>,
+  item: { date: string; start_time: string | null },
+  today: string,
+): PlaceHours {
+  const hours = hoursOnDate(details, item.date, today);
+  return {
+    status: hoursStatus(details, item, today),
+    ranges: hours ? hours.ranges.filter((range) => !range.fromPreviousDay) : null,
+  };
+}
+
+// 整天營業（24 小時）。
+export function isAllDay(range: HoursRange): boolean {
+  return range.start === 0 && range.end >= DAY_MINUTES;
+}
+
+// 「09:00–17:00」；營業到隔天凌晨時顯示「18:00–02:00」。
+export function formatHoursRange(range: HoursRange): string {
+  const clock = (minutes: number) => {
+    const inDay = minutes % DAY_MINUTES;
+    return `${String(Math.floor(inDay / 60)).padStart(2, '0')}:${String(inDay % 60).padStart(2, '0')}`;
+  };
+  return `${clock(range.start)}–${clock(range.end)}`;
+}
+
 // 一般營業時間：依星期（0＝星期日）。
 function weeklyRanges(hours: OpeningHours, weekday: number): HoursRange[] {
   if (isAlwaysOpen(hours.periods)) return [{ start: 0, end: DAY_MINUTES, fromPreviousDay: false }];

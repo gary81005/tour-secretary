@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { hoursOnDate, hoursStatus } from '@/lib/maps/opening-hours';
+import {
+  formatHoursRange,
+  hoursOnDate,
+  hoursStatus,
+  isAllDay,
+  placeHours,
+} from '@/lib/maps/opening-hours';
 import type { HoursPoint, OpeningHours, PlaceDetails } from '@/lib/maps/types';
 
 // 2027-04-12 是星期一。
@@ -133,5 +139,41 @@ describe('hoursStatus', () => {
     expect(
       hoursStatus(details({ regularHours: bar }), item('2027-04-24', '01:00:00'), today),
     ).toBeNull();
+  });
+});
+
+describe('placeHours', () => {
+  it('當天的營業時段與標記', () => {
+    expect(placeHours(details(), { date: '2027-04-20', start_time: '08:30:00' }, today)).toEqual({
+      status: 'maybeClosed',
+      ranges: [{ start: 540, end: 1020, fromPreviousDay: false }],
+    });
+  });
+
+  it('前一天延續到凌晨的時段不顯示', () => {
+    const bar = { periods: [{ open: at(5, '18:00'), close: at(6, '02:00') }] };
+    expect(
+      placeHours(details({ regularHours: bar }), { date: '2027-04-24', start_time: null }, today),
+    ).toEqual({ status: null, ranges: [] });
+  });
+
+  it('沒有營業時間資料', () => {
+    expect(
+      placeHours(details({ regularHours: null }), { date: '2027-04-20', start_time: null }, today),
+    ).toEqual({ status: null, ranges: null });
+  });
+});
+
+describe('formatHoursRange', () => {
+  it('時:分，營業到隔天凌晨時顯示隔天的時間', () => {
+    expect(formatHoursRange({ start: 540, end: 1020, fromPreviousDay: false })).toBe('09:00–17:00');
+    expect(formatHoursRange({ start: 1080, end: 1560, fromPreviousDay: false })).toBe(
+      '18:00–02:00',
+    );
+  });
+
+  it('isAllDay：從 00:00 營業到隔天', () => {
+    expect(isAllDay({ start: 0, end: 1440, fromPreviousDay: false })).toBe(true);
+    expect(isAllDay({ start: 0, end: 1020, fromPreviousDay: false })).toBe(false);
   });
 });

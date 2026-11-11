@@ -5,6 +5,7 @@ import {
   FIELD_MASKS,
   GOOGLE_LANGUAGE,
   routeRequest,
+  toPlaceAddress,
   toPlaceDetails,
   toPlaceLocation,
   toPlaceSuggestions,
@@ -69,6 +70,11 @@ export function createGoogleMapProvider(apiKey: string): MapProvider {
     async getPlaceLocation(placeId, sessionToken) {
       const url = placeUrl(placeId, sessionToken);
       return url ? toPlaceLocation(await request(url, FIELD_MASKS.location)) : null;
+    },
+
+    async getPlaceAddress(placeId) {
+      const url = placeUrl(placeId);
+      return url ? toPlaceAddress(await request(url, FIELD_MASKS.address)) : null;
     },
 
     async getPlaceDetails(placeId) {
