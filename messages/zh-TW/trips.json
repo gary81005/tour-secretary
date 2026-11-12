@@ -94,7 +94,18 @@
     "fallbackWithCondition": "{condition} → {alternative}",
     "openLink": "開啟連結",
     "openPlaceInMaps": "在 Google 地圖開啟「{name}」",
-    "dayRoute": "在 Google 地圖看今天的路線"
+    "dayRoute": "在 Google 地圖看今天的路線",
+    "legFrom": "從「{name}」",
+    "walk": "步行 {duration}",
+    "drive": "開車 {duration}",
+    "duration": "{hours, plural, =0 {{minutes} 分} other {# 小時{minutes, plural, =0 {} other { {minutes} 分}}}}",
+    "transit": "查電車",
+    "transitLabel": "在 Google 地圖查「{from}」到「{to}」的大眾運輸",
+    "kakaoMap": "KakaoMap",
+    "naverMap": "Naver Map",
+    "kakaoRouteLabel": "在 KakaoMap 查「{from}」到「{to}」的路線",
+    "kakaoPlaceLabel": "在 KakaoMap 開啟「{name}」",
+    "naverPlaceLabel": "在 Naver Map 開啟「{name}」"
   },
   "item": {
     "add": "新增項目",
@@ -152,7 +163,7 @@
       "closedThatDay": "當天公休",
       "maybeClosed": "可能未營業"
     },
-    "attribution": "營業時間與地址資料來源：Google Maps",
+    "attribution": "地圖資料來源：Google Maps",
     "switchAddressLanguage": "切換地址語言"
   },
   "dnd": {

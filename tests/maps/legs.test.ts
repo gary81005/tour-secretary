@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { dayStayStops, needsDriving, planDayLegs, type LegStop } from '@/lib/maps/legs';
+import {
+  dayStayStops,
+  durationParts,
+  legKey,
+  needsDriving,
+  planDayLegs,
+  planItemLegs,
+  type LegStop,
+} from '@/lib/maps/legs';
 
 const place = (name: string) => ({ placeId: `id-${name}`, name });
 const item = (id: string, ...names: (string | null)[]) => ({
@@ -116,5 +124,56 @@ describe('needsDriving', () => {
   it('步行超過 30 分鐘才算開車', () => {
     expect(needsDriving(30 * 60)).toBe(false);
     expect(needsDriving(30 * 60 + 1)).toBe(true);
+  });
+});
+
+describe('planItemLegs', () => {
+  const row = (
+    id: string,
+    time_slot: 'morning' | 'afternoon',
+    position: number,
+    ...names: (string | null)[]
+  ) => ({
+    id,
+    time_slot,
+    start_time: null,
+    position,
+    item_places: names.map((name) => ({ name: name ?? '純文字', place_id: name && `id-${name}` })),
+  });
+
+  it('依當天順序（時段、手動順序）規劃，沒有地點 ID 的地點略過', () => {
+    const legs = planItemLegs(
+      [
+        row('c', 'afternoon', 0, '晴空塔'),
+        row('b', 'morning', 1, null, '仲見世通'),
+        row('a', 'morning', 0, '淺草寺'),
+      ],
+      { startStay: stay('s1', '上野飯店'), endStay: null },
+    );
+    expect(route(legs)).toEqual(['上野飯店→淺草寺', '淺草寺→仲見世通', '仲見世通→晴空塔']);
+  });
+});
+
+describe('legKey', () => {
+  it('以起點與終點的地點 ID 對應', () => {
+    const [leg] = planDayLegs({
+      items: [item('a', '淺草寺'), item('b', '晴空塔')],
+      startStay: null,
+      endStay: null,
+    });
+    expect(legKey(leg)).toBe('id-淺草寺>id-晴空塔');
+  });
+});
+
+describe('durationParts', () => {
+  it('四捨五入到分鐘，至少 1 分鐘', () => {
+    expect(durationParts(10)).toEqual({ hours: 0, minutes: 1 });
+    expect(durationParts(12 * 60 + 29)).toEqual({ hours: 0, minutes: 12 });
+    expect(durationParts(12 * 60 + 30)).toEqual({ hours: 0, minutes: 13 });
+  });
+
+  it('超過 60 分鐘拆成小時與分鐘', () => {
+    expect(durationParts(60 * 60)).toEqual({ hours: 1, minutes: 0 });
+    expect(durationParts(95 * 60)).toEqual({ hours: 1, minutes: 35 });
   });
 });

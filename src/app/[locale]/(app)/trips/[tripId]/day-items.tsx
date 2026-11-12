@@ -32,11 +32,18 @@ import { Button } from '@/components/ui/button';
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
 import type { PlaceSearchContext } from '@/components/maps/place-search-input';
 import type { DayItem } from '@/data/trips';
-import { applySlotOrder, groupItemsBySlot, untimedIdsBySlot } from '@/lib/trip/item-order';
+import { planItemLegs, type DayTravel, type Leg } from '@/lib/maps/legs';
+import {
+  applySlotOrder,
+  groupItemsBySlot,
+  sortItems,
+  untimedIdsBySlot,
+} from '@/lib/trip/item-order';
 import { TIME_SLOTS, type TimeSlot } from '@/lib/trip/time-slot';
 import { useDndAccessibility } from './dnd-accessibility';
 import { ItemCard, type ItemPlaceHours } from './item-card';
 import { ItemForm, type DayOption } from './item-form';
+import { LegLine } from './leg-line';
 
 type Props = {
   dayId: string;
@@ -44,6 +51,9 @@ type Props = {
   items: DayItem[];
   placeSearch: PlaceSearchContext | null;
   placeHours: ItemPlaceHours | null;
+  travel: DayTravel;
+  // 「今晚住」：放在最後，上面接最後一段移動（回到住宿）。
+  tonight: ReactNode;
 };
 
 type SlotOrder = Partial<Record<TimeSlot, string[]>>;
@@ -66,7 +76,16 @@ function sameOrder(a: readonly string[], b: readonly string[]) {
 // - 依時段分組，只顯示有項目的時段；有精確時間的項目排前面、不能拖
 // - 沒有時間的項目可在同時段內排序，也能拖到別的時段組（改成那個時段）
 // - 放下後先用 useOptimistic 顯示新順序，伺服器失敗時自動還原
-export function DayItems({ dayId, dayOptions, items, placeSearch, placeHours }: Props) {
+// - 卡片上方顯示從上一個地點過來的移動（Q9）；拖拉中維持原本的段，放下後依新順序重新規劃
+export function DayItems({
+  dayId,
+  dayOptions,
+  items,
+  placeSearch,
+  placeHours,
+  travel,
+  tonight,
+}: Props) {
   const t = useTranslations();
   const dndId = useId();
   const [optimisticItems, applyOptimistic] = useOptimistic(
@@ -82,6 +101,22 @@ export function DayItems({ dayId, dayOptions, items, placeSearch, placeHours }: 
   const groups = groupItemsBySlot(optimisticItems);
   const itemsById = new Map(optimisticItems.map((item) => [item.id, item]));
   const order = dragOrder ?? untimedIdsBySlot(optimisticItems);
+
+  const sorted = sortItems(optimisticItems);
+  const previousIds = new Map(sorted.map((item, index) => [item.id, sorted[index - 1]?.id]));
+  const legs = planItemLegs(optimisticItems, travel);
+  const legsTo = new Map(
+    legs.flatMap((leg) => (leg.to.kind === 'item' ? [[leg.to.itemId, leg] as const] : [])),
+  );
+  const endLeg = legs.find((leg) => leg.to.kind === 'stay');
+  const legLine = (leg: Leg | undefined, previousId: string | undefined) =>
+    leg && (
+      <LegLine
+        leg={leg}
+        showFrom={leg.from.kind === 'stay' || leg.from.itemId !== previousId}
+        routes={travel.routes}
+      />
+    );
 
   const sensors = useSensors(
     // 只從把手拖，手指在卡片其他地方照常捲動；移動 4px 才開始拖，避免誤觸。
@@ -160,7 +195,8 @@ export function DayItems({ dayId, dayOptions, items, placeSearch, placeHours }: 
               {group.items
                 .filter((item) => item.start_time)
                 .map((item) => (
-                  <li key={item.id}>
+                  <li key={item.id} className='flex flex-col gap-2'>
+                    {legLine(legsTo.get(item.id), previousIds.get(item.id))}
                     <ItemCard
                       item={item}
                       onEdit={() => editor.openEditor(item)}
@@ -183,6 +219,7 @@ export function DayItems({ dayId, dayOptions, items, placeSearch, placeHours }: 
                         item={item}
                         onEdit={() => editor.openEditor(item)}
                         placeHours={placeHours}
+                        leg={legLine(legsTo.get(item.id), previousIds.get(item.id))}
                       />
                     )
                   );
@@ -197,6 +234,13 @@ export function DayItems({ dayId, dayOptions, items, placeSearch, placeHours }: 
         <PlusIcon />
         {t('trips.item.add')}
       </Button>
+
+      {(endLeg || tonight) && (
+        <div className='flex flex-col gap-2'>
+          {legLine(endLeg, sorted.at(-1)?.id)}
+          {tonight}
+        </div>
+      )}
 
       <ResponsiveDialog open={editor.open} onOpenChange={editor.setOpen}>
         <ResponsiveDialogContent>
@@ -239,10 +283,12 @@ function SortableItem({
   item,
   onEdit,
   placeHours,
+  leg,
 }: {
   item: DayItem;
   onEdit: () => void;
   placeHours: ItemPlaceHours | null;
+  leg: ReactNode;
 }) {
   const t = useTranslations('trips.dnd');
   const {
@@ -259,8 +305,9 @@ function SortableItem({
     <li
       ref={setNodeRef}
       style={{ transform: CSS.Translate.toString(transform), transition }}
-      className={cn(isDragging && 'relative z-20 opacity-80 shadow-lg')}
+      className={cn('flex flex-col gap-2', isDragging && 'relative z-20 opacity-80 shadow-lg')}
     >
+      {leg}
       <ItemCard
         item={item}
         onEdit={onEdit}

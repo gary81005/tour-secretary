@@ -91,3 +91,23 @@ export function kakaoDirectionsUrl(
     `${encodeURIComponent(name.replace(/[,/]/g, ' ').trim())},${location.lat},${location.lng}`;
   return `https://map.kakao.com/link/from/${point(from)}/to/${point(to)}`;
 }
+
+// 韓國的一段移動（Q13）：兩端都有座標時開 KakaoMap 路線，否則在 KakaoMap 搜尋目的地；
+// Naver Map 的路線網址沒有公開規格，只開目的地。
+export function koreaLegLinks(
+  from: { name: string; location: LatLng | null },
+  to: { name: string; location: LatLng | null },
+): { kakao: string; kakaoDirections: boolean; naver: string } {
+  const directions =
+    from.location && to.location
+      ? kakaoDirectionsUrl(
+          { name: from.name, location: from.location },
+          { name: to.name, location: to.location },
+        )
+      : null;
+  return {
+    kakao: directions ?? kakaoSearchUrl(to.name),
+    kakaoDirections: directions !== null,
+    naver: naverSearchUrl(to.name),
+  };
+}

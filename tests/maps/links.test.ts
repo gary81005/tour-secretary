@@ -6,6 +6,7 @@ import {
   googleTransitUrl,
   kakaoDirectionsUrl,
   kakaoSearchUrl,
+  koreaLegLinks,
   MAX_ROUTE_WAYPOINTS,
   naverSearchUrl,
 } from '@/lib/maps/links';
@@ -87,6 +88,28 @@ describe('韓國的地圖連結', () => {
         { name: 'C/D', location: { lat: 37.6, lng: 127.1 } },
       ),
     ).toBe('https://map.kakao.com/link/from/A%20B,37.5,127/to/C%20D,37.6,127.1');
+  });
+
+  it('一段移動：兩端都有座標時開 KakaoMap 路線，Naver Map 開目的地', () => {
+    const links = koreaLegLinks(
+      { name: '景福宮', location: { lat: 37.58, lng: 126.98 } },
+      { name: '明洞', location: { lat: 37.56, lng: 126.99 } },
+    );
+    expect(links.kakaoDirections).toBe(true);
+    expect(links.kakao).toMatch(/^https:\/\/map\.kakao\.com\/link\/from\//);
+    expect(links.naver).toBe(naverSearchUrl('明洞'));
+  });
+
+  it('一段移動：缺座標時 KakaoMap 改成搜尋目的地', () => {
+    const links = koreaLegLinks(
+      { name: '景福宮', location: null },
+      { name: '明洞', location: { lat: 37.56, lng: 126.99 } },
+    );
+    expect(links).toEqual({
+      kakao: kakaoSearchUrl('明洞'),
+      kakaoDirections: false,
+      naver: naverSearchUrl('明洞'),
+    });
   });
 });
 

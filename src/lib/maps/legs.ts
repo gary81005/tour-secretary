@@ -1,6 +1,8 @@
 import dayjs from '@/lib/dayjs';
 import type { StayStatus } from '@/lib/trip/enums';
+import { sortItems, type OrderableItem } from '@/lib/trip/item-order';
 import { staysForNight, type StayDates } from '@/lib/trip/stays';
+import type { LatLng } from './types';
 
 // 一天裡要算的移動（ADR 0006 Q9）：
 // - 前一個項目的最後一個連結地點 → 下一個項目的第一個連結地點；沒有連結地點的項目跳過
@@ -49,6 +51,54 @@ export function planDayLegs(input: {
   if (!firstItem && input.startStay && input.endStay) add(input.startStay, input.endStay);
 
   return legs;
+}
+
+// 單日畫面的項目（依 sortItems 排序）。伺服器算移動時間與畫面顯示都用這個，兩邊的段才對得上；
+// 拖拉排序後畫面先用新順序規劃，新的段要等伺服器重新查好才有時間。
+export function planItemLegs(
+  items: readonly (OrderableItem & {
+    item_places: readonly { name: string; place_id: string | null }[];
+  })[],
+  stays: { startStay: LegStop | null; endStay: LegStop | null },
+): Leg[] {
+  return planDayLegs({
+    items: sortItems(items).map((item) => ({
+      id: item.id,
+      places: item.item_places.map((place) =>
+        place.place_id ? { placeId: place.place_id, name: place.name } : null,
+      ),
+    })),
+    startStay: stays.startStay,
+    endStay: stays.endStay,
+  });
+}
+
+// 移動時間以起點與終點的地點 ID 對應（同一對地點只查一次）。
+export function legKey(leg: Leg): string {
+  return `${leg.from.place.placeId}>${leg.to.place.placeId}`;
+}
+
+// 一段的移動時間（秒）。開車只在步行超過 30 分鐘或算不出步行時才有。
+export type LegDurations = { walkSeconds: number | null; driveSeconds: number | null };
+
+// 單日畫面顯示移動時間需要的資料（伺服器準備，傳給畫面）。
+export type DayTravel = {
+  startStay: LegStop | null;
+  endStay: LegStop | null;
+  routes:
+    | {
+        kind: 'google';
+        // 以 legKey 對應；沒有地圖金鑰時是 null（只顯示「查電車」連結）
+        durations: Promise<Record<string, LegDurations>> | null;
+      }
+    // 韓國（Q13）：不算移動時間，改附 KakaoMap／Naver Map 連結。KakaoMap 路線需要座標，以地點 ID 對應。
+    | { kind: 'korea'; locations: Record<string, LatLng> };
+};
+
+// 「12 分」「1 小時 5 分」：四捨五入到分鐘，至少 1 分鐘。
+export function durationParts(seconds: number): { hours: number; minutes: number } {
+  const total = Math.max(1, Math.round(seconds / 60));
+  return { hours: Math.floor(total / 60), minutes: total % 60 };
 }
 
 type StayWithPlace = StayDates & { id: string; status: StayStatus; place: LinkedPlace | null };

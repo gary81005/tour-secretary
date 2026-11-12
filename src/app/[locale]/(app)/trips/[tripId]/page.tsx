@@ -5,10 +5,11 @@ import { Suspense, type ReactNode } from 'react';
 import type { PlaceSearchContext } from '@/components/maps/place-search-input';
 import { GoogleAddress, type PlaceAddresses } from '@/components/maps/google-address';
 import { getItemPlaceHours, getPlaceAddresses } from '@/data/places';
+import { getDayTravel } from '@/data/routes';
 import { getDayItems, getTrip, getTripDays, getTripStays, type DayItem } from '@/data/trips';
 import { Link } from '@/i18n/navigation';
 import { getMapsApiKey } from '@/lib/maps/env';
-import { dayStayStops, type LegStop } from '@/lib/maps/legs';
+import { dayStayStops, type DayTravel, type LegStop } from '@/lib/maps/legs';
 import { dayRoutePlaces, googleDayRouteUrl } from '@/lib/maps/links';
 import { routesSupported } from '@/lib/maps/region';
 import { searchBias } from '@/lib/maps/search-bias';
@@ -98,6 +99,16 @@ async function Itinerary({ params, searchParams }: Props) {
         }),
       )
     : null;
+  // 卡片之間的移動時間（Q9）：不 await，查到後再串流到各段。
+  const travel = getDayTravel({
+    items,
+    stays,
+    startStay,
+    endStay: isLastDay ? null : endStay,
+    timezone,
+    mapsEnabled,
+    now,
+  });
   const tonightStays = isLastDay ? [] : staysForNight(stays, selectedDay.date);
   // 住宿沒寫地址時顯示 Google 的地址（ADR 0006「地點連結」）。
   const unaddressed = tonightStays.flatMap((stay) =>
@@ -134,10 +145,12 @@ async function Itinerary({ params, searchParams }: Props) {
         placeSearch={placeSearch}
         placeHours={placeHours}
         routeUrl={routeUrl}
-        // 營業時間或地址可能來自 Google 時標示來源（服務條款）。
+        travel={travel}
+        // 營業時間、地址或移動時間可能來自 Google 時標示來源（服務條款）。
         googleAttribution={
           (placeHours !== null && items.some((item) => item.item_places.some((p) => p.place_id))) ||
-          addresses !== null
+          addresses !== null ||
+          (travel.routes.kind === 'google' && travel.routes.durations !== null)
         }
         tonight={
           isLastDay ? null : (
@@ -191,6 +204,7 @@ type DayViewProps = {
   placeSearch: PlaceSearchContext | null;
   placeHours: ItemPlaceHours | null;
   routeUrl: string | null;
+  travel: DayTravel;
   googleAttribution: boolean;
   tonight: ReactNode;
   menu: ReactNode;
@@ -207,6 +221,7 @@ function DayView({
   placeSearch,
   placeHours,
   routeUrl,
+  travel,
   googleAttribution,
   tonight,
   menu,
@@ -256,8 +271,9 @@ function DayView({
         items={items}
         placeSearch={placeSearch}
         placeHours={placeHours}
+        travel={travel}
+        tonight={tonight}
       />
-      {tonight}
       {googleAttribution && <GoogleAttribution />}
     </section>
   );
