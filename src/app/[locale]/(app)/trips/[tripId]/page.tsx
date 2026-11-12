@@ -2,24 +2,18 @@ import { BedDoubleIcon, RouteIcon } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
 import { notFound } from 'next/navigation';
 import { Suspense, type ReactNode } from 'react';
-import type { PlaceSearchContext } from '@/components/maps/place-search-input';
 import { GoogleAddress, type PlaceAddresses } from '@/components/maps/google-address';
-import { getItemPlaceHours, getPlaceAddresses } from '@/data/places';
-import { getDayTravel } from '@/data/routes';
+import type { PlaceSearchContext } from '@/components/maps/place-search-input';
 import { getDayItems, getTrip, getTripDays, getTripStays, type DayItem } from '@/data/trips';
 import { Link } from '@/i18n/navigation';
-import { getMapsApiKey } from '@/lib/maps/env';
-import { dayStayStops, type DayTravel, type LegStop } from '@/lib/maps/legs';
-import { dayRoutePlaces, googleDayRouteUrl } from '@/lib/maps/links';
-import { routesSupported } from '@/lib/maps/region';
-import { searchBias } from '@/lib/maps/search-bias';
+import type { DayTravel } from '@/lib/maps/legs';
 import type { StayStatus } from '@/lib/trip/enums';
 import { resolveSelectedDayIndex } from '@/lib/trip/day-selection';
-import { sortItems } from '@/lib/trip/item-order';
 import { staysForNight } from '@/lib/trip/stays';
 import { localDateToUtc } from '@/lib/trip/trip-dates';
-import { currentDayIndex, localDate, resolveTimezone } from '@/lib/trip/trip-phase';
+import { currentDayIndex, resolveTimezone } from '@/lib/trip/trip-phase';
 import { DayItems } from './day-items';
+import { getDayMaps } from './day-maps';
 import type { ItemPlaceHours } from './item-card';
 import { DayMenu } from './day-menu';
 import type { DayOption } from './item-form';
@@ -58,64 +52,16 @@ async function Itinerary({ params, searchParams }: Props) {
   // 最後一天是回程日，不需要住宿。
   const isLastDay = selectedIndex === days.length - 1;
   const timezone = timezones[selectedIndex];
-  // 沒有地圖金鑰時地點只能輸入文字，也不顯示營業時間與 Google 的地址（ADR 0006 Q15）。
-  const mapsEnabled = getMapsApiKey() !== null;
-  // 搜尋偏向當天已連結的地點，其次是前一晚（退房日＝當天）與當晚的住宿。
-  const placeSearch: PlaceSearchContext | null = mapsEnabled
-    ? {
-        bias: searchBias({
-          places: items.flatMap((item) => item.item_places),
-          stays: stays.filter(
-            (stay) => stay.check_in <= selectedDay.date && selectedDay.date <= stay.check_out,
-          ),
-          timezone,
-          now,
-        }),
-      }
-    : null;
-  // 營業時間：不 await，讓頁面先顯示，查到後再串流到卡片上。
-  const placeHours: ItemPlaceHours | null = mapsEnabled
-    ? getItemPlaceHours(items, selectedDay.date, localDate(timezone, now))
-    : null;
-  // 當天路線（Q3）：前一晚的住宿 → 各項目的地點 → 當晚的住宿。Google 在韓國沒有路線（Q13）。
-  const { startStay, endStay } = dayStayStops(
-    stays.map((stay) => ({
-      ...stay,
-      place: stay.place_id ? { placeId: stay.place_id, name: stay.name } : null,
-    })),
-    selectedDay.date,
-  );
-  const routeUrl = routesSupported(timezone)
-    ? googleDayRouteUrl(
-        dayRoutePlaces({
-          items: sortItems(items).map((item) => ({
-            places: item.item_places.map((place) => ({
-              name: place.name,
-              placeId: place.place_id,
-            })),
-          })),
-          startStay: stayPlace(startStay),
-          endStay: isLastDay ? null : stayPlace(endStay),
-        }),
-      )
-    : null;
-  // 卡片之間的移動時間（Q9）：不 await，查到後再串流到各段。
-  const travel = getDayTravel({
+  const tonightStays = isLastDay ? [] : staysForNight(stays, selectedDay.date);
+  const maps = getDayMaps({
     items,
     stays,
-    startStay,
-    endStay: isLastDay ? null : endStay,
+    tonightStays,
+    date: selectedDay.date,
     timezone,
-    mapsEnabled,
+    isLastDay,
     now,
   });
-  const tonightStays = isLastDay ? [] : staysForNight(stays, selectedDay.date);
-  // 住宿沒寫地址時顯示 Google 的地址（ADR 0006「地點連結」）。
-  const unaddressed = tonightStays.flatMap((stay) =>
-    stay.place_id && !stay.address ? [stay.place_id] : [],
-  );
-  const addresses =
-    mapsEnabled && unaddressed.length > 0 ? getPlaceAddresses(unaddressed, timezone) : null;
 
   return (
     <>
@@ -142,16 +88,11 @@ async function Itinerary({ params, searchParams }: Props) {
         // 只有和行程預設不同時才標示當地時區，例如回程那天在台北。
         customTimezone={selectedDay.timezone !== null ? timezone : null}
         items={items}
-        placeSearch={placeSearch}
-        placeHours={placeHours}
-        routeUrl={routeUrl}
-        travel={travel}
-        // 營業時間、地址或移動時間可能來自 Google 時標示來源（服務條款）。
-        googleAttribution={
-          (placeHours !== null && items.some((item) => item.item_places.some((p) => p.place_id))) ||
-          addresses !== null ||
-          (travel.routes.kind === 'google' && travel.routes.durations !== null)
-        }
+        placeSearch={maps.placeSearch}
+        placeHours={maps.placeHours}
+        routeUrl={maps.routeUrl}
+        travel={maps.travel}
+        googleAttribution={maps.googleAttribution}
         tonight={
           isLastDay ? null : (
             <TonightStay
@@ -162,7 +103,7 @@ async function Itinerary({ params, searchParams }: Props) {
                 status: stay.status,
                 placeId: stay.address ? null : stay.place_id,
               }))}
-              addresses={addresses}
+              addresses={maps.addresses}
             />
           )
         }
@@ -187,10 +128,6 @@ async function Itinerary({ params, searchParams }: Props) {
       />
     </>
   );
-}
-
-function stayPlace(stop: LegStop | null) {
-  return stop && { name: stop.place.name, placeId: stop.place.placeId };
 }
 
 type DayViewProps = {

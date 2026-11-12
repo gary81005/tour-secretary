@@ -38,6 +38,7 @@ npm run db:types      # 由已 link 的專案產生 src/types/database.ts
 - `src/data/`：讀取資料的查詢（`server-only`，呼叫端要在 `<Suspense>` 裡）；`src/actions/`：Server Actions（`'use server'`，每個都重新確認登入，回傳 `ActionResult` / `FormState`）。
 - `src/hooks/`：共用的 client hook（例如 `useFormSubmit`：對話框表單送出 Server Action，失敗時保留輸入）。
 - `src/lib/trip/`：行程的純邏輯與 zod schema（有測試）；`src/lib/auth/`：登入相關的路徑判斷與 `getCurrentUser()`。
+- `src/lib/maps/`：MapProvider 介面與 Google 實作（`google.ts`，`server-only`）、回應轉換與各種純邏輯（營業時間、路段、地圖連結，有測試）。`src/components/maps/` 是地點搜尋框、Google 地址等共用元件；`src/data/places.ts`、`src/data/routes.ts` 是顯示時才向 Google 查的資料（`'use cache'` 短暫快取，查不到時略過，呼叫端不 await、把 Promise 交給畫面用 `use()` 串流）。
 - `src/lib/import/`：xlsx 匯入的純邏輯（解析、範本、合併規劃、payload schema，有測試）。exceljs 只能用 `loadExcelJS()` 動態載入，不要靜態 import。
 - `src/lib/dayjs.ts`：已載入 utc / timezone plugin 的 dayjs，專案內一律從這裡 import。
 - `src/proxy.ts`：Next 16 的 proxy（原 middleware）：先跑 next-intl，再在同一個 response 上刷新 Supabase session。
@@ -58,6 +59,7 @@ npm run db:types      # 由已 link 的專案產生 src/types/database.ts
 - **連結與導頁**：一律從 `@/i18n/navigation` import `Link`、`useRouter`、`redirect`，不要直接用 `next/link` / `next/navigation`。
 - **UI 字串**：一律走 `useTranslations` / `getTranslations`，不要寫死在元件裡；key 有型別檢查（`src/i18n/next-intl.d.ts`）。
 - **環境變數**：瀏覽器端的變數要 `NEXT_PUBLIC_` 前綴，且必須寫完整的 `process.env.NEXT_PUBLIC_XXX`。AI、地圖等私密金鑰不能加 `NEXT_PUBLIC_`。
+- **Google Maps 服務條款**（ADR 0006）：資料庫只存地點 ID 與座標（座標最多 30 天，`freshLocation()`）；地址、營業時間、移動時間顯示時才查，不能存。顯示這些資料時要有「地圖資料來源：Google Maps」標示。沒有 `GOOGLE_MAPS_API_KEY` 時 app 要照常運作（`getMapsApiKey()` 為 null 時隱藏相關功能）。
 
 ## Database
 
