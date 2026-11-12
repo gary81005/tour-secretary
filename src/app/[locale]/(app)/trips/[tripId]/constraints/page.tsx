@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { getTravelerConstraints } from '@/data/trips';
-import { ConstraintList } from './constraint-list';
+import { ConstraintList } from './_components/constraint-list';
 
 type Props = PageProps<'/[locale]/trips/[tripId]/constraints'>;
 

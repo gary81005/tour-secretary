@@ -26,26 +26,27 @@ import { useTranslations } from 'next-intl';
 import { useId, useOptimistic, useState, useTransition, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { reorderItems, setItemDone } from '@/actions/items';
-import { useEditorState } from '@/hooks/use-editor-state';
 import { ResponsiveDialog, ResponsiveDialogContent } from '@/components/responsive-dialog';
 import { Button } from '@/components/ui/button';
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
-import type { PlaceSearchContext } from '@/components/maps/place-search-input';
 import type { DayItem } from '@/data/trips';
+import { useDndAccessibility } from '@/hooks/use-dnd-accessibility';
+import { useEditorState } from '@/hooks/use-editor-state';
 import { planItemLegs, type DayTravel, type Leg } from '@/lib/maps/legs';
+import type { ItemPlaceHours } from '@/lib/maps/opening-hours';
+import type { PlaceSearchContext } from '@/lib/maps/types';
 import {
   applySlotOrder,
   groupItemsBySlot,
   sortItems,
   untimedIdsBySlot,
 } from '@/lib/trip/item-order';
-import { withDone } from '@/lib/trip/progress';
+import { withDone, type NowStay } from '@/lib/trip/progress';
 import { TIME_SLOTS, type TimeSlot } from '@/lib/trip/time-slot';
-import { useDndAccessibility } from './dnd-accessibility';
-import { ItemCard, type ItemPlaceHours } from './item-card';
+import { ItemCard } from './item-card';
 import { ItemForm, type DayOption } from './item-form';
 import { LegLine } from './leg-line';
-import { NowCard, type NowStay } from './now-card';
+import { NowCard } from './now-card';
 
 type Props = {
   dayId: string;

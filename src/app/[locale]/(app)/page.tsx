@@ -1,24 +1,14 @@
-import { FileSpreadsheetIcon, MapPinIcon, PlusIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import type { Metadata } from 'next';
 import { useTranslations } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
-import { TripDateRange } from '@/components/trip/trip-date-range';
-import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from '@/components/ui/empty';
-import { getTodayProgressItems, getTripListGroups } from '@/data/trips';
+import { getTripListGroups } from '@/data/trips';
 import { Link } from '@/i18n/navigation';
-import { dayProgress } from '@/lib/trip/progress';
-import { TRIP_PHASE_ORDER, type TripSummary } from '@/lib/trip/trip-list';
-import { InstallPrompt } from './install-prompt';
+import { TRIP_PHASE_ORDER } from '@/lib/trip/trip-list';
+import { InstallPrompt } from './_components/install-prompt';
+import { EmptyTrips, ImportLink, TripGroup, TripListSkeleton } from './_components/trip-list';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('trips.list');
@@ -69,131 +59,5 @@ async function TripList() {
         <EmptyTrips />
       )}
     </>
-  );
-}
-
-function TripGroup({
-  phase,
-  trips,
-}: {
-  phase: (typeof TRIP_PHASE_ORDER)[number];
-  trips: TripSummary[];
-}) {
-  const t = useTranslations('trips.list');
-
-  return (
-    <section className='flex flex-col gap-3' aria-labelledby={`trips-${phase}`}>
-      <h2 id={`trips-${phase}`} className='text-sm font-medium text-muted-foreground'>
-        {t(`phases.${phase}`)}
-      </h2>
-      <ul className='flex flex-col gap-3'>
-        {trips.map((trip) => (
-          <li key={trip.id}>
-            <TripCard trip={trip} />
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-function TripCard({ trip }: { trip: TripSummary }) {
-  const t = useTranslations('trips.list');
-
-  return (
-    <Link
-      href={`/trips/${trip.id}`}
-      className='flex flex-col gap-1.5 rounded-lg border bg-card p-4 transition-colors outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50'
-    >
-      <div className='flex items-start justify-between gap-3'>
-        <span className='font-medium'>{trip.name}</span>
-        {trip.currentDay !== null && (
-          <Badge className='shrink-0'>{t('currentDay', { day: trip.currentDay })}</Badge>
-        )}
-      </div>
-      <div className='text-sm text-muted-foreground'>
-        <TripDateRange startDate={trip.startDate} endDate={trip.endDate} />
-        {' · '}
-        {t('dayCount', { count: trip.dayCount })}
-      </div>
-      {trip.cities.length > 0 && (
-        <div className='flex items-center gap-1 text-sm text-muted-foreground'>
-          <MapPinIcon className='size-3.5 shrink-0' aria-hidden='true' />
-          <span className='truncate'>{trip.cities.join(' · ')}</span>
-        </div>
-      )}
-      {trip.currentDate && (
-        <Suspense fallback={null}>
-          <TodayProgress tripId={trip.id} date={trip.currentDate} />
-        </Suspense>
-      )}
-    </Link>
-  );
-}
-
-// 進行中的行程：今天進行到哪（ADR 0010）。查不到時不顯示，不影響行程列表。
-async function TodayProgress({ tripId, date }: { tripId: string; date: string }) {
-  const items = await getTodayProgressItems(tripId, date).catch(() => null);
-  if (!items || items.length === 0) return null;
-
-  const t = await getTranslations('trips.now');
-  const { current, next } = dayProgress(items);
-  if (!current) {
-    return <p className='truncate text-sm font-medium text-primary'>{t('homeAllDone')}</p>;
-  }
-  return (
-    <div className='flex flex-col gap-0.5 text-sm'>
-      <p className='truncate font-medium text-primary'>
-        {t('homeCurrent', { title: current.title })}
-      </p>
-      {next && (
-        <p className='truncate text-muted-foreground'>{t('homeNext', { title: next.title })}</p>
-      )}
-    </div>
-  );
-}
-
-function EmptyTrips() {
-  const t = useTranslations('trips.list');
-
-  return (
-    <Empty className='border'>
-      <EmptyHeader>
-        <EmptyMedia variant='icon'>
-          <MapPinIcon />
-        </EmptyMedia>
-        <EmptyTitle>{t('empty.title')}</EmptyTitle>
-        <EmptyDescription>{t('empty.description')}</EmptyDescription>
-      </EmptyHeader>
-      <EmptyContent className='flex-row justify-center'>
-        <ImportLink />
-        <Link href='/trips/new' className={buttonVariants({ size: 'lg' })}>
-          <PlusIcon />
-          {t('create')}
-        </Link>
-      </EmptyContent>
-    </Empty>
-  );
-}
-
-// 匯入 xlsx 建立行程（ADR 0008 Q12：放在「建立行程」旁邊）。
-function ImportLink() {
-  const t = useTranslations('import');
-
-  return (
-    <Link href='/trips/import' className={buttonVariants({ variant: 'outline', size: 'lg' })}>
-      <FileSpreadsheetIcon />
-      {t('entry')}
-    </Link>
-  );
-}
-
-function TripListSkeleton() {
-  return (
-    <div className='flex flex-col gap-3' aria-hidden='true'>
-      {[0, 1].map((index) => (
-        <div key={index} className='h-24 animate-pulse rounded-lg bg-muted' />
-      ))}
-    </div>
   );
 }

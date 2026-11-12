@@ -4,8 +4,6 @@ import { XIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Suspense, use, useId, useState } from 'react';
 import { findPlaces, type FindPlacesResult } from '@/actions/places';
-import { GoogleMapsAttribution } from '@/components/maps/google-maps-attribution';
-import { newSessionToken, type PlaceSearchContext } from '@/components/maps/place-search-input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -15,7 +13,9 @@ import {
   type FoundPlace,
   type PlaceQuery,
 } from '@/lib/maps/place-queries';
-import type { PlaceSuggestion } from '@/lib/maps/types';
+import type { PlaceSuggestion, PlaceSearchContext } from '@/lib/maps/types';
+import { GoogleMapsAttribution } from './maps/google-maps-attribution';
+import { newSessionToken } from './maps/place-search-input';
 
 // 一次「幫我找地點」：要搜尋的段落（各自一個 session token）與搜尋結果。
 export type PlaceFinderSearch = {

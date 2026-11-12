@@ -3,12 +3,6 @@
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { importNewTrip, type ImportTripResult } from '@/actions/imports';
-import { ImportFileBar } from '@/components/import/import-file-bar';
-import { ImportFooter } from '@/components/import/import-footer';
-import { ImportIssues } from '@/components/import/import-issues';
-import { ImportPreview } from '@/components/import/import-preview';
-import { XlsxFilePicker, type LoadedFile } from '@/components/import/xlsx-file-picker';
-import { TimezoneField } from '@/components/trip/timezone-field';
 import { TripDateRange } from '@/components/trip/trip-date-range';
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -19,6 +13,12 @@ import { planImport, type ImportTarget } from '@/lib/import/plan';
 import { buildImportPayload, importBlockers, initialSelection } from '@/lib/import/selection';
 import { DEFAULT_TIMEZONE } from '@/lib/trip/timezones';
 import { countDays } from '@/lib/trip/trip-dates';
+import { ImportFileBar } from '../../_components/import/import-file-bar';
+import { ImportFooter } from '../../_components/import/import-footer';
+import { ImportIssues } from '../../_components/import/import-issues';
+import { ImportPreview } from '../../_components/import/import-preview';
+import { XlsxFilePicker, type LoadedFile } from '../../_components/import/xlsx-file-picker';
+import { TimezoneField } from '../../_components/timezone-field';
 
 const NEW_TRIP: ImportTarget = { mode: 'new' };
 

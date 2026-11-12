@@ -4,8 +4,8 @@ import { Suspense, type ReactNode } from 'react';
 import { TripDateRange } from '@/components/trip/trip-date-range';
 import { getUndoableImportId } from '@/data/imports';
 import { getTrip, getTripDays } from '@/data/trips';
-import { TripMenu } from './trip-menu';
-import { TripTabs } from './trip-tabs';
+import { TripMenu } from './_components/trip-menu';
+import { TripTabs } from './_components/trip-tabs';
 
 type Params = LayoutProps<'/[locale]/trips/[tripId]'>['params'];
 

@@ -3,11 +3,8 @@
 import { LanguagesIcon, MapPinIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Suspense, use, useState } from 'react';
-import type { PlaceAddress } from '@/lib/maps/address';
 import { cn } from 'cn';
-
-// 伺服器開始查詢的 Promise（getPlaceAddresses），以地點 ID 對應。
-export type PlaceAddresses = Promise<Record<string, PlaceAddress>>;
+import type { PlaceAddresses } from '@/lib/maps/address';
 
 type Props = {
   addresses: PlaceAddresses;

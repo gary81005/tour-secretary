@@ -4,15 +4,16 @@ import { useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { deleteStay, restoreStay, saveStay } from '@/actions/stays';
-import { PlaceLinkStatus } from '@/components/maps/place-link-status';
-import { PlaceSearchInput, type PlaceSearchContext } from '@/components/maps/place-search-input';
 import { Field, FieldError, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import type { TripStay } from '@/data/trips';
 import { useFormSubmit } from '@/hooks/use-form-submit';
+import type { PlaceSearchContext } from '@/lib/maps/types';
 import { STAY_STATUSES } from '@/lib/trip/enums';
-import { EditorError, EditorFormShell } from '../editor-form-shell';
+import { EditorError, EditorFormShell } from '../../_components/editor-form-shell';
+import { PlaceLinkStatus } from '../../_components/maps/place-link-status';
+import { PlaceSearchInput } from '../../_components/maps/place-search-input';
 
 export type StayTrip = { id: string; startDate: string; endDate: string };
 

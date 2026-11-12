@@ -9,6 +9,9 @@ export type PlaceAddress = {
   alternate: AddressText | null;
 };
 
+// 伺服器開始查詢的 Promise（getPlaceAddresses），以地點 ID 對應。
+export type PlaceAddresses = Promise<Record<string, PlaceAddress>>;
+
 // 兩種語言的查詢結果配成一組，以地點 ID 對應。主要語言查不到時改用另一種，且不提供切換。
 export function pairAddresses(
   placeIds: readonly string[],

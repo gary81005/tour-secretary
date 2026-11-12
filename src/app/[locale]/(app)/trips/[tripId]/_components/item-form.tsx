@@ -21,7 +21,6 @@ import { useFormatter, useTranslations } from 'next-intl';
 import { useId, useRef, useState, useTransition, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { deleteItem, restoreItem, saveItem } from '@/actions/items';
-import { CategoryIcon } from '@/components/trip/category-icon';
 import { Button } from '@/components/ui/button';
 import {
   Field,
@@ -31,20 +30,22 @@ import {
   FieldLegend,
   FieldSet,
 } from '@/components/ui/field';
-import { PlaceLinkStatus } from '@/components/maps/place-link-status';
-import { PlaceSearchInput, type PlaceSearchContext } from '@/components/maps/place-search-input';
 import { Input } from '@/components/ui/input';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { Textarea } from '@/components/ui/textarea';
 import type { DayItem } from '@/data/trips';
+import { useDndAccessibility } from '@/hooks/use-dnd-accessibility';
 import type { FormResult } from '@/lib/form';
 import { mergeFoundPlaces } from '@/lib/maps/place-queries';
+import type { PlaceSearchContext } from '@/lib/maps/types';
 import { ITEM_CATEGORIES } from '@/lib/trip/enums';
 import { ITEM_FIELDS } from '@/lib/trip/item-form';
 import { TIME_SLOTS, timeSlotForTime, toHourMinute, type TimeSlot } from '@/lib/trip/time-slot';
 import { localDateToUtc } from '@/lib/trip/trip-dates';
-import { useDndAccessibility } from './dnd-accessibility';
+import { CategoryIcon } from './category-icon';
 import { EditorError, EditorFormShell } from './editor-form-shell';
+import { PlaceLinkStatus } from './maps/place-link-status';
+import { PlaceSearchInput } from './maps/place-search-input';
 import { PlaceFinder, startPlaceFinder, type PlaceFinderSearch } from './place-finder';
 
 export type DayOption = { id: string; dayNumber: number; date: string; city: string | null };

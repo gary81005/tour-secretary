@@ -1,8 +1,8 @@
 import 'server-only';
 import { cache } from 'react';
 import { createClient } from '@/lib/supabase/server';
-import { isUuid } from '@/lib/uuid';
 import { groupTripsByPhase, summarizeTrip } from '@/lib/trip/trip-list';
+import { isUuid } from '@/lib/uuid';
 
 // 讀取行程的查詢。權限由 RLS 把關（只看得到自己是成員的行程）；
 // 軟刪除不在 RLS 過濾，所以每個查詢都要自己加 deleted_at 條件（CLAUDE.md「Database」）。
@@ -47,6 +47,8 @@ export async function getTrashedTrips() {
   if (error) throw error;
   return data.map((trip) => ({ ...trip, deleted_at: trip.deleted_at as string }));
 }
+
+export type TrashedTrip = Awaited<ReturnType<typeof getTrashedTrips>>[number];
 
 // 行程的每一天，依日期排序。layout 與頁面都會用到，同一個請求只查一次。
 export const getTripDays = cache(async (tripId: string) => {

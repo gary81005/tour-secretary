@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { canMarkDone, dayProgress, suggestedDeparture, withDone } from '@/lib/trip/progress';
+import {
+  canMarkDone,
+  dayProgress,
+  nowStay,
+  suggestedDeparture,
+  withDone,
+} from '@/lib/trip/progress';
 
 describe('canMarkDone', () => {
   it('今天與之前的天可以打勾，未來的天不行', () => {
@@ -72,5 +78,40 @@ describe('suggestedDeparture', () => {
 
   it('早於當天 00:00 時不建議', () => {
     expect(suggestedDeparture('00:10', 10 * 60)).toBeNull();
+  });
+});
+
+describe('nowStay', () => {
+  const stay = (
+    id: string,
+    status: 'candidate' | 'booked' | 'paid',
+    address: string | null,
+    place_id: string | null,
+  ) => ({ id, name: `飯店${id}`, status, address, place_id });
+
+  it('有連結地點時用地點 ID 導航', () => {
+    expect(nowStay([stay('a', 'booked', '東京都…', 'P1')])).toEqual({
+      id: 'a',
+      name: '飯店a',
+      destination: { name: '飯店a', placeId: 'P1' },
+    });
+  });
+
+  it('沒有連結地點時用地址，沒填地址就用名稱', () => {
+    expect(nowStay([stay('a', 'booked', '東京都台東区', null)])?.destination).toEqual({
+      name: '東京都台東区',
+      placeId: null,
+    });
+    expect(nowStay([stay('a', 'booked', '', null)])?.destination).toEqual({
+      name: '飯店a',
+      placeId: null,
+    });
+  });
+
+  it('已預訂的優先，沒有住宿時是 null', () => {
+    expect(nowStay([stay('a', 'candidate', null, null), stay('b', 'paid', null, null)])?.id).toBe(
+      'b',
+    );
+    expect(nowStay([])).toBeNull();
   });
 });

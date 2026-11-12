@@ -1,5 +1,8 @@
 import { DRIVE_WHEN_WALK_OVER_SECONDS } from '@/lib/maps/legs';
+import type { PlaceRef } from '@/lib/maps/links';
+import type { StayStatus } from './enums';
 import { sortItems, type OrderableItem } from './item-order';
+import { primaryStay } from './stays';
 import { toHourMinute } from './time-slot';
 
 // 旅途中的進度（ADR 0010「現在／下一站」）：項目手動按「完成」，記在 items.done_at。
@@ -45,4 +48,28 @@ export function suggestedDeparture(startTime: string, walkSeconds: number): stri
   const departure = hour * 60 + minute - Math.ceil(walkSeconds / 60) - DEPARTURE_BUFFER_MINUTES;
   if (departure < 0) return null;
   return `${String(Math.floor(departure / 60)).padStart(2, '0')}:${String(departure % 60).padStart(2, '0')}`;
+}
+
+// 「現在／下一站」的今晚住。destination 是導航的目的地：有連結地點用地點 ID，
+// 沒有時用使用者填的地址（沒填就用名稱）。
+export type NowStay = { id: string; name: string; destination: PlaceRef };
+
+export function nowStay(
+  stays: readonly {
+    id: string;
+    name: string;
+    status: StayStatus;
+    address: string | null;
+    place_id: string | null;
+  }[],
+): NowStay | null {
+  const stay = primaryStay(stays);
+  if (!stay) return null;
+  return {
+    id: stay.id,
+    name: stay.name,
+    destination: stay.place_id
+      ? { name: stay.name, placeId: stay.place_id }
+      : { name: stay.address || stay.name, placeId: null },
+  };
 }

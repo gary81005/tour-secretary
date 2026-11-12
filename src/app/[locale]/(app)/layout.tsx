@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { AppHeader } from '@/components/app-shell/app-header';
-import { InstallPromptListener } from './install-prompt';
+import { InstallPromptListener } from './_components/install-prompt';
 
 // 登入後的頁面共用的外框。登入頁在 (app) 之外，不套用。
 // 手機優先；桌機只把內容置中、最寬 max-w-2xl（Q26-7），不做雙欄。

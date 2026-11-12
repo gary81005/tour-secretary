@@ -67,6 +67,9 @@ export function hoursStatus(
 // null 表示 Google 沒有營業時間資料。
 export type PlaceHours = { status: HoursStatus | null; ranges: HoursRange[] | null };
 
+// 單日畫面的營業時間：伺服器查詢的 Promise，以 item_places.id 對應（畫面用 use() 串流）。
+export type ItemPlaceHours = Promise<Record<string, PlaceHours>>;
+
 export function placeHours(
   details: Pick<PlaceDetails, 'businessStatus' | 'regularHours' | 'currentHours'>,
   item: { date: string; start_time: string | null },

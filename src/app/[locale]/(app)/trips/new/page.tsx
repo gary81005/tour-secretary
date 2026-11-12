@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { useTranslations } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
-import { CreateTripForm } from './create-trip-form';
+import { CreateTripForm } from './_components/create-trip-form';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('trips.create');

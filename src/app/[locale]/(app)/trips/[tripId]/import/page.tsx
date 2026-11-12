@@ -4,7 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { getImportTarget } from '@/data/imports';
-import { ImportIntoTrip } from './import-into-trip';
+import { ImportIntoTrip } from './_components/import-into-trip';
 
 type Props = PageProps<'/[locale]/trips/[tripId]/import'>;
 

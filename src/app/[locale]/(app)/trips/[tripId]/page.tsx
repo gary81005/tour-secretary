@@ -1,33 +1,15 @@
-import { BedDoubleIcon, RouteIcon } from 'lucide-react';
-import { useFormatter, useTranslations } from 'next-intl';
 import { notFound } from 'next/navigation';
-import { Suspense, type ReactNode } from 'react';
-import { GoogleAddress, type PlaceAddresses } from '@/components/maps/google-address';
-import { GoogleMapsAttribution } from '@/components/maps/google-maps-attribution';
-import type { PlaceSearchContext } from '@/components/maps/place-search-input';
-import {
-  getDayItems,
-  getTrip,
-  getTripDays,
-  getTripStays,
-  type DayItem,
-  type TripStay,
-} from '@/data/trips';
-import { Link } from '@/i18n/navigation';
-import type { DayTravel } from '@/lib/maps/legs';
-import type { StayStatus } from '@/lib/trip/enums';
+import { Suspense } from 'react';
+import { getDayMaps } from '@/data/day-maps';
+import { getDayItems, getTrip, getTripDays, getTripStays } from '@/data/trips';
 import { resolveSelectedDayIndex } from '@/lib/trip/day-selection';
-import { canMarkDone } from '@/lib/trip/progress';
-import { primaryStay, staysForNight } from '@/lib/trip/stays';
-import { localDateToUtc } from '@/lib/trip/trip-dates';
+import { canMarkDone, nowStay } from '@/lib/trip/progress';
+import { staysForNight } from '@/lib/trip/stays';
 import { currentDayIndex, localDate, resolveTimezone } from '@/lib/trip/trip-phase';
-import { DayItems } from './day-items';
-import { getDayMaps } from './day-maps';
-import type { ItemPlaceHours } from './item-card';
-import { DayMenu } from './day-menu';
-import type { DayOption } from './item-form';
-import type { NowStay } from './now-card';
-import { DaySelector } from './day-selector';
+import { DayMenu } from './_components/day-menu';
+import { DaySelector } from './_components/day-selector';
+import { DayView, ItinerarySkeleton } from './_components/day-view';
+import { TonightStay } from './_components/tonight-stay';
 
 type Props = PageProps<'/[locale]/trips/[tripId]'>;
 
@@ -140,170 +122,5 @@ async function Itinerary({ params, searchParams }: Props) {
         }
       />
     </>
-  );
-}
-
-type DayViewProps = {
-  dayId: string;
-  dayOptions: DayOption[];
-  dayNumber: number;
-  date: string;
-  city: string | null;
-  customTimezone: string | null;
-  items: DayItem[];
-  placeSearch: PlaceSearchContext | null;
-  placeHours: ItemPlaceHours | null;
-  markDone: boolean;
-  isToday: boolean;
-  nowStay: NowStay | null;
-  routeUrl: string | null;
-  travel: DayTravel;
-  googleAttribution: boolean;
-  tonight: ReactNode;
-  menu: ReactNode;
-};
-
-function DayView({
-  dayId,
-  dayOptions,
-  dayNumber,
-  date,
-  city,
-  customTimezone,
-  items,
-  placeSearch,
-  placeHours,
-  markDone,
-  isToday,
-  nowStay,
-  routeUrl,
-  travel,
-  googleAttribution,
-  tonight,
-  menu,
-}: DayViewProps) {
-  const t = useTranslations('trips.day');
-  const format = useFormatter();
-
-  return (
-    <section className='flex flex-col gap-5 pt-4' aria-labelledby='day-heading'>
-      <header className='flex items-start justify-between gap-3'>
-        <div className='flex min-w-0 flex-col gap-0.5'>
-          <h2 id='day-heading' className='text-lg font-semibold'>
-            {t('dayNumber', { day: dayNumber })}
-            <span className='ml-2 text-base font-normal text-muted-foreground'>
-              {format.dateTime(localDateToUtc(date), {
-                month: 'numeric',
-                day: 'numeric',
-                weekday: 'short',
-                timeZone: 'UTC',
-              })}
-            </span>
-          </h2>
-          <p className='text-sm text-muted-foreground'>{city || t('noCity')}</p>
-          {customTimezone && (
-            <p className='text-xs text-muted-foreground'>
-              {t('localTime', { timezone: customTimezone })}
-            </p>
-          )}
-          {routeUrl && (
-            <a
-              href={routeUrl}
-              target='_blank'
-              rel='noopener noreferrer'
-              className='mt-1 flex w-fit items-center gap-1 text-sm text-primary underline-offset-4 hover:underline'
-            >
-              <RouteIcon className='size-3.5' aria-hidden='true' />
-              {t('dayRoute')}
-            </a>
-          )}
-        </div>
-        {menu}
-      </header>
-
-      <DayItems
-        dayId={dayId}
-        dayOptions={dayOptions}
-        items={items}
-        placeSearch={placeSearch}
-        placeHours={placeHours}
-        markDone={markDone}
-        isToday={isToday}
-        nowStay={nowStay}
-        travel={travel}
-        tonight={tonight}
-      />
-      {googleAttribution && <GoogleMapsAttribution />}
-    </section>
-  );
-}
-
-// 「現在／下一站」的今晚住：沒有連結地點時用使用者填的地址（沒填就用名稱）導航。
-function nowStay(stays: TripStay[]): NowStay | null {
-  const stay = primaryStay(stays);
-  if (!stay) return null;
-  return {
-    id: stay.id,
-    name: stay.name,
-    destination: stay.place_id
-      ? { name: stay.name, placeId: stay.place_id }
-      : { name: stay.address || stay.name, placeId: null },
-  };
-}
-
-// 單日畫面最下方的「今晚住」（Q8），由住宿日期推算；點了到住宿分頁。
-// placeId：沒寫地址、有連結地點時才有，用來顯示 Google 的地址。
-// 整塊可以點：連結用 after: 蓋住整塊，地址的語言切換按鈕再浮到上層（連結裡不能放按鈕）。
-function TonightStay({
-  tripId,
-  stays,
-  addresses,
-}: {
-  tripId: string;
-  stays: { id: string; name: string; status: StayStatus; placeId: string | null }[];
-  addresses: PlaceAddresses | null;
-}) {
-  const t = useTranslations('trips');
-  const coverLink = 'outline-none after:absolute after:inset-0 after:rounded-lg';
-
-  return (
-    <div className='relative flex items-center gap-3 rounded-lg border border-dashed p-3 text-sm transition-colors hover:bg-muted/50 has-[a:focus-visible]:ring-3 has-[a:focus-visible]:ring-ring/50'>
-      <BedDoubleIcon className='size-4 shrink-0 text-muted-foreground' aria-hidden='true' />
-      {stays.length === 0 ? (
-        <Link href={`/trips/${tripId}/stays`} className={`text-muted-foreground ${coverLink}`}>
-          {t('stays.tonightNone')}
-        </Link>
-      ) : (
-        <div className='flex min-w-0 flex-col gap-0.5'>
-          <Link
-            href={`/trips/${tripId}/stays`}
-            className={`text-xs text-muted-foreground ${coverLink}`}
-          >
-            {t('stays.tonight')}
-          </Link>
-          {stays.map((stay) => (
-            <div key={stay.id} className='break-words'>
-              {stay.name}
-              <span className='ml-1.5 text-xs text-muted-foreground'>
-                {t(`stayStatus.${stay.status}`)}
-              </span>
-              {addresses && stay.placeId && (
-                <GoogleAddress addresses={addresses} placeId={stay.placeId} className='text-xs' />
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ItinerarySkeleton() {
-  return (
-    <div className='flex flex-col gap-4 pt-3' aria-hidden='true'>
-      <div className='h-14 animate-pulse rounded-lg bg-muted' />
-      <div className='h-24 animate-pulse rounded-lg bg-muted' />
-      <div className='h-24 animate-pulse rounded-lg bg-muted' />
-    </div>
   );
 }

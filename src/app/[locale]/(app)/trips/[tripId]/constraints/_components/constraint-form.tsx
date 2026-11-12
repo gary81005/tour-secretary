@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import type { TravelerConstraint } from '@/data/trips';
 import { useFormSubmit } from '@/hooks/use-form-submit';
 import { TRAVELER_CONSTRAINT_KINDS } from '@/lib/trip/enums';
-import { EditorError, EditorFormShell } from '../editor-form-shell';
+import { EditorError, EditorFormShell } from '../../_components/editor-form-shell';
 
 type Props = {
   tripId: string;

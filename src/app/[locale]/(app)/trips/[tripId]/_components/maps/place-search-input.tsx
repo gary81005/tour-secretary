@@ -6,11 +6,8 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState, type ComponentProps } from 'react';
 import { searchPlaces, type PlaceSearchResult } from '@/actions/places';
 import { Input } from '@/components/ui/input';
-import type { PlaceSuggestion, SearchBias } from '@/lib/maps/types';
+import type { PlaceSearchContext, PlaceSuggestion } from '@/lib/maps/types';
 import { GoogleMapsAttribution } from './google-maps-attribution';
-
-// 有設定地圖金鑰時才有：頁面算好的搜尋偏向（ADR 0006 Q10）。null 表示地點只能輸入文字（Q15）。
-export type PlaceSearchContext = { bias: SearchBias };
 
 const DEBOUNCE_MS = 300;
 const MIN_QUERY_LENGTH = 2;

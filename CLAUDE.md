@@ -33,12 +33,16 @@ npm run db:types      # 由已 link 的專案產生 src/types/database.ts
 - `src/app/[locale]/`：所有頁面。`[locale]/layout.tsx` 是 root layout；沒有 `src/app/layout.tsx`。
 - `src/i18n/`：next-intl 的 routing、request config、navigation。
 - `src/lib/supabase/`：`client.ts`（Client Component）、`server.ts`（Server 端，`server-only`）、`proxy.ts`（在 proxy 刷新 session）。
-- **元件放哪裡**：只有一個路由用到的元件，跟 `page.tsx` 放在同一個路由資料夾（例如 `[tripId]/item-form.tsx`）；被第二個路由用到時，才搬到 `src/components/<領域>/`（例如 `src/components/trip/`）。
+- **元件放哪裡**：頁面檔（`page.tsx`、`layout.tsx`）只負責讀參數、查資料（async 元件包在 `<Suspense>` 裡）再組畫面；顯示用的元件抽成獨立檔案。
+  - 只有一個路由用到的元件，放在該路由資料夾的 `_components/`（例如 `trips/[tripId]/_components/day-items.tsx`、`trips/[tripId]/stays/_components/stay-form.tsx`）。底線開頭是 Next 的私有資料夾，不會變成路由，也和 `stays/` 這類路由資料夾分得開。
+  - 可以引用自己或上層路由的 `_components/`（例如 `stays/` 用 `[tripId]/_components/`，和 layout 的作用範圍一致）；不能引用兄弟或其他分支路由的（例如 `stays/` 用 `notes/_components/`、首頁用 `[tripId]/_components/`），這時搬到最近的共同上層路由的 `_components/`（例如 `trips/_components/import/` 給「匯入新行程」與「匯入到行程」共用）。共同上層是 `[locale]` 或 `(app)`（等於全站共用）的，以及不帶領域的 UI 元件，才放 `src/components/`（例如 `app-shell/`、`trip/trip-date-range.tsx`、`responsive-dialog.tsx`）。`_components/` 裡同一類的可以再分子資料夾（例如 `[tripId]/_components/maps/`）。
+  - 頁面引用自己的元件用 `./_components/...`，上層的用 `../_components/...`，同一個資料夾內用 `./`，其他用 `@/...`。
+  - 不是元件的不放 `_components/`：伺服器端組資料的放 `src/data/`（例如 `day-maps.ts`），client hook 放 `src/hooks/`，純邏輯與共用型別放 `src/lib/`。`src/data/`、`src/lib/`、`src/components/` 不能引用路由裡的檔案。
 - `src/components/ui/`：shadcn/ui 產生的元件（`npx shadcn@latest add <name>`）。可以修改，但要知道重新 add 會覆蓋。
 - `src/data/`：讀取資料的查詢（`server-only`，呼叫端要在 `<Suspense>` 裡）；`src/actions/`：Server Actions（`'use server'`，每個都重新確認登入，回傳 `ActionResult` / `FormState`）。
 - `src/hooks/`：共用的 client hook（例如 `useFormSubmit`：對話框表單送出 Server Action，失敗時保留輸入）。
 - `src/lib/trip/`：行程的純邏輯與 zod schema（有測試）；`src/lib/auth/`：登入相關的路徑判斷與 `getCurrentUser()`。
-- `src/lib/maps/`：MapProvider 介面與 Google 實作（`google.ts`，`server-only`）、回應轉換與各種純邏輯（營業時間、路段、地圖連結，有測試）。`src/components/maps/` 是地點搜尋框、Google 地址等共用元件；`src/data/places.ts`、`src/data/routes.ts` 是顯示時才向 Google 查的資料（`'use cache'` 短暫快取，查不到時略過，呼叫端不 await、把 Promise 交給畫面用 `use()` 串流）。
+- `src/lib/maps/`：MapProvider 介面與 Google 實作（`google.ts`，`server-only`）、回應轉換與各種純邏輯（營業時間、路段、地圖連結，有測試）。地點搜尋框、Google 地址、Google Maps 標誌等元件在 `trips/[tripId]/_components/maps/`；`src/data/places.ts`、`src/data/routes.ts` 是顯示時才向 Google 查的資料（`'use cache'` 短暫快取，查不到時略過，呼叫端不 await、把 Promise 交給畫面用 `use()` 串流）。
 - `src/lib/import/`：xlsx 匯入的純邏輯（解析、範本、合併規劃、payload schema，有測試）。exceljs 只能用 `loadExcelJS()` 動態載入，不要靜態 import。
 - `src/lib/dayjs.ts`：已載入 utc / timezone plugin 的 dayjs，專案內一律從這裡 import。
 - `src/proxy.ts`：Next 16 的 proxy（原 middleware）：先跑 next-intl，再在同一個 response 上刷新 Supabase session。

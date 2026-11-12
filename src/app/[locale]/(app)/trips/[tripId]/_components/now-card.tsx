@@ -3,13 +3,13 @@
 import { CheckIcon, ClockIcon, NavigationIcon, PartyPopperIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Suspense, use } from 'react';
-import { CategoryIcon } from '@/components/trip/category-icon';
 import { Button, buttonVariants } from '@/components/ui/button';
 import type { DayItem } from '@/data/trips';
 import { legKey, planItemLegs, type DayTravel, type Leg, type LegDurations } from '@/lib/maps/legs';
 import { googleNavigationUrl, type PlaceRef } from '@/lib/maps/links';
-import { dayProgress, suggestedDeparture } from '@/lib/trip/progress';
+import { dayProgress, suggestedDeparture, type NowStay } from '@/lib/trip/progress';
 import { toHourMinute } from '@/lib/trip/time-slot';
+import { CategoryIcon } from './category-icon';
 import { KoreaLinks, LegLine } from './leg-line';
 
 // 行程分頁選到今天時，最上方的「現在／下一站」（ADR 0010 Q9）。
@@ -124,9 +124,6 @@ export function NowCard({
     </section>
   );
 }
-
-// 今晚住哪裡：destination 是導航的目的地（有連結地點用地點 ID，沒有時用地址或名稱）。
-export type NowStay = { id: string; name: string; destination: PlaceRef };
 
 function Stop({ label, item }: { label: string; item: DayItem }) {
   const t = useTranslations('trips');

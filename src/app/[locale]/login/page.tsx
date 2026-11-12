@@ -3,7 +3,7 @@ import { useTranslations } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
 import { safeNextPath } from '@/lib/auth/paths';
-import { LoginForm, type LoginErrorKey } from './login-form';
+import { LoginForm, type LoginErrorKey } from './_components/login-form';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('auth');

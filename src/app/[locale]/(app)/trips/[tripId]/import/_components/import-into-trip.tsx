@@ -4,11 +4,6 @@ import { useFormatter, useTranslations } from 'next-intl';
 import { useState, useTransition, type FormEvent } from 'react';
 import { toast } from 'sonner';
 import { importIntoTrip, undoImport, type ImportTripResult } from '@/actions/imports';
-import { ImportFileBar } from '@/components/import/import-file-bar';
-import { ImportFooter } from '@/components/import/import-footer';
-import { ImportIssues } from '@/components/import/import-issues';
-import { ImportPreview } from '@/components/import/import-preview';
-import { XlsxFilePicker, type LoadedFile } from '@/components/import/xlsx-file-picker';
 import { TripDateRange } from '@/components/trip/trip-date-range';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,6 +21,11 @@ import { planImport, type ExistingTrip, type ImportPlan } from '@/lib/import/pla
 import { buildImportPayload, importBlockers, initialSelection } from '@/lib/import/selection';
 import type { ImportDraft } from '@/lib/import/types';
 import { countDays, localDateToUtc } from '@/lib/trip/trip-dates';
+import { ImportFileBar } from '../../../_components/import/import-file-bar';
+import { ImportFooter } from '../../../_components/import/import-footer';
+import { ImportIssues } from '../../../_components/import/import-issues';
+import { ImportPreview } from '../../../_components/import/import-preview';
+import { XlsxFilePicker, type LoadedFile } from '../../../_components/import/xlsx-file-picker';
 
 type Mode = 'append' | 'overwrite';
 

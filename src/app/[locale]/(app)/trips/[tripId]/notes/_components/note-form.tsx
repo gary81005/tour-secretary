@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import type { TripNote } from '@/data/trips';
 import { useFormSubmit } from '@/hooks/use-form-submit';
-import { EditorError, EditorFormShell } from '../editor-form-shell';
+import { EditorError, EditorFormShell } from '../../_components/editor-form-shell';
 
 type Props = {
   tripId: string;

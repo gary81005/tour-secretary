@@ -2,8 +2,8 @@
 
 import { ExternalLinkIcon, MapPinIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { googlePlaceUrl } from '@/lib/maps/links';
 import { cn } from 'cn';
+import { googlePlaceUrl } from '@/lib/maps/links';
 
 type Props = {
   name: string;

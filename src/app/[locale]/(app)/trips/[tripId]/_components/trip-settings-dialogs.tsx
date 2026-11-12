@@ -4,7 +4,6 @@ import { useFormatter, useTranslations } from 'next-intl';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { setTripDates, shiftTrip, updateTrip } from '@/actions/trips';
-import { TimezoneField } from '@/components/trip/timezone-field';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -20,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { useFormSubmit } from '@/hooks/use-form-submit';
 import type { FieldErrors, FormResult } from '@/lib/form';
 import { addDays, countDays, localDateToUtc, planDateRangeChange } from '@/lib/trip/trip-dates';
+import { TimezoneField } from '../../_components/timezone-field';
 
 export type TripSettings = {
   id: string;

@@ -5,7 +5,6 @@ import { useFormatter, useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { deleteDay, insertDayAfter, updateDay } from '@/actions/days';
-import { TimezoneField } from '@/components/trip/timezone-field';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
   Dialog,
@@ -30,6 +29,7 @@ import { useFormSubmit } from '@/hooks/use-form-submit';
 import { useRouter } from '@/i18n/navigation';
 import { COMMON_TIMEZONES } from '@/lib/trip/timezones';
 import { localDateToUtc } from '@/lib/trip/trip-dates';
+import { TimezoneField } from '../../_components/timezone-field';
 
 export type DayMenuDay = {
   id: string;

@@ -3,13 +3,13 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useActionState } from 'react';
 import { createTrip, type CreateTripValues } from '@/actions/trips';
-import { TimezoneField } from '@/components/trip/timezone-field';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Link } from '@/i18n/navigation';
 import type { FormState } from '@/lib/form';
 import { DEFAULT_TIMEZONE } from '@/lib/trip/timezones';
+import { TimezoneField } from '../../_components/timezone-field';
 
 const INITIAL_STATE: FormState<CreateTripValues> = {};
 

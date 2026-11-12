@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { getTripNotes } from '@/data/trips';
-import { NoteList } from './note-list';
+import { NoteList } from './_components/note-list';
 
 type Props = PageProps<'/[locale]/trips/[tripId]/notes'>;
 

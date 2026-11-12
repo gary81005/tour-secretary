@@ -4,14 +4,14 @@ import { cn } from 'cn';
 import { ExternalLinkIcon, GitBranchIcon, MapPinIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Suspense, use, type ReactNode } from 'react';
-import { CategoryIcon } from '@/components/trip/category-icon';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { DayItem } from '@/data/trips';
 import { googlePlaceUrl } from '@/lib/maps/links';
-import { formatHoursRange, isAllDay, type PlaceHours } from '@/lib/maps/opening-hours';
+import { formatHoursRange, isAllDay, type ItemPlaceHours } from '@/lib/maps/opening-hours';
 import { toHourMinute } from '@/lib/trip/time-slot';
 import { isSafeHttpUrl } from '@/lib/url';
+import { CategoryIcon } from './category-icon';
 
 // 行程項目卡片。整張卡可以點開編輯：標題按鈕用 after: 蓋住整張卡，
 // 卡片裡的連結與拖拉把手再用 relative z-10 浮到上層，避免在 <button> 裡放互動元素。
@@ -142,8 +142,6 @@ export function ItemCard({
     </article>
   );
 }
-
-export type ItemPlaceHours = Promise<Record<string, PlaceHours>>;
 
 // 地點後面的營業時間與標記（ADR 0006 Q8）：「營業 09:00–17:00」「當天公休」「可能未營業」…
 function PlaceHoursInfo({

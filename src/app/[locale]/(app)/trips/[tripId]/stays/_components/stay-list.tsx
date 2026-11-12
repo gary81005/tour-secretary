@@ -8,9 +8,6 @@ import {
   TriangleAlertIcon,
 } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
-import { GoogleAddress, type PlaceAddresses } from '@/components/maps/google-address';
-import { GoogleMapsAttribution } from '@/components/maps/google-maps-attribution';
-import type { PlaceSearchContext } from '@/components/maps/place-search-input';
 import { ResponsiveDialog, ResponsiveDialogContent } from '@/components/responsive-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,11 +20,15 @@ import {
 } from '@/components/ui/empty';
 import type { TripStay } from '@/data/trips';
 import { useEditorState } from '@/hooks/use-editor-state';
+import type { PlaceAddresses } from '@/lib/maps/address';
 import { googlePlaceUrl } from '@/lib/maps/links';
+import type { PlaceSearchContext } from '@/lib/maps/types';
 import type { StayStatus } from '@/lib/trip/enums';
 import { findOverlappingStayIds, validateStayRange } from '@/lib/trip/stays';
 import { addDays, countDays, localDateToUtc } from '@/lib/trip/trip-dates';
 import { isSafeHttpUrl } from '@/lib/url';
+import { GoogleAddress } from '../../_components/maps/google-address';
+import { GoogleMapsAttribution } from '../../_components/maps/google-maps-attribution';
 import { StayForm, type StayTrip } from './stay-form';
 
 const STATUS_BADGE = {

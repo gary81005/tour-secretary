@@ -33,8 +33,8 @@ import {
   EmptyTitle,
 } from '@/components/ui/empty';
 import type { TripNote } from '@/data/trips';
+import { useDndAccessibility } from '@/hooks/use-dnd-accessibility';
 import { useEditorState } from '@/hooks/use-editor-state';
-import { useDndAccessibility } from '../dnd-accessibility';
 import { NoteForm } from './note-form';
 
 // 提醒事項列表：拖拉把手調整順序（先樂觀更新，失敗時自動還原），點卡片編輯。

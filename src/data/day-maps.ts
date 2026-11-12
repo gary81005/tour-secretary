@@ -1,17 +1,17 @@
 import 'server-only';
-import type { PlaceAddresses } from '@/components/maps/google-address';
-import type { PlaceSearchContext } from '@/components/maps/place-search-input';
-import { getItemPlaceHours, getPlaceAddresses } from '@/data/places';
-import { getDayTravel } from '@/data/routes';
-import type { DayItem, TripStay } from '@/data/trips';
+import type { PlaceAddresses } from '@/lib/maps/address';
 import { getMapsApiKey } from '@/lib/maps/env';
 import { dayStayStops, type DayTravel, type LegStop } from '@/lib/maps/legs';
 import { dayRoutePlaces, googleDayRouteUrl } from '@/lib/maps/links';
+import type { ItemPlaceHours } from '@/lib/maps/opening-hours';
 import { routesSupported } from '@/lib/maps/region';
 import { searchBias } from '@/lib/maps/search-bias';
+import type { PlaceSearchContext } from '@/lib/maps/types';
 import { sortItems } from '@/lib/trip/item-order';
 import { localDate } from '@/lib/trip/trip-phase';
-import type { ItemPlaceHours } from './item-card';
+import { getItemPlaceHours, getPlaceAddresses } from './places';
+import { getDayTravel } from './routes';
+import type { DayItem, TripStay } from './trips';
 
 export type DayMaps = {
   placeSearch: PlaceSearchContext | null;

@@ -1,11 +1,11 @@
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
-import type { PlaceSearchContext } from '@/components/maps/place-search-input';
 import { getPlaceAddresses } from '@/data/places';
 import { getTrip, getTripStays } from '@/data/trips';
 import { getMapsApiKey } from '@/lib/maps/env';
 import { regionCodeForTimezone } from '@/lib/maps/region';
-import { StayList } from './stay-list';
+import type { PlaceSearchContext } from '@/lib/maps/types';
+import { StayList } from './_components/stay-list';
 
 type Props = PageProps<'/[locale]/trips/[tripId]/stays'>;
 
