@@ -21,6 +21,8 @@ export type TripSummary = {
   phase: TripPhase;
   // 進行中時是第幾天（從 1 起算），其他狀態為 null
   currentDay: number | null;
+  // 進行中時今天的日期（YYYY-MM-DD），用來查今天的進度；其他狀態為 null
+  currentDate: string | null;
 };
 
 export function summarizeTrip(trip: TripListSource, now: Date): TripSummary {
@@ -41,6 +43,7 @@ export function summarizeTrip(trip: TripListSource, now: Date): TripSummary {
     cities: [...new Set(cities)],
     phase: getTripPhase(daysInZone, now),
     currentDay: index >= 0 ? index + 1 : null,
+    currentDate: index >= 0 ? days[index].date : null,
   };
 }
 

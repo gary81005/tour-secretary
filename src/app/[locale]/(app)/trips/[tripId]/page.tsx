@@ -5,13 +5,20 @@ import { Suspense, type ReactNode } from 'react';
 import { GoogleAddress, type PlaceAddresses } from '@/components/maps/google-address';
 import { GoogleMapsAttribution } from '@/components/maps/google-maps-attribution';
 import type { PlaceSearchContext } from '@/components/maps/place-search-input';
-import { getDayItems, getTrip, getTripDays, getTripStays, type DayItem } from '@/data/trips';
+import {
+  getDayItems,
+  getTrip,
+  getTripDays,
+  getTripStays,
+  type DayItem,
+  type TripStay,
+} from '@/data/trips';
 import { Link } from '@/i18n/navigation';
 import type { DayTravel } from '@/lib/maps/legs';
 import type { StayStatus } from '@/lib/trip/enums';
 import { resolveSelectedDayIndex } from '@/lib/trip/day-selection';
 import { canMarkDone } from '@/lib/trip/progress';
-import { staysForNight } from '@/lib/trip/stays';
+import { primaryStay, staysForNight } from '@/lib/trip/stays';
 import { localDateToUtc } from '@/lib/trip/trip-dates';
 import { currentDayIndex, localDate, resolveTimezone } from '@/lib/trip/trip-phase';
 import { DayItems } from './day-items';
@@ -19,6 +26,7 @@ import { getDayMaps } from './day-maps';
 import type { ItemPlaceHours } from './item-card';
 import { DayMenu } from './day-menu';
 import type { DayOption } from './item-form';
+import type { NowStay } from './now-card';
 import { DaySelector } from './day-selector';
 
 type Props = PageProps<'/[locale]/trips/[tripId]'>;
@@ -93,6 +101,8 @@ async function Itinerary({ params, searchParams }: Props) {
         placeSearch={maps.placeSearch}
         placeHours={maps.placeHours}
         markDone={canMarkDone(selectedDay.date, localDate(timezone, now))}
+        isToday={selectedIndex === todayIndex}
+        nowStay={nowStay(tonightStays)}
         routeUrl={maps.routeUrl}
         travel={maps.travel}
         googleAttribution={maps.googleAttribution}
@@ -144,6 +154,8 @@ type DayViewProps = {
   placeSearch: PlaceSearchContext | null;
   placeHours: ItemPlaceHours | null;
   markDone: boolean;
+  isToday: boolean;
+  nowStay: NowStay | null;
   routeUrl: string | null;
   travel: DayTravel;
   googleAttribution: boolean;
@@ -162,6 +174,8 @@ function DayView({
   placeSearch,
   placeHours,
   markDone,
+  isToday,
+  nowStay,
   routeUrl,
   travel,
   googleAttribution,
@@ -214,12 +228,27 @@ function DayView({
         placeSearch={placeSearch}
         placeHours={placeHours}
         markDone={markDone}
+        isToday={isToday}
+        nowStay={nowStay}
         travel={travel}
         tonight={tonight}
       />
       {googleAttribution && <GoogleMapsAttribution />}
     </section>
   );
+}
+
+// 「現在／下一站」的今晚住：沒有連結地點時用使用者填的地址（沒填就用名稱）導航。
+function nowStay(stays: TripStay[]): NowStay | null {
+  const stay = primaryStay(stays);
+  if (!stay) return null;
+  return {
+    id: stay.id,
+    name: stay.name,
+    destination: stay.place_id
+      ? { name: stay.name, placeId: stay.place_id }
+      : { name: stay.address || stay.name, placeId: null },
+  };
 }
 
 // 單日畫面最下方的「今晚住」（Q8），由住宿日期推算；點了到住宿分頁。

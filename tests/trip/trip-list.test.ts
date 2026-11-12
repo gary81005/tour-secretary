@@ -29,6 +29,7 @@ describe('summarizeTrip', () => {
       cities: ['東京', '仙台'],
       phase: 'ongoing',
       currentDay: 3,
+      currentDate: '2027-03-07',
     });
   });
 
@@ -37,6 +38,7 @@ describe('summarizeTrip', () => {
     const summary = summarizeTrip({ ...source, days: source.days.toReversed() }, NOW);
     expect(summary.cities).toEqual(['A', 'B', 'C']);
     expect(summary.currentDay).toBe(2);
+    expect(summary.currentDate).toBe('2027-03-07');
   });
 
   it('即將出發與已結束沒有 currentDay', () => {

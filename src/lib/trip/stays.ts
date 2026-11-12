@@ -1,3 +1,5 @@
+import type { StayStatus } from './enums';
+
 // 住宿的日期規則（Q23）：
 // - 退房日要晚於入住日
 // - 入住到退房要落在行程日期內，退房日可以是行程最後一天
@@ -33,4 +35,10 @@ export function findOverlappingStayIds(stays: readonly (StayDates & { id: string
 // 某一晚住哪裡：入住日 ≤ date < 退房日。單日畫面底部的「今晚住」用這個。
 export function staysForNight<T extends StayDates>(stays: readonly T[], date: string): T[] {
   return stays.filter((stay) => stay.check_in <= date && date < stay.check_out);
+}
+
+// 同一晚有好幾間時（候選、換房）的主要住宿：已預訂／已付款的優先，其次是第一間。
+// 「現在／下一站」的「今晚住」用這個，沒有連結地點的住宿也算。
+export function primaryStay<T extends { status: StayStatus }>(stays: readonly T[]): T | null {
+  return stays.find((stay) => stay.status !== 'candidate') ?? stays[0] ?? null;
 }

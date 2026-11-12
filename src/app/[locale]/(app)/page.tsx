@@ -14,8 +14,9 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/components/ui/empty';
-import { getTripListGroups } from '@/data/trips';
+import { getTodayProgressItems, getTripListGroups } from '@/data/trips';
 import { Link } from '@/i18n/navigation';
+import { dayProgress } from '@/lib/trip/progress';
 import { TRIP_PHASE_ORDER, type TripSummary } from '@/lib/trip/trip-list';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -111,7 +112,34 @@ function TripCard({ trip }: { trip: TripSummary }) {
           <span className='truncate'>{trip.cities.join(' · ')}</span>
         </div>
       )}
+      {trip.currentDate && (
+        <Suspense fallback={null}>
+          <TodayProgress tripId={trip.id} date={trip.currentDate} />
+        </Suspense>
+      )}
     </Link>
+  );
+}
+
+// 進行中的行程：今天進行到哪（ADR 0010）。查不到時不顯示，不影響行程列表。
+async function TodayProgress({ tripId, date }: { tripId: string; date: string }) {
+  const items = await getTodayProgressItems(tripId, date).catch(() => null);
+  if (!items || items.length === 0) return null;
+
+  const t = await getTranslations('trips.now');
+  const { current, next } = dayProgress(items);
+  if (!current) {
+    return <p className='truncate text-sm font-medium text-primary'>{t('homeAllDone')}</p>;
+  }
+  return (
+    <div className='flex flex-col gap-0.5 text-sm'>
+      <p className='truncate font-medium text-primary'>
+        {t('homeCurrent', { title: current.title })}
+      </p>
+      {next && (
+        <p className='truncate text-muted-foreground'>{t('homeNext', { title: next.title })}</p>
+      )}
+    </div>
   );
 }
 

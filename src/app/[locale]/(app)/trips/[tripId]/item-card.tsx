@@ -3,9 +3,7 @@
 import { cn } from 'cn';
 import { ExternalLinkIcon, GitBranchIcon, MapPinIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { Suspense, use, useOptimistic, useTransition, type ReactNode } from 'react';
-import { toast } from 'sonner';
-import { setItemDone } from '@/actions/items';
+import { Suspense, use, type ReactNode } from 'react';
 import { CategoryIcon } from '@/components/trip/category-icon';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -19,19 +17,19 @@ import { isSafeHttpUrl } from '@/lib/url';
 // 卡片裡的連結與拖拉把手再用 relative z-10 浮到上層，避免在 <button> 裡放互動元素。
 // handle：左側的拖拉把手，或有精確時間時的時鐘圖示（Q22）。
 // placeHours：伺服器查營業時間的 Promise（以 item_places.id 對應），沒有地圖金鑰時是 null。
-// markDone：顯示「完成」勾選框（今天與之前的天，ADR 0010）。完成的項目標題加刪除線。
+// onToggleDone：「完成」勾選框（今天與之前的天，ADR 0010），null 時不顯示。完成的項目標題加刪除線。
 export function ItemCard({
   item,
   onEdit,
   handle,
   placeHours,
-  markDone,
+  onToggleDone,
 }: {
   item: DayItem;
   onEdit: () => void;
   handle?: ReactNode;
   placeHours: ItemPlaceHours | null;
-  markDone: boolean;
+  onToggleDone: ((done: boolean) => void) | null;
 }) {
   const t = useTranslations('trips');
   const time = item.start_time
@@ -44,8 +42,13 @@ export function ItemCard({
   return (
     <article className='relative flex gap-3 rounded-lg border bg-card p-3 transition-colors hover:bg-muted/50 has-[button:focus-visible]:ring-3 has-[button:focus-visible]:ring-ring/50'>
       {handle}
-      {markDone && (
-        <DoneCheckbox itemId={item.id} title={item.title} done={item.done_at !== null} />
+      {onToggleDone && (
+        <Checkbox
+          checked={item.done_at !== null}
+          onCheckedChange={onToggleDone}
+          aria-label={t('item.markDone', { title: item.title })}
+          className='relative z-10 mt-1.5 size-5 [&_svg]:size-4'
+        />
       )}
       <div
         className='flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary'
@@ -137,30 +140,6 @@ export function ItemCard({
         )}
       </div>
     </article>
-  );
-}
-
-// 先樂觀顯示，伺服器失敗時自動還原並提示。
-function DoneCheckbox({ itemId, title, done }: { itemId: string; title: string; done: boolean }) {
-  const t = useTranslations();
-  const [optimisticDone, setOptimisticDone] = useOptimistic(done);
-  const [, startTransition] = useTransition();
-
-  function toggle(checked: boolean) {
-    startTransition(async () => {
-      setOptimisticDone(checked);
-      const result = await setItemDone(itemId, checked);
-      if (!result.ok) toast.error(t(`errors.${result.error}`));
-    });
-  }
-
-  return (
-    <Checkbox
-      checked={optimisticDone}
-      onCheckedChange={toggle}
-      aria-label={t('trips.item.markDone', { title })}
-      className='relative z-10 mt-1.5 size-5 [&_svg]:size-4'
-    />
   );
 }
 

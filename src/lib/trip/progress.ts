@@ -1,7 +1,48 @@
+import { DRIVE_WHEN_WALK_OVER_SECONDS } from '@/lib/maps/legs';
+import { sortItems, type OrderableItem } from './item-order';
+import { toHourMinute } from './time-slot';
+
 // 旅途中的進度（ADR 0010「現在／下一站」）：項目手動按「完成」，記在 items.done_at。
+
+type ProgressItem = OrderableItem & { done_at: string | null };
 
 // 今天與之前的天才能打勾；未來的天不顯示勾選框，避免誤按。
 // date 是那一天的日期，today 是那一天時區的今天（都是 YYYY-MM-DD）。
 export function canMarkDone(date: string, today: string): boolean {
   return date <= today;
+}
+
+// 現在＝當天第一個未完成的項目；下一站＝再下一個未完成的項目（依當天順序）。
+// allDone：當天有項目且全部完成。
+export function dayProgress<T extends ProgressItem>(
+  items: readonly T[],
+): { current: T | null; next: T | null; allDone: boolean } {
+  const pending = sortItems(items).filter((item) => item.done_at === null);
+  return {
+    current: pending[0] ?? null,
+    next: pending[1] ?? null,
+    allDone: items.length > 0 && pending.length === 0,
+  };
+}
+
+// 樂觀更新用：把某個項目設成完成（doneAt 為時間）或未完成（null）。
+export function withDone<T extends { id: string; done_at: string | null }>(
+  items: readonly T[],
+  itemId: string,
+  doneAt: string | null,
+): T[] {
+  return items.map((item) => (item.id === itemId ? { ...item, done_at: doneAt } : item));
+}
+
+// 出發前預留的緩衝時間。
+export const DEPARTURE_BUFFER_MINUTES = 5;
+
+// 建議出發時間（ADR 0010 Q10）：下一站有精確時間，且步行 30 分鐘以內時＝開始時間 − 步行時間 − 5 分鐘。
+// 需要搭車的段算不出電車時間，回傳 null；算出來早於當天 00:00 時也回傳 null。
+export function suggestedDeparture(startTime: string, walkSeconds: number): string | null {
+  if (walkSeconds > DRIVE_WHEN_WALK_OVER_SECONDS) return null;
+  const [hour, minute] = toHourMinute(startTime).split(':').map(Number);
+  const departure = hour * 60 + minute - Math.ceil(walkSeconds / 60) - DEPARTURE_BUFFER_MINUTES;
+  if (departure < 0) return null;
+  return `${String(Math.floor(departure / 60)).padStart(2, '0')}:${String(departure % 60).padStart(2, '0')}`;
 }

@@ -25,7 +25,7 @@ import { ClockIcon, GripVerticalIcon, PlusIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useId, useOptimistic, useState, useTransition, type ReactNode } from 'react';
 import { toast } from 'sonner';
-import { reorderItems } from '@/actions/items';
+import { reorderItems, setItemDone } from '@/actions/items';
 import { useEditorState } from '@/hooks/use-editor-state';
 import { ResponsiveDialog, ResponsiveDialogContent } from '@/components/responsive-dialog';
 import { Button } from '@/components/ui/button';
@@ -39,11 +39,13 @@ import {
   sortItems,
   untimedIdsBySlot,
 } from '@/lib/trip/item-order';
+import { withDone } from '@/lib/trip/progress';
 import { TIME_SLOTS, type TimeSlot } from '@/lib/trip/time-slot';
 import { useDndAccessibility } from './dnd-accessibility';
 import { ItemCard, type ItemPlaceHours } from './item-card';
 import { ItemForm, type DayOption } from './item-form';
 import { LegLine } from './leg-line';
+import { NowCard, type NowStay } from './now-card';
 
 type Props = {
   dayId: string;
@@ -53,12 +55,21 @@ type Props = {
   placeHours: ItemPlaceHours | null;
   // 今天與之前的天顯示「完成」勾選框（ADR 0010）
   markDone: boolean;
+  // 選的是今天：最上方顯示「現在／下一站」
+  isToday: boolean;
+  // 「現在／下一站」的今晚住（最後一天沒有）
+  nowStay: NowStay | null;
   travel: DayTravel;
   // 「今晚住」：放在最後，上面接最後一段移動（回到住宿）。
   tonight: ReactNode;
 };
 
 type SlotOrder = Partial<Record<TimeSlot, string[]>>;
+
+// 樂觀更新：拖拉排序，或「完成」打勾。
+type OptimisticChange =
+  | { kind: 'reorder'; slot: TimeSlot; ids: string[] }
+  | { kind: 'done'; itemId: string; doneAt: string | null };
 
 function isTimeSlot(id: UniqueIdentifier): id is TimeSlot {
   return (TIME_SLOTS as readonly UniqueIdentifier[]).includes(id);
@@ -86,6 +97,8 @@ export function DayItems({
   placeSearch,
   placeHours,
   markDone,
+  isToday,
+  nowStay,
   travel,
   tonight,
 }: Props) {
@@ -93,10 +106,12 @@ export function DayItems({
   const dndId = useId();
   const [optimisticItems, applyOptimistic] = useOptimistic(
     items,
-    (current, change: { slot: TimeSlot; ids: string[] }) =>
-      applySlotOrder(current, change.slot, change.ids),
+    (current, change: OptimisticChange) =>
+      change.kind === 'reorder'
+        ? applySlotOrder(current, change.slot, change.ids)
+        : withDone(current, change.itemId, change.doneAt),
   );
-  const [, startReorder] = useTransition();
+  const [, startTransition] = useTransition();
   // 拖拉中的暫時順序；放下或取消後清掉。
   const [dragOrder, setDragOrder] = useState<SlotOrder | null>(null);
   const editor = useEditorState<DayItem>();
@@ -166,15 +181,41 @@ export function DayItems({
     if (from >= 0 && to >= 0 && from !== to) ids = arrayMove(ids, from, to);
     if (sameOrder(ids, untimedIdsBySlot(optimisticItems)[slot] ?? [])) return;
 
-    startReorder(async () => {
-      applyOptimistic({ slot, ids });
+    startTransition(async () => {
+      applyOptimistic({ kind: 'reorder', slot, ids });
       const result = await reorderItems(dayId, slot, ids);
       if (!result.ok) toast.error(t(`errors.${result.error}`));
     });
   }
 
+  // 「完成」打勾或取消：先樂觀顯示，伺服器失敗時自動還原。從「現在」卡片完成時提供復原。
+  function toggleDone(item: DayItem, done: boolean, offerUndo = false) {
+    const doneAt = done ? new Date().toISOString() : null;
+    startTransition(async () => {
+      applyOptimistic({ kind: 'done', itemId: item.id, doneAt });
+      const result = await setItemDone(item.id, done);
+      if (!result.ok) {
+        toast.error(t(`errors.${result.error}`));
+      } else if (offerUndo) {
+        toast.success(t('trips.now.doneToast', { title: item.title }), {
+          action: { label: t('trips.editor.undo'), onClick: () => toggleDone(item, false) },
+        });
+      }
+    });
+  }
+  const onToggleDone = (item: DayItem) =>
+    markDone ? (done: boolean) => toggleDone(item, done) : null;
+
   return (
     <>
+      {isToday && (
+        <NowCard
+          items={optimisticItems}
+          stay={nowStay}
+          travel={travel}
+          onDone={(item) => toggleDone(item, true, true)}
+        />
+      )}
       {groups.length === 0 ? (
         <Empty className='border'>
           <EmptyHeader>
@@ -205,7 +246,7 @@ export function DayItems({
                       onEdit={() => editor.openEditor(item)}
                       handle={<TimedMarker />}
                       placeHours={placeHours}
-                      markDone={markDone}
+                      onToggleDone={onToggleDone(item)}
                     />
                   </li>
                 ))}
@@ -223,7 +264,7 @@ export function DayItems({
                         item={item}
                         onEdit={() => editor.openEditor(item)}
                         placeHours={placeHours}
-                        markDone={markDone}
+                        onToggleDone={onToggleDone(item)}
                         leg={legLine(legsTo.get(item.id), previousIds.get(item.id))}
                       />
                     )
@@ -288,13 +329,13 @@ function SortableItem({
   item,
   onEdit,
   placeHours,
-  markDone,
+  onToggleDone,
   leg,
 }: {
   item: DayItem;
   onEdit: () => void;
   placeHours: ItemPlaceHours | null;
-  markDone: boolean;
+  onToggleDone: ((done: boolean) => void) | null;
   leg: ReactNode;
 }) {
   const t = useTranslations('trips.dnd');
@@ -319,7 +360,7 @@ function SortableItem({
         item={item}
         onEdit={onEdit}
         placeHours={placeHours}
-        markDone={markDone}
+        onToggleDone={onToggleDone}
         handle={
           <button
             type='button'

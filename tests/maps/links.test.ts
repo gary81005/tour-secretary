@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   dayRoutePlaces,
   googleDayRouteUrl,
+  googleNavigationUrl,
   googlePlaceUrl,
   googleTransitUrl,
   kakaoSearchUrl,
@@ -35,6 +36,20 @@ describe('googleTransitUrl', () => {
       destination: '晴空塔',
       destination_place_id: 'id-晴空塔',
       travelmode: 'transit',
+    });
+  });
+});
+
+describe('googleNavigationUrl', () => {
+  it('只帶目的地，起點交給 Google 地圖用目前位置', () => {
+    expect(params(googleNavigationUrl(linked('晴空塔')))).toEqual({
+      api: '1',
+      destination: '晴空塔',
+      destination_place_id: 'id-晴空塔',
+    });
+    expect(params(googleNavigationUrl({ name: '晚餐', placeId: null }))).toEqual({
+      api: '1',
+      destination: '晚餐',
     });
   });
 });

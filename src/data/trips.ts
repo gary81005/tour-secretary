@@ -81,6 +81,19 @@ export async function getDayItems(dayId: string) {
 
 export type DayItem = Awaited<ReturnType<typeof getDayItems>>[number];
 
+// 首頁進行中的行程：今天的項目，只取判斷「現在」需要的欄位（ADR 0010）。
+export async function getTodayProgressItems(tripId: string, date: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('items')
+    .select('id, title, time_slot, start_time, position, done_at, days!inner (date)')
+    .eq('trip_id', tripId)
+    .eq('days.date', date)
+    .is('deleted_at', null);
+  if (error) throw error;
+  return data;
+}
+
 // 住宿（未刪除），依入住日排序。行程分頁的「今晚住」與住宿分頁都會用到。
 export const getTripStays = cache(async (tripId: string) => {
   if (!isUuid(tripId)) return [];

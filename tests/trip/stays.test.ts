@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { findOverlappingStayIds, staysForNight, validateStayRange } from '@/lib/trip/stays';
+import {
+  findOverlappingStayIds,
+  primaryStay,
+  staysForNight,
+  validateStayRange,
+} from '@/lib/trip/stays';
 
 const trip = { start_date: '2027-03-05', end_date: '2027-03-14' };
 const stay = (id: string, check_in: string, check_out: string) => ({ id, check_in, check_out });
@@ -52,5 +57,27 @@ describe('staysForNight', () => {
     expect(staysForNight(stays, '2027-03-06').map((s) => s.id)).toEqual(['tokyo']);
     expect(staysForNight(stays, '2027-03-07').map((s) => s.id)).toEqual(['sendai']);
     expect(staysForNight(stays, '2027-03-08')).toEqual([]);
+  });
+});
+
+describe('primaryStay', () => {
+  it('已預訂／已付款的優先', () => {
+    const stays = [
+      { id: 'a', status: 'candidate' as const },
+      { id: 'b', status: 'booked' as const },
+    ];
+    expect(primaryStay(stays)?.id).toBe('b');
+  });
+
+  it('都是候選時取第一間', () => {
+    const stays = [
+      { id: 'a', status: 'candidate' as const },
+      { id: 'b', status: 'candidate' as const },
+    ];
+    expect(primaryStay(stays)?.id).toBe('a');
+  });
+
+  it('沒有住宿時是 null', () => {
+    expect(primaryStay([])).toBeNull();
   });
 });

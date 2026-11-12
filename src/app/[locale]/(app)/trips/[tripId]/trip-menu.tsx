@@ -131,19 +131,19 @@ export function TripMenu({ trip, days, undoableImportId }: Props) {
       </DropdownMenu>
 
       <EditTripDialog
-        key={dialogKey}
+        key={`edit-trip-${dialogKey}`}
         trip={trip}
         open={dialog === 'edit'}
         onOpenChange={closeDialog}
       />
       <ShiftTripDialog
-        key={dialogKey}
+        key={`shift-trip-${dialogKey}`}
         trip={trip}
         open={dialog === 'shift'}
         onOpenChange={closeDialog}
       />
       <ChangeDatesDialog
-        key={dialogKey}
+        key={`change-dates-${dialogKey}`}
         trip={trip}
         days={days}
         open={dialog === 'dates'}

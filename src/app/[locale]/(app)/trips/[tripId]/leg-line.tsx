@@ -1,5 +1,6 @@
 'use client';
 
+import { cn } from 'cn';
 import { CarIcon, ExternalLinkIcon, FootprintsIcon, TrainFrontIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Suspense, use } from 'react';
@@ -20,17 +21,24 @@ export function LegLine({
   leg,
   showFrom,
   routes,
+  className,
 }: {
   leg: Leg;
   showFrom: boolean;
   routes: DayTravel['routes'];
+  className?: string;
 }) {
   const t = useTranslations('trips.day');
   const from = leg.from.place;
   const to = leg.to.place;
 
   return (
-    <p className='flex flex-wrap items-center gap-x-3 gap-y-0.5 px-3 text-xs text-muted-foreground'>
+    <p
+      className={cn(
+        'flex flex-wrap items-center gap-x-3 gap-y-0.5 px-3 text-xs text-muted-foreground',
+        className,
+      )}
+    >
       {showFrom && <span className='min-w-0 break-words'>{t('legFrom', { name: from.name })}</span>}
       {routes.kind === 'google' ? (
         <>
@@ -87,7 +95,7 @@ function Durations({
 }
 
 // 韓國（Q13）：用目的地名稱在 KakaoMap／Naver Map 搜尋，再從那裡查路線。
-function KoreaLinks({ destination }: { destination: string }) {
+export function KoreaLinks({ destination }: { destination: string }) {
   const t = useTranslations('trips.day');
 
   return (

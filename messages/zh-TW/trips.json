@@ -111,7 +111,7 @@
     "createTitle": "新增行程項目",
     "editTitle": "編輯行程項目",
     "edit": "編輯「{title}」",
-    "markDone": "「{title}」已完成",
+    "markDone": "完成「{title}」",
     "titleLabel": "標題",
     "titlePlaceholder": "例如：淺草寺、仲見世通",
     "dayLabel": "日期",
@@ -304,5 +304,22 @@
       "title": "還沒有旅伴限制",
       "description": "記下飲食、體力、行動等限制，例如「同行者不吃牛肉」。"
     }
+  },
+  "now": {
+    "label": "今天的進度",
+    "current": "現在",
+    "next": "下一站",
+    "done": "完成",
+    "doneLabel": "完成「{title}」",
+    "doneToast": "已完成「{title}」",
+    "allDone": "今天的行程都完成了",
+    "tonight": "今晚住：{name}",
+    "noNext": "今天沒有下一站了",
+    "navigate": "導航",
+    "navigateLabel": "用 Google 地圖導航到「{name}」",
+    "departAt": "建議 {time} 出發",
+    "homeCurrent": "現在：{title}",
+    "homeNext": "下一站：{title}",
+    "homeAllDone": "今天的行程都完成了"
   }
 }

@@ -22,6 +22,16 @@ export function googleTransitUrl(from: PlaceRef, to: PlaceRef): string {
   return url.toString();
 }
 
+// 「導航」（ADR 0010 Q3）：只帶目的地，起點由 Google 地圖用手機目前位置，不需要定位權限。
+// 不指定交通方式，讓 Google 地圖沿用使用者上次選的。
+export function googleNavigationUrl(to: PlaceRef): string {
+  const url = new URL('https://www.google.com/maps/dir/');
+  url.searchParams.set('api', '1');
+  url.searchParams.set('destination', to.name);
+  if (to.placeId) url.searchParams.set('destination_place_id', to.placeId);
+  return url.toString();
+}
+
 // 「在 Google 地圖看今天的路線」：依序經過當天的地點。不指定交通方式（帶中途點時不支援大眾運輸），
 // 用來看地點分布。少於兩個地點時回傳 null。
 export function googleDayRouteUrl(places: readonly PlaceRef[]): string | null {

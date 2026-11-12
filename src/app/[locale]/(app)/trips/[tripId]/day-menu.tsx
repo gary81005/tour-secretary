@@ -112,7 +112,7 @@ export function DayMenu({ tripId, day, laterDays, dayCount, itemCount, defaultTi
       </DropdownMenu>
 
       <EditDayDialog
-        key={dialogKey}
+        key={`edit-day-${dialogKey}`}
         day={day}
         laterDays={laterDays}
         defaultTimezone={defaultTimezone}
@@ -120,7 +120,7 @@ export function DayMenu({ tripId, day, laterDays, dayCount, itemCount, defaultTi
         onOpenChange={(open) => !open && setDialog(null)}
       />
       <DeleteDayDialog
-        key={dialogKey}
+        key={`delete-day-${dialogKey}`}
         day={day}
         itemCount={itemCount}
         open={dialog === 'delete'}
