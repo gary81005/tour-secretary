@@ -10,7 +10,6 @@ import {
   type LegDurations,
   type LegStop,
 } from '@/lib/maps/legs';
-import { freshLocation } from '@/lib/maps/location';
 import { routesSupported } from '@/lib/maps/region';
 import type { RouteResult, TravelMode } from '@/lib/maps/types';
 import type { OrderableItem } from '@/lib/trip/item-order';
@@ -31,37 +30,20 @@ async function cachedRoute(
   return (await getMapProvider()?.computeRoute(fromPlaceId, toPlaceId, mode)) ?? null;
 }
 
-type PlaceRow = {
-  name: string;
-  place_id: string | null;
-  lat: number | null;
-  lng: number | null;
-  location_fetched_at: string | null;
-};
+type PlaceRow = { name: string; place_id: string | null };
 
 // 準備單日畫面的移動資料。不 await 移動時間，讓頁面先顯示，查到後再串流到各段。
 // endStay：最後一天（回程日）傳 null。
 export function getDayTravel(input: {
   items: readonly (OrderableItem & { item_places: readonly PlaceRow[] })[];
-  stays: readonly PlaceRow[];
   startStay: LegStop | null;
   endStay: LegStop | null;
   timezone: string;
   mapsEnabled: boolean;
-  now: Date;
 }): DayTravel {
   const stops = { startStay: input.startStay, endStay: input.endStay };
 
-  if (!routesSupported(input.timezone)) {
-    const places = [...input.items.flatMap((item) => item.item_places), ...input.stays];
-    const locations = Object.fromEntries(
-      places.flatMap((place) => {
-        const location = place.place_id ? freshLocation(place, input.now) : null;
-        return place.place_id && location ? [[place.place_id, location]] : [];
-      }),
-    );
-    return { ...stops, routes: { kind: 'korea', locations } };
-  }
+  if (!routesSupported(input.timezone)) return { ...stops, routes: { kind: 'korea' } };
 
   const legs = planItemLegs(input.items, stops);
   return {

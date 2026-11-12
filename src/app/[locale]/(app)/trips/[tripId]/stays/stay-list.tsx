@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
 import { GoogleAddress, type PlaceAddresses } from '@/components/maps/google-address';
+import { GoogleMapsAttribution } from '@/components/maps/google-maps-attribution';
 import type { PlaceSearchContext } from '@/components/maps/place-search-input';
 import { ResponsiveDialog, ResponsiveDialogContent } from '@/components/responsive-dialog';
 import { Badge } from '@/components/ui/badge';
@@ -52,7 +53,6 @@ type Props = {
 };
 
 export function StayList({ trip, stays, placeSearch, addresses }: Props) {
-  const tPlace = useTranslations('trips.place');
   const t = useTranslations('trips.stays');
   const editor = useEditorState<TripStay>();
   const overlapping = findOverlappingStayIds(stays);
@@ -91,9 +91,7 @@ export function StayList({ trip, stays, placeSearch, addresses }: Props) {
       )}
 
       {/* Google 的地址要標示來源（服務條款）。 */}
-      {addresses && (
-        <p className='text-right text-xs text-muted-foreground'>{tPlace('attribution')}</p>
-      )}
+      {addresses && <GoogleMapsAttribution />}
 
       <Button variant='outline' size='lg' className='h-11' onClick={() => editor.openEditor(null)}>
         <PlusIcon />

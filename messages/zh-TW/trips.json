@@ -103,7 +103,6 @@
     "transitLabel": "在 Google 地圖查「{from}」到「{to}」的大眾運輸",
     "kakaoMap": "KakaoMap",
     "naverMap": "Naver Map",
-    "kakaoRouteLabel": "在 KakaoMap 查「{from}」到「{to}」的路線",
     "kakaoPlaceLabel": "在 KakaoMap 開啟「{name}」",
     "naverPlaceLabel": "在 Naver Map 開啟「{name}」"
   },
@@ -150,7 +149,6 @@
     "searching": "搜尋中…",
     "searchFailed": "搜尋失敗，仍可直接存成文字。",
     "noResults": "找不到符合的地點，會存成文字。",
-    "poweredByGoogle": "資料來源：Google Maps",
     "linked": "已連結 Google 地點",
     "openInMaps": "在 Google 地圖查看",
     "unlink": "取消連結",
@@ -163,7 +161,6 @@
       "closedThatDay": "當天公休",
       "maybeClosed": "可能未營業"
     },
-    "attribution": "地圖資料來源：Google Maps",
     "switchAddressLanguage": "切換地址語言"
   },
   "dnd": {

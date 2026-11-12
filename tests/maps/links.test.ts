@@ -4,9 +4,7 @@ import {
   googleDayRouteUrl,
   googlePlaceUrl,
   googleTransitUrl,
-  kakaoDirectionsUrl,
   kakaoSearchUrl,
-  koreaLegLinks,
   MAX_ROUTE_WAYPOINTS,
   naverSearchUrl,
 } from '@/lib/maps/links';
@@ -42,6 +40,12 @@ describe('googleTransitUrl', () => {
 });
 
 describe('googleDayRouteUrl', () => {
+  it('中途點名稱裡的「|」換成空白', () => {
+    const url = googleDayRouteUrl([linked('A'), linked('B|C'), linked('D')]);
+    expect(params(url!).waypoints).toBe('B C');
+    expect(params(url!).waypoint_place_ids).toBe('id-B|C');
+  });
+
   it('少於兩個地點時沒有路線', () => {
     expect(googleDayRouteUrl([linked('淺草寺')])).toBeNull();
   });
@@ -79,37 +83,6 @@ describe('韓國的地圖連結', () => {
     expect(kakaoSearchUrl('경복궁')).toBe(
       `https://map.kakao.com/link/search/${encodeURIComponent('경복궁')}`,
     );
-  });
-
-  it('KakaoMap 路線用座標，名稱裡的逗號與斜線先拿掉', () => {
-    expect(
-      kakaoDirectionsUrl(
-        { name: 'A,B', location: { lat: 37.5, lng: 127 } },
-        { name: 'C/D', location: { lat: 37.6, lng: 127.1 } },
-      ),
-    ).toBe('https://map.kakao.com/link/from/A%20B,37.5,127/to/C%20D,37.6,127.1');
-  });
-
-  it('一段移動：兩端都有座標時開 KakaoMap 路線，Naver Map 開目的地', () => {
-    const links = koreaLegLinks(
-      { name: '景福宮', location: { lat: 37.58, lng: 126.98 } },
-      { name: '明洞', location: { lat: 37.56, lng: 126.99 } },
-    );
-    expect(links.kakaoDirections).toBe(true);
-    expect(links.kakao).toMatch(/^https:\/\/map\.kakao\.com\/link\/from\//);
-    expect(links.naver).toBe(naverSearchUrl('明洞'));
-  });
-
-  it('一段移動：缺座標時 KakaoMap 改成搜尋目的地', () => {
-    const links = koreaLegLinks(
-      { name: '景福宮', location: null },
-      { name: '明洞', location: { lat: 37.56, lng: 126.99 } },
-    );
-    expect(links).toEqual({
-      kakao: kakaoSearchUrl('明洞'),
-      kakaoDirections: false,
-      naver: naverSearchUrl('明洞'),
-    });
   });
 });
 

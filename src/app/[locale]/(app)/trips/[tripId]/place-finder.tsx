@@ -4,6 +4,7 @@ import { XIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Suspense, use, useId, useState } from 'react';
 import { findPlaces, type FindPlacesResult } from '@/actions/places';
+import { GoogleMapsAttribution } from '@/components/maps/google-maps-attribution';
 import { newSessionToken, type PlaceSearchContext } from '@/components/maps/place-search-input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -135,7 +136,7 @@ function FinderResults({ search, addedPlaceIds, onAdd }: Omit<Props, 'onClose'>)
         </fieldset>
       ))}
       {/* 沒有搭配 Google 地圖顯示 Places 結果時，服務條款要求標示來源。 */}
-      <p className='text-right text-xs text-muted-foreground'>{t('place.poweredByGoogle')}</p>
+      <GoogleMapsAttribution />
       <Button
         type='button'
         className='self-end'

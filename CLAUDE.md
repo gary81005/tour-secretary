@@ -59,7 +59,7 @@ npm run db:types      # 由已 link 的專案產生 src/types/database.ts
 - **連結與導頁**：一律從 `@/i18n/navigation` import `Link`、`useRouter`、`redirect`，不要直接用 `next/link` / `next/navigation`。
 - **UI 字串**：一律走 `useTranslations` / `getTranslations`，不要寫死在元件裡；key 有型別檢查（`src/i18n/next-intl.d.ts`）。
 - **環境變數**：瀏覽器端的變數要 `NEXT_PUBLIC_` 前綴，且必須寫完整的 `process.env.NEXT_PUBLIC_XXX`。AI、地圖等私密金鑰不能加 `NEXT_PUBLIC_`。
-- **Google Maps 服務條款**（ADR 0006）：資料庫只存地點 ID 與座標（座標最多 30 天，`freshLocation()`）；地址、營業時間、移動時間顯示時才查，不能存。顯示這些資料時要有「地圖資料來源：Google Maps」標示。沒有 `GOOGLE_MAPS_API_KEY` 時 app 要照常運作（`getMapsApiKey()` 為 null 時隱藏相關功能）。
+- **Google Maps 服務條款**（ADR 0006）：資料庫只存地點 ID 與座標（座標最多 30 天，`freshLocation()`）；地址、營業時間、移動時間顯示時才查，不能存。顯示這些資料時要有 Google Maps 標誌（`GoogleMapsAttribution`）；不能把 Google 的資料（包括座標）交給其他地圖服務。沒有 `GOOGLE_MAPS_API_KEY` 時 app 要照常運作（`getMapsApiKey()` 為 null 時隱藏相關功能）。
 
 ## Database
 

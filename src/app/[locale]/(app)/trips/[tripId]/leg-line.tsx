@@ -10,8 +10,7 @@ import {
   type Leg,
   type LegDurations,
 } from '@/lib/maps/legs';
-import { googleTransitUrl, koreaLegLinks } from '@/lib/maps/links';
-import type { LatLng } from '@/lib/maps/types';
+import { googleTransitUrl, kakaoSearchUrl, naverSearchUrl } from '@/lib/maps/links';
 
 const linkClass = 'flex items-center gap-1 text-primary underline-offset-4 hover:underline';
 
@@ -52,7 +51,7 @@ export function LegLine({
           </a>
         </>
       ) : (
-        <KoreaLinks leg={leg} locations={routes.locations} />
+        <KoreaLinks destination={to.name} />
       )}
     </p>
   );
@@ -87,36 +86,27 @@ function Durations({
   );
 }
 
-function KoreaLinks({ leg, locations }: { leg: Leg; locations: Record<string, LatLng> }) {
+// 韓國（Q13）：用目的地名稱在 KakaoMap／Naver Map 搜尋，再從那裡查路線。
+function KoreaLinks({ destination }: { destination: string }) {
   const t = useTranslations('trips.day');
-  const from = leg.from.place;
-  const to = leg.to.place;
-  const links = koreaLegLinks(
-    { name: from.name, location: locations[from.placeId] ?? null },
-    { name: to.name, location: locations[to.placeId] ?? null },
-  );
 
   return (
     <>
       <a
-        href={links.kakao}
+        href={kakaoSearchUrl(destination)}
         target='_blank'
         rel='noopener noreferrer'
-        aria-label={
-          links.kakaoDirections
-            ? t('kakaoRouteLabel', { from: from.name, to: to.name })
-            : t('kakaoPlaceLabel', { name: to.name })
-        }
+        aria-label={t('kakaoPlaceLabel', { name: destination })}
         className={linkClass}
       >
         <ExternalLinkIcon className='size-3.5' aria-hidden='true' />
         {t('kakaoMap')}
       </a>
       <a
-        href={links.naver}
+        href={naverSearchUrl(destination)}
         target='_blank'
         rel='noopener noreferrer'
-        aria-label={t('naverPlaceLabel', { name: to.name })}
+        aria-label={t('naverPlaceLabel', { name: destination })}
         className={linkClass}
       >
         <ExternalLinkIcon className='size-3.5' aria-hidden='true' />

@@ -3,6 +3,7 @@ import { useFormatter, useTranslations } from 'next-intl';
 import { notFound } from 'next/navigation';
 import { Suspense, type ReactNode } from 'react';
 import { GoogleAddress, type PlaceAddresses } from '@/components/maps/google-address';
+import { GoogleMapsAttribution } from '@/components/maps/google-maps-attribution';
 import type { PlaceSearchContext } from '@/components/maps/place-search-input';
 import { getDayItems, getTrip, getTripDays, getTripStays, type DayItem } from '@/data/trips';
 import { Link } from '@/i18n/navigation';
@@ -211,7 +212,7 @@ function DayView({
         travel={travel}
         tonight={tonight}
       />
-      {googleAttribution && <GoogleAttribution />}
+      {googleAttribution && <GoogleMapsAttribution />}
     </section>
   );
 }
@@ -261,11 +262,6 @@ function TonightStay({
       )}
     </div>
   );
-}
-
-function GoogleAttribution() {
-  const t = useTranslations('trips.place');
-  return <p className='text-right text-xs text-muted-foreground'>{t('attribution')}</p>;
 }
 
 function ItinerarySkeleton() {

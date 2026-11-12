@@ -83,7 +83,7 @@ export function getDayMaps(input: {
     : null;
 
   // 卡片之間的移動時間（Q9）。
-  const travel = getDayTravel({ items, stays, startStay, endStay, timezone, mapsEnabled, now });
+  const travel = getDayTravel({ items, startStay, endStay, timezone, mapsEnabled });
 
   // 住宿沒寫地址時顯示 Google 的地址（「地點連結」）。
   const unaddressed = input.tonightStays.flatMap((stay) =>

@@ -26,7 +26,8 @@ export async function saveItem(itemId: string | null, formData: FormData): Promi
   if (!supabase) return { ok: false, error: 'unauthorized' };
 
   const item = parsed.data;
-  const places = await resolvePlaces(supabase, itemId, item.places);
+  const places = await resolvePlaces(supabase, item.dayId, itemId, item.places);
+  if (!places) return { ok: false, error: 'notFound' };
   // 空值不傳，交給函式的 default null（產生的型別裡這些參數是選填）。
   const { error } = await supabase.rpc('save_item', {
     p_item_id: itemId ?? undefined,
@@ -51,12 +52,18 @@ export async function saveItem(itemId: string | null, formData: FormData): Promi
 type SignedInClient = NonNullable<Awaited<ReturnType<typeof getSignedInClient>>>;
 
 // 連結的地點補上座標：沿用這個項目原本 30 天內的座標，其餘向地圖服務查（locatePlaces）。
+// 先確認是那一天的行程成員（RLS 只回傳成員看得到的天），再向 Google 查座標，
+// 避免非成員送假的地點 ID 消耗地圖服務的額度。不是成員時回傳 null。
 async function resolvePlaces(
   supabase: SignedInClient,
+  dayId: string,
   itemId: string | null,
   places: PlaceToLocate[],
-): Promise<SavedPlace[]> {
+): Promise<SavedPlace[] | null> {
   if (places.every((place) => !place.placeId)) return toSavedPlaces(places, new Map());
+
+  const { data: day } = await supabase.from('days').select('id').eq('id', dayId).maybeSingle();
+  if (!day) return null;
 
   const { data: existing } = itemId
     ? await supabase

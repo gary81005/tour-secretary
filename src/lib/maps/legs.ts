@@ -2,7 +2,6 @@ import dayjs from '@/lib/dayjs';
 import type { StayStatus } from '@/lib/trip/enums';
 import { sortItems, type OrderableItem } from '@/lib/trip/item-order';
 import { staysForNight, type StayDates } from '@/lib/trip/stays';
-import type { LatLng } from './types';
 
 // 一天裡要算的移動（ADR 0006 Q9）：
 // - 前一個項目的最後一個連結地點 → 下一個項目的第一個連結地點；沒有連結地點的項目跳過
@@ -91,8 +90,8 @@ export type DayTravel = {
         // 以 legKey 對應；沒有地圖金鑰時是 null（只顯示「查電車」連結）
         durations: Promise<Record<string, LegDurations>> | null;
       }
-    // 韓國（Q13）：不算移動時間，改附 KakaoMap／Naver Map 連結。KakaoMap 路線需要座標，以地點 ID 對應。
-    | { kind: 'korea'; locations: Record<string, LatLng> };
+    // 韓國（Q13）：不算移動時間，改附 KakaoMap／Naver Map 連結（用目的地名稱搜尋）。
+    | { kind: 'korea' };
 };
 
 // 「12 分」「1 小時 5 分」：四捨五入到分鐘，至少 1 分鐘。

@@ -1,5 +1,3 @@
-import type { LatLng } from './types';
-
 // 開啟外部地圖 App 的連結（ADR 0006 Q3、Q9、Q13）。Maps URL 不需要金鑰，沒有設定金鑰時也能用。
 // https://developers.google.com/maps/documentation/urls/get-started
 
@@ -34,7 +32,11 @@ export function googleDayRouteUrl(places: readonly PlaceRef[]): string | null {
 
   const url = directionsUrl(origin, destination);
   if (waypoints.length > 0) {
-    url.searchParams.set('waypoints', waypoints.map((place) => place.name).join('|'));
+    // 「|」是中途點的分隔符號，名稱裡的先換成空白，免得一個地點被拆成兩個。
+    url.searchParams.set(
+      'waypoints',
+      waypoints.map((place) => place.name.replaceAll('|', ' ')).join('|'),
+    );
     // 地點 ID 要和 waypoints 一一對應，所以全部都有連結時才帶。
     if (waypoints.every((place) => place.placeId)) {
       url.searchParams.set('waypoint_place_ids', waypoints.map((place) => place.placeId).join('|'));
@@ -72,42 +74,12 @@ function directionsUrl(from: PlaceRef, to: PlaceRef): URL {
   return url;
 }
 
-// 韓國：Google 沒有步行與開車路線，改用 Naver Map／KakaoMap（Q13）。
+// 韓國：Google 沒有步行與開車路線，改用 Naver Map／KakaoMap（Q13）。只用名稱搜尋：
+// 服務條款不允許把 Google 的資料（例如座標）用在其他地圖服務。
 export function naverSearchUrl(name: string): string {
   return `https://map.naver.com/p/search/${encodeURIComponent(name)}`;
 }
 
 export function kakaoSearchUrl(name: string): string {
   return `https://map.kakao.com/link/search/${encodeURIComponent(name)}`;
-}
-
-// KakaoMap 的路線連結需要座標（https://apis.map.kakao.com/web/guide/#routeurl）。
-// 名稱裡的逗號與斜線會被當成分隔符號，先拿掉。
-export function kakaoDirectionsUrl(
-  from: { name: string; location: LatLng },
-  to: { name: string; location: LatLng },
-): string {
-  const point = ({ name, location }: { name: string; location: LatLng }) =>
-    `${encodeURIComponent(name.replace(/[,/]/g, ' ').trim())},${location.lat},${location.lng}`;
-  return `https://map.kakao.com/link/from/${point(from)}/to/${point(to)}`;
-}
-
-// 韓國的一段移動（Q13）：兩端都有座標時開 KakaoMap 路線，否則在 KakaoMap 搜尋目的地；
-// Naver Map 的路線網址沒有公開規格，只開目的地。
-export function koreaLegLinks(
-  from: { name: string; location: LatLng | null },
-  to: { name: string; location: LatLng | null },
-): { kakao: string; kakaoDirections: boolean; naver: string } {
-  const directions =
-    from.location && to.location
-      ? kakaoDirectionsUrl(
-          { name: from.name, location: from.location },
-          { name: to.name, location: to.location },
-        )
-      : null;
-  return {
-    kakao: directions ?? kakaoSearchUrl(to.name),
-    kakaoDirections: directions !== null,
-    naver: naverSearchUrl(to.name),
-  };
 }

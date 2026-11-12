@@ -7,6 +7,7 @@ import { useEffect, useRef, useState, type ComponentProps } from 'react';
 import { searchPlaces, type PlaceSearchResult } from '@/actions/places';
 import { Input } from '@/components/ui/input';
 import type { PlaceSuggestion, SearchBias } from '@/lib/maps/types';
+import { GoogleMapsAttribution } from './google-maps-attribution';
 
 // 有設定地圖金鑰時才有：頁面算好的搜尋偏向（ADR 0006 Q10）。null 表示地點只能輸入文字（Q15）。
 export type PlaceSearchContext = { bias: SearchBias };
@@ -138,11 +139,7 @@ export function PlaceSearchInput({
               )}
             </Autocomplete.List>
             {/* 沒有搭配 Google 地圖顯示 Places 結果時，服務條款要求標示來源。 */}
-            {suggestions.length > 0 && (
-              <p className='px-2 pt-1 pb-0.5 text-right text-xs text-muted-foreground'>
-                {t('poweredByGoogle')}
-              </p>
-            )}
+            {suggestions.length > 0 && <GoogleMapsAttribution />}
           </Autocomplete.Popup>
         </Autocomplete.Positioner>
       </Autocomplete.Portal>
