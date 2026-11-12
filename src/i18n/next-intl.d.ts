@@ -1,6 +1,7 @@
 import type auth from '../../messages/zh-TW/auth.json';
 import type common from '../../messages/zh-TW/common.json';
 import type importMessages from '../../messages/zh-TW/import.json';
+import type offline from '../../messages/zh-TW/offline.json';
 import type privacy from '../../messages/zh-TW/privacy.json';
 import type terms from '../../messages/zh-TW/terms.json';
 import type trips from '../../messages/zh-TW/trips.json';
@@ -15,6 +16,7 @@ declare module 'next-intl' {
     Messages: typeof common & {
       auth: typeof auth;
       import: typeof importMessages;
+      offline: typeof offline;
       privacy: typeof privacy;
       terms: typeof terms;
       trips: typeof trips;

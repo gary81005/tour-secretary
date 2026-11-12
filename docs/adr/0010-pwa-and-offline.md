@@ -39,6 +39,13 @@
 - 離線行程頁全部唯讀：每一天（可切換）、「現在／下一站」、住宿、提醒事項、旅伴限制；「完成」按鈕停用並標示需要網路。頂端顯示「離線中・資料更新於 …」。
 - 清除：行程結束隔天、不再是成員或行程進垃圾桶時刪除該快照（線上打開首頁時檢查）；登出時清除全部快照與 Service Worker 快取，避免共用手機外洩。
 - 訊號不穩時開啟 Next 的 `experimental.useOffline`：斷線時導覽與 Server Action 等網路恢復後自動重試，頂端提示「離線中」並連到離線行程頁（Q13）。
+- 實作（第 5 步）：
+  - Service Worker 自己寫（`public/sw.js`），不用套件：只快取 `/offline` 的 HTML、它用到的 `/_next/static` 檔案與圖示；安裝時與每次打開 app 時更新（最多每 10 分鐘一次），全部抓到才替換，避免 HTML 與檔案版本對不上。
+  - 頁面導覽先連網路；連不上時轉址到 `/offline`（網址也換掉，避免 Next 在別的網址上載入離線頁）。
+  - 離線頁在 `(app)` 外面、不需要登入、完全靜態，快取的 HTML 不含個資；資料從 IndexedDB 讀。
+  - 「離線中」橫幅與離線頁的連結用 `<a>` 整頁導覽，讓 Service Worker 回應；`<Link>` 的 soft navigation 離線時只會一直等待。
+  - 只在正式版註冊 Service Worker（開發模式的熱更新會和快取互相干擾）；離線行為用 `next build && next start` 測。
+  - 登出時刪除 `tour-secretary-` 開頭的快取（`clearOfflineData()`）。
 
 ### 安裝（Q6、Q7、Q14）
 

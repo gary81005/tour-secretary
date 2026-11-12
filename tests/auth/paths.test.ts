@@ -11,9 +11,12 @@ describe('stripLocale', () => {
 });
 
 describe('isPublicPath', () => {
-  it.each(['/login', '/zh-TW/login', '/auth/callback', '/auth/confirm'])('%s 不用登入', (path) => {
-    expect(isPublicPath(path)).toBe(true);
-  });
+  it.each(['/login', '/zh-TW/login', '/auth/callback', '/auth/confirm', '/offline'])(
+    '%s 不用登入',
+    (path) => {
+      expect(isPublicPath(path)).toBe(true);
+    },
+  );
 
   it.each(['/', '/trips', '/trips/abc', '/login-help', '/authors'])('%s 要登入', (path) => {
     expect(isPublicPath(path)).toBe(false);

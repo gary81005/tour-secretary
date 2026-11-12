@@ -44,6 +44,7 @@ npm run db:types      # 由已 link 的專案產生 src/types/database.ts
 - `src/lib/trip/`：行程的純邏輯與 zod schema（有測試）；`src/lib/auth/`：登入相關的路徑判斷與 `getCurrentUser()`。
 - `src/lib/maps/`：MapProvider 介面與 Google 實作（`google.ts`，`server-only`）、回應轉換與各種純邏輯（營業時間、路段、地圖連結，有測試）。地點搜尋框、Google 地址、Google Maps 標誌等元件在 `trips/[tripId]/_components/maps/`；`src/data/places.ts`、`src/data/routes.ts` 是顯示時才向 Google 查的資料（`'use cache'` 短暫快取，查不到時略過，呼叫端不 await、把 Promise 交給畫面用 `use()` 串流）。
 - `src/lib/import/`：xlsx 匯入的純邏輯（解析、範本、合併規劃、payload schema，有測試）。exceljs 只能用 `loadExcelJS()` 動態載入，不要靜態 import。
+- `public/sw.js`、`src/app/[locale]/offline/`、`src/lib/offline/`：離線（ADR 0010）。Service Worker 只快取離線頁，只在正式版註冊；離線行為用 `npm run build && npx next start` 測，不要用 dev。
 - `src/lib/dayjs.ts`：已載入 utc / timezone plugin 的 dayjs，專案內一律從這裡 import。
 - `src/proxy.ts`：Next 16 的 proxy（原 middleware）：先跑 next-intl，再在同一個 response 上刷新 Supabase session。
 - `messages/<locale>/*.json`：翻譯檔。`common.json` 展開在頂層，之後的 namespace 各自一檔（照 clinico-official-nx-web）。

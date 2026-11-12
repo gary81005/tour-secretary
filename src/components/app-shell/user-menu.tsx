@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Link, useRouter } from '@/i18n/navigation';
 import { LOGIN_PATH } from '@/lib/auth/paths';
+import { clearOfflineData } from '@/lib/offline/clear';
 import { createClient } from '@/lib/supabase/client';
 
 type Props = {
@@ -30,8 +31,10 @@ export function UserMenu({ displayName, email, avatarUrl }: Props) {
   const [isSigningOut, startTransition] = useTransition();
 
   // 登出後導去登入頁並重新整理，讓 Server Component 不再拿到舊的使用者資料。
+  // 先清掉這支手機上的離線資料（ADR 0010 Q12）。
   function signOut() {
     startTransition(async () => {
+      await clearOfflineData();
       await createClient().auth.signOut();
       router.replace(LOGIN_PATH);
       router.refresh();

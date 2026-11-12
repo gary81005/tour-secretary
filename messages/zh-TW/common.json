@@ -57,5 +57,9 @@
     "iosAdd": "選「加入主畫面」，再按「加入」",
     "install": "安裝",
     "dismiss": "不用了"
+  },
+  "offlineBanner": {
+    "message": "離線中，網路恢復後會自動繼續。",
+    "viewOffline": "看離線行程"
   }
 }

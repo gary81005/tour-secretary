@@ -6,6 +6,17 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 const nextConfig: NextConfig = {
   experimental: {
     agentFeedback: true,
+    // 斷線時導覽與 Server Action 等網路恢復後自動重試，useOffline() 顯示「離線中」（ADR 0010 Q13）。
+    useOffline: true,
+  },
+  // Service Worker 不能被快取，否則部署新版後手機會一直用舊的。
+  async headers() {
+    return [
+      {
+        source: '/sw.js',
+        headers: [{ key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }],
+      },
+    ];
   },
   cacheComponents: true,
   partialPrefetching: true,

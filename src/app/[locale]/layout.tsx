@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { locale } from 'next/root-params';
+import { ServiceWorkerRegistration } from '@/components/app-shell/service-worker-registration';
 import { SiteFooter } from '@/components/app-shell/site-footer';
 import { Toaster } from '@/components/ui/sonner';
 import { routing } from '@/i18n/routing';
@@ -52,6 +53,7 @@ export default async function RootLayout({ children }: LayoutProps<'/[locale]'>)
           {children}
           <SiteFooter />
         </NextIntlClientProvider>
+        <ServiceWorkerRegistration />
         {/* 「已刪除・復原」等提示（Q26-6）；手機上放下方中間，拇指好按。 */}
         <Toaster position='bottom-center' />
       </body>

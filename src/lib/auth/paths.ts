@@ -4,7 +4,8 @@ export const LOGIN_PATH = '/login';
 export const HOME_PATH = '/';
 
 // 不用登入就能進的路徑（含子路徑）。/auth 底下是登入完成後回來的 Route Handler。
-const PUBLIC_PATHS = [LOGIN_PATH, '/auth', '/privacy', '/terms'];
+// /offline 是離線行程頁：Service Worker 要能抓到它的 HTML（資料在瀏覽器的 IndexedDB，頁面本身沒有個資）。
+const PUBLIC_PATHS = [LOGIN_PATH, '/auth', '/privacy', '/terms', '/offline'];
 
 // 去掉語系前綴：/zh-TW/login → /login。
 export function stripLocale(pathname: string): string {
