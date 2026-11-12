@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { currentDayIndex, getTripPhase, localDate, resolveTimezone } from '@/lib/trip/trip-phase';
+import {
+  currentDayIndex,
+  getTripPhase,
+  keepsOfflineSnapshot,
+  localDate,
+  resolveTimezone,
+} from '@/lib/trip/trip-phase';
 
 const tokyo = (date: string) => ({ date, timezone: 'Asia/Tokyo' });
 const trip = [tokyo('2027-03-05'), tokyo('2027-03-06'), tokyo('2027-03-07')];
@@ -60,5 +66,23 @@ describe('resolveTimezone', () => {
   it('天沒有設定時區就沿用行程預設', () => {
     expect(resolveTimezone({ timezone: null }, 'Asia/Tokyo')).toBe('Asia/Tokyo');
     expect(resolveTimezone({ timezone: 'Asia/Taipei' }, 'Asia/Tokyo')).toBe('Asia/Taipei');
+  });
+});
+
+describe('keepsOfflineSnapshot', () => {
+  it('進行中', () => {
+    expect(keepsOfflineSnapshot(trip, new Date('2027-03-06T03:00:00Z'))).toBe(true);
+  });
+
+  it('7 天內出發（依第一天的時區）', () => {
+    // 東京 2027-02-26 00:00：3/5 是 7 天後
+    expect(keepsOfflineSnapshot(trip, new Date('2027-02-25T15:00:00Z'))).toBe(true);
+    // 東京 2027-02-25 23:59：3/5 是 8 天後
+    expect(keepsOfflineSnapshot(trip, new Date('2027-02-25T14:59:00Z'))).toBe(false);
+  });
+
+  it('已結束或沒有天', () => {
+    expect(keepsOfflineSnapshot(trip, new Date('2027-03-08T03:00:00Z'))).toBe(false);
+    expect(keepsOfflineSnapshot([], new Date('2027-03-06T03:00:00Z'))).toBe(false);
   });
 });

@@ -34,3 +34,16 @@ export function getTripPhase(days: readonly DayInZone[], now: Date): TripPhase {
   if (!first || first.date > localDate(first.timezone, now)) return 'upcoming';
   return 'past';
 }
+
+// 離線快照的範圍（ADR 0010 Q5）：進行中，或 7 天內出發的行程。
+export const OFFLINE_SNAPSHOT_DAYS = 7;
+
+export function keepsOfflineSnapshot(days: readonly DayInZone[], now: Date): boolean {
+  const phase = getTripPhase(days, now);
+  if (phase === 'ongoing') return true;
+  if (phase === 'past') return false;
+  const first = days[0];
+  if (!first) return false;
+  const today = localDate(first.timezone, now);
+  return first.date <= dayjs.utc(today).add(OFFLINE_SNAPSHOT_DAYS, 'day').format('YYYY-MM-DD');
+}

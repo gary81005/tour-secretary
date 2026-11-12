@@ -1,5 +1,11 @@
 import { countDays } from './trip-dates';
-import { currentDayIndex, getTripPhase, resolveTimezone, type TripPhase } from './trip-phase';
+import {
+  currentDayIndex,
+  getTripPhase,
+  keepsOfflineSnapshot,
+  resolveTimezone,
+  type TripPhase,
+} from './trip-phase';
 
 export type TripListSource = {
   id: string;
@@ -23,6 +29,8 @@ export type TripSummary = {
   currentDay: number | null;
   // 進行中時今天的日期（YYYY-MM-DD），用來查今天的進度；其他狀態為 null
   currentDate: string | null;
+  // 進行中或 7 天內出發：會存離線快照（ADR 0010）
+  offlineSnapshot: boolean;
 };
 
 export function summarizeTrip(trip: TripListSource, now: Date): TripSummary {
@@ -44,6 +52,7 @@ export function summarizeTrip(trip: TripListSource, now: Date): TripSummary {
     phase: getTripPhase(daysInZone, now),
     currentDay: index >= 0 ? index + 1 : null,
     currentDate: index >= 0 ? days[index].date : null,
+    offlineSnapshot: keepsOfflineSnapshot(daysInZone, now),
   };
 }
 

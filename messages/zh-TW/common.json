@@ -48,5 +48,14 @@
     "retry": "再試一次",
     "backHome": "回到我的行程",
     "reference": "錯誤代碼：{digest}"
+  },
+  "install": {
+    "title": "把旅遊秘書加到主畫面",
+    "description": "從主畫面直接打開，像 App 一樣全螢幕使用。",
+    "offline": "旅途中沒有網路時，也能看進行中和 7 天內出發的行程。",
+    "iosShare": "點瀏覽器的「分享」<icon></icon>（Safari 可能收在「⋯」選單裡）",
+    "iosAdd": "選「加入主畫面」，再按「加入」",
+    "install": "安裝",
+    "dismiss": "不用了"
   }
 }

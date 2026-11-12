@@ -28,6 +28,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: { default: t('name'), template: `%s｜${t('name')}` },
     description: t('tagline'),
+    // iOS 加到主畫面後的名稱與全螢幕顯示（圖示是 src/app/apple-icon.png）。
+    appleWebApp: { capable: true, title: t('name'), statusBarStyle: 'default' },
   };
 }
 

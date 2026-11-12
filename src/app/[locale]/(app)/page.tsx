@@ -18,6 +18,7 @@ import { getTodayProgressItems, getTripListGroups } from '@/data/trips';
 import { Link } from '@/i18n/navigation';
 import { dayProgress } from '@/lib/trip/progress';
 import { TRIP_PHASE_ORDER, type TripSummary } from '@/lib/trip/trip-list';
+import { InstallPrompt } from './install-prompt';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('trips.list');
@@ -50,15 +51,24 @@ async function TripList() {
   const groups = await getTripListGroups();
   const hasTrips = TRIP_PHASE_ORDER.some((phase) => groups[phase].length > 0);
 
-  if (!hasTrips) return <EmptyTrips />;
+  const offlineHint = [...groups.ongoing, ...groups.upcoming].some((trip) => trip.offlineSnapshot);
 
   return (
-    <div className='flex flex-col gap-8'>
-      {TRIP_PHASE_ORDER.map(
-        (phase) =>
-          groups[phase].length > 0 && <TripGroup key={phase} phase={phase} trips={groups[phase]} />,
+    <>
+      <InstallPrompt offlineHint={offlineHint} />
+      {hasTrips ? (
+        <div className='flex flex-col gap-8'>
+          {TRIP_PHASE_ORDER.map(
+            (phase) =>
+              groups[phase].length > 0 && (
+                <TripGroup key={phase} phase={phase} trips={groups[phase]} />
+              ),
+          )}
+        </div>
+      ) : (
+        <EmptyTrips />
       )}
-    </div>
+    </>
   );
 }
 
