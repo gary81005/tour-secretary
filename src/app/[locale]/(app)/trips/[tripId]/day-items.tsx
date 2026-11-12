@@ -51,6 +51,8 @@ type Props = {
   items: DayItem[];
   placeSearch: PlaceSearchContext | null;
   placeHours: ItemPlaceHours | null;
+  // 今天與之前的天顯示「完成」勾選框（ADR 0010）
+  markDone: boolean;
   travel: DayTravel;
   // 「今晚住」：放在最後，上面接最後一段移動（回到住宿）。
   tonight: ReactNode;
@@ -83,6 +85,7 @@ export function DayItems({
   items,
   placeSearch,
   placeHours,
+  markDone,
   travel,
   tonight,
 }: Props) {
@@ -202,6 +205,7 @@ export function DayItems({
                       onEdit={() => editor.openEditor(item)}
                       handle={<TimedMarker />}
                       placeHours={placeHours}
+                      markDone={markDone}
                     />
                   </li>
                 ))}
@@ -219,6 +223,7 @@ export function DayItems({
                         item={item}
                         onEdit={() => editor.openEditor(item)}
                         placeHours={placeHours}
+                        markDone={markDone}
                         leg={legLine(legsTo.get(item.id), previousIds.get(item.id))}
                       />
                     )
@@ -283,11 +288,13 @@ function SortableItem({
   item,
   onEdit,
   placeHours,
+  markDone,
   leg,
 }: {
   item: DayItem;
   onEdit: () => void;
   placeHours: ItemPlaceHours | null;
+  markDone: boolean;
   leg: ReactNode;
 }) {
   const t = useTranslations('trips.dnd');
@@ -312,6 +319,7 @@ function SortableItem({
         item={item}
         onEdit={onEdit}
         placeHours={placeHours}
+        markDone={markDone}
         handle={
           <button
             type='button'

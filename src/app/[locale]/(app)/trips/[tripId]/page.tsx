@@ -10,9 +10,10 @@ import { Link } from '@/i18n/navigation';
 import type { DayTravel } from '@/lib/maps/legs';
 import type { StayStatus } from '@/lib/trip/enums';
 import { resolveSelectedDayIndex } from '@/lib/trip/day-selection';
+import { canMarkDone } from '@/lib/trip/progress';
 import { staysForNight } from '@/lib/trip/stays';
 import { localDateToUtc } from '@/lib/trip/trip-dates';
-import { currentDayIndex, resolveTimezone } from '@/lib/trip/trip-phase';
+import { currentDayIndex, localDate, resolveTimezone } from '@/lib/trip/trip-phase';
 import { DayItems } from './day-items';
 import { getDayMaps } from './day-maps';
 import type { ItemPlaceHours } from './item-card';
@@ -91,6 +92,7 @@ async function Itinerary({ params, searchParams }: Props) {
         items={items}
         placeSearch={maps.placeSearch}
         placeHours={maps.placeHours}
+        markDone={canMarkDone(selectedDay.date, localDate(timezone, now))}
         routeUrl={maps.routeUrl}
         travel={maps.travel}
         googleAttribution={maps.googleAttribution}
@@ -141,6 +143,7 @@ type DayViewProps = {
   items: DayItem[];
   placeSearch: PlaceSearchContext | null;
   placeHours: ItemPlaceHours | null;
+  markDone: boolean;
   routeUrl: string | null;
   travel: DayTravel;
   googleAttribution: boolean;
@@ -158,6 +161,7 @@ function DayView({
   items,
   placeSearch,
   placeHours,
+  markDone,
   routeUrl,
   travel,
   googleAttribution,
@@ -209,6 +213,7 @@ function DayView({
         items={items}
         placeSearch={placeSearch}
         placeHours={placeHours}
+        markDone={markDone}
         travel={travel}
         tonight={tonight}
       />

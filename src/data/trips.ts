@@ -69,7 +69,7 @@ export async function getDayItems(dayId: string) {
     .from('items')
     // select 字串要是單一字面值，supabase-js 才推得出回傳型別（用 + 串接會變成錯誤型別）。
     .select(
-      'id, title, time_slot, category, start_time, end_time, description, url, position, item_places (id, name, position, place_id, lat, lng, location_fetched_at), fallbacks (id, condition, alternative, position)',
+      'id, title, time_slot, category, start_time, end_time, description, url, position, done_at, item_places (id, name, position, place_id, lat, lng, location_fetched_at), fallbacks (id, condition, alternative, position)',
     )
     .eq('day_id', dayId)
     .is('deleted_at', null)

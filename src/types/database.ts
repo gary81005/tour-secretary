@@ -161,6 +161,7 @@ export type Database = {
           day_id: string
           deleted_at: string | null
           description: string | null
+          done_at: string | null
           end_time: string | null
           id: string
           position: number
@@ -177,6 +178,7 @@ export type Database = {
           day_id: string
           deleted_at?: string | null
           description?: string | null
+          done_at?: string | null
           end_time?: string | null
           id?: string
           position?: number
@@ -193,6 +195,7 @@ export type Database = {
           day_id?: string
           deleted_at?: string | null
           description?: string | null
+          done_at?: string | null
           end_time?: string | null
           id?: string
           position?: number

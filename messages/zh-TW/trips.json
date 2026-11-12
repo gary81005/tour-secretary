@@ -111,6 +111,7 @@
     "createTitle": "新增行程項目",
     "editTitle": "編輯行程項目",
     "edit": "編輯「{title}」",
+    "markDone": "「{title}」已完成",
     "titleLabel": "標題",
     "titlePlaceholder": "例如：淺草寺、仲見世通",
     "dayLabel": "日期",

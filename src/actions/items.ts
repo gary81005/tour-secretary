@@ -77,6 +77,25 @@ async function resolvePlaces(
   return toSavedPlaces(places, locations);
 }
 
+// 旅途中的「完成」（ADR 0010）：done 時記下完成時間，取消時清掉。權限由 RLS 把關，旅伴同步看到。
+export async function setItemDone(itemId: string, done: boolean): Promise<ActionResult> {
+  if (!isUuid(itemId) || typeof done !== 'boolean') return { ok: false, error: 'notFound' };
+
+  const supabase = await getSignedInClient();
+  if (!supabase) return { ok: false, error: 'unauthorized' };
+
+  const { data, error } = await supabase
+    .from('items')
+    .update({ done_at: done ? new Date().toISOString() : null })
+    .eq('id', itemId)
+    .is('deleted_at', null)
+    .select('id');
+  if (error) return { ok: false, error: 'unknown' };
+  if (data.length === 0) return { ok: false, error: 'notFound' };
+  refresh();
+  return { ok: true };
+}
+
 // 刪除是軟刪除，畫面上提供「復原」（Q13）。
 export async function deleteItem(itemId: string): Promise<ActionResult> {
   const result = await setDeletedAt('items', itemId, new Date().toISOString());
