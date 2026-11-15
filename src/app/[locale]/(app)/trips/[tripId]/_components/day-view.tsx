@@ -1,12 +1,12 @@
 import { RouteIcon } from 'lucide-react';
-import { useFormatter, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
+import { DayHeading } from '@/components/itinerary/day-heading';
 import type { DayItem } from '@/data/trips';
 import type { DayTravel } from '@/lib/maps/legs';
 import type { ItemPlaceHours } from '@/lib/maps/opening-hours';
 import type { PlaceSearchContext } from '@/lib/maps/types';
 import type { NowStay } from '@/lib/trip/progress';
-import { localDateToUtc } from '@/lib/trip/trip-dates';
 import { DayItems } from './day-items';
 import type { DayOption } from './item-form';
 import { GoogleMapsAttribution } from './maps/google-maps-attribution';
@@ -52,29 +52,17 @@ export function DayView({
   menu,
 }: DayViewProps) {
   const t = useTranslations('trips.day');
-  const format = useFormatter();
 
   return (
     <section className='flex flex-col gap-5 pt-4' aria-labelledby='day-heading'>
       <header className='flex items-start justify-between gap-3'>
-        <div className='flex min-w-0 flex-col gap-0.5'>
-          <h2 id='day-heading' className='text-lg font-semibold'>
-            {t('dayNumber', { day: dayNumber })}
-            <span className='ml-2 text-base font-normal text-muted-foreground'>
-              {format.dateTime(localDateToUtc(date), {
-                month: 'numeric',
-                day: 'numeric',
-                weekday: 'short',
-                timeZone: 'UTC',
-              })}
-            </span>
-          </h2>
-          <p className='text-sm text-muted-foreground'>{city || t('noCity')}</p>
-          {customTimezone && (
-            <p className='text-xs text-muted-foreground'>
-              {t('localTime', { timezone: customTimezone })}
-            </p>
-          )}
+        <DayHeading
+          id='day-heading'
+          dayNumber={dayNumber}
+          date={date}
+          city={city}
+          customTimezone={customTimezone}
+        >
           {routeUrl && (
             <a
               href={routeUrl}
@@ -86,7 +74,7 @@ export function DayView({
               {t('dayRoute')}
             </a>
           )}
-        </div>
+        </DayHeading>
         {menu}
       </header>
 

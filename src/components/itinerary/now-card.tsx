@@ -4,9 +4,9 @@ import { CheckIcon, ClockIcon, NavigationIcon, PartyPopperIcon } from 'lucide-re
 import { useTranslations } from 'next-intl';
 import { Suspense, use } from 'react';
 import { Button, buttonVariants } from '@/components/ui/button';
-import type { DayItem } from '@/data/trips';
 import { legKey, planItemLegs, type DayTravel, type Leg, type LegDurations } from '@/lib/maps/legs';
 import { googleNavigationUrl, type PlaceRef } from '@/lib/maps/links';
+import type { ItemView } from '@/lib/trip/item-view';
 import { dayProgress, suggestedDeparture, type NowStay } from '@/lib/trip/progress';
 import { toHourMinute } from '@/lib/trip/time-slot';
 import { CategoryIcon } from './category-icon';
@@ -17,16 +17,17 @@ import { KoreaLinks, LegLine } from './leg-line';
 // 交通指南：移動時間與「查電車」（沿用 LegLine）、導航（Google 地圖用手機目前位置當起點）、
 // 下一站有精確時間且走路就到時的建議出發時間。
 // items 是 DayItems 樂觀更新後的項目，按「完成」後立刻換到下一個。
-export function NowCard({
+// onDone 是 null 時（離線行程頁）「完成」按鈕停用，標示需要網路。
+export function NowCard<T extends ItemView>({
   items,
   stay: tonight,
   travel,
   onDone,
 }: {
-  items: DayItem[];
+  items: T[];
   stay: NowStay | null;
   travel: DayTravel;
-  onDone: (item: DayItem) => void;
+  onDone: ((item: T) => void) | null;
 }) {
   const t = useTranslations('trips.now');
   if (items.length === 0) return null;
@@ -54,15 +55,25 @@ export function NowCard({
       {current && (
         <div className='flex items-start gap-3'>
           <Stop label={t('current')} item={current} />
-          <Button
-            size='lg'
-            className='shrink-0'
-            onClick={() => onDone(current)}
-            aria-label={t('doneLabel', { title: current.title })}
-          >
-            <CheckIcon />
-            {t('done')}
-          </Button>
+          {onDone ? (
+            <Button
+              size='lg'
+              className='shrink-0'
+              onClick={() => onDone(current)}
+              aria-label={t('doneLabel', { title: current.title })}
+            >
+              <CheckIcon />
+              {t('done')}
+            </Button>
+          ) : (
+            <div className='flex shrink-0 flex-col items-center gap-1'>
+              <Button size='lg' disabled>
+                <CheckIcon />
+                {t('done')}
+              </Button>
+              <span className='text-xs text-muted-foreground'>{t('needsNetwork')}</span>
+            </div>
+          )}
         </div>
       )}
       {allDone && (
@@ -125,7 +136,7 @@ export function NowCard({
   );
 }
 
-function Stop({ label, item }: { label: string; item: DayItem }) {
+function Stop({ label, item }: { label: string; item: ItemView }) {
   const t = useTranslations('trips');
   const time = item.start_time
     ? [item.start_time, item.end_time]
@@ -170,7 +181,7 @@ function Departure({
 }
 
 // 項目的第一個地點（沒有連結的用名稱）；沒有地點時無法導航。
-function firstPlace(item: DayItem): PlaceRef | null {
+function firstPlace(item: ItemView): PlaceRef | null {
   const place = item.item_places[0];
   return place ? { name: place.name, placeId: place.place_id } : null;
 }

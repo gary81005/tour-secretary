@@ -310,6 +310,7 @@
     "current": "現在",
     "next": "下一站",
     "done": "完成",
+    "needsNetwork": "需要網路",
     "doneLabel": "完成「{title}」",
     "doneToast": "已完成「{title}」",
     "allDone": "今天的行程都完成了",

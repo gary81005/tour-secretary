@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
+import { DaySelector } from '@/components/itinerary/day-selector';
 import { getDayMaps } from '@/data/day-maps';
 import { getDayItems, getTrip, getTripDays, getTripStays } from '@/data/trips';
 import { resolveSelectedDayIndex } from '@/lib/trip/day-selection';
@@ -7,7 +8,6 @@ import { canMarkDone, nowStay } from '@/lib/trip/progress';
 import { staysForNight } from '@/lib/trip/stays';
 import { currentDayIndex, localDate, resolveTimezone } from '@/lib/trip/trip-phase';
 import { DayMenu } from './_components/day-menu';
-import { DaySelector } from './_components/day-selector';
 import { DayView, ItinerarySkeleton } from './_components/day-view';
 import { TonightStay } from './_components/tonight-stay';
 

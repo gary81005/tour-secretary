@@ -5,5 +5,14 @@
     "title": "這支手機還沒有存行程",
     "description": "有網路時打開進行中或 7 天內出發的行程，就會自動存一份在手機裡。"
   },
-  "backHome": "回到我的行程"
+  "backHome": "回到我的行程",
+  "chooseTrip": "選擇要看的行程",
+  "allTrips": "所有離線行程",
+  "updatedAt": "資料更新於 {time}",
+  "offlineUpdatedAt": "離線中・資料更新於 {time}",
+  "readOnly": "離線時只能查看，修改需要網路。",
+  "dayEmpty": "這一天沒有安排",
+  "staysEmpty": "沒有住宿",
+  "notesEmpty": "沒有提醒事項",
+  "constraintsEmpty": "沒有旅伴限制"
 }

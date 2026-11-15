@@ -6,30 +6,31 @@ import { useTranslations } from 'next-intl';
 import { Suspense, use, type ReactNode } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import type { DayItem } from '@/data/trips';
 import { googlePlaceUrl } from '@/lib/maps/links';
 import { formatHoursRange, isAllDay, type ItemPlaceHours } from '@/lib/maps/opening-hours';
+import type { ItemView } from '@/lib/trip/item-view';
 import { toHourMinute } from '@/lib/trip/time-slot';
 import { isSafeHttpUrl } from '@/lib/url';
 import { CategoryIcon } from './category-icon';
 
 // 行程項目卡片。整張卡可以點開編輯：標題按鈕用 after: 蓋住整張卡，
 // 卡片裡的連結與拖拉把手再用 relative z-10 浮到上層，避免在 <button> 裡放互動元素。
+// onEdit：沒有時是唯讀卡片（離線行程頁），標題只是文字。
 // handle：左側的拖拉把手，或有精確時間時的時鐘圖示（Q22）。
-// placeHours：伺服器查營業時間的 Promise（以 item_places.id 對應），沒有地圖金鑰時是 null。
+// placeHours：伺服器查營業時間的 Promise（以 item_places.id 對應），沒有地圖金鑰或離線時是 null。
 // onToggleDone：「完成」勾選框（今天與之前的天，ADR 0010），null 時不顯示。完成的項目標題加刪除線。
 export function ItemCard({
   item,
   onEdit,
   handle,
-  placeHours,
-  onToggleDone,
+  placeHours = null,
+  onToggleDone = null,
 }: {
-  item: DayItem;
-  onEdit: () => void;
+  item: ItemView;
+  onEdit?: () => void;
   handle?: ReactNode;
-  placeHours: ItemPlaceHours | null;
-  onToggleDone: ((done: boolean) => void) | null;
+  placeHours?: ItemPlaceHours | null;
+  onToggleDone?: ((done: boolean) => void) | null;
 }) {
   const t = useTranslations('trips');
   const time = item.start_time
@@ -40,7 +41,13 @@ export function ItemCard({
     : null;
 
   return (
-    <article className='relative flex gap-3 rounded-lg border bg-card p-3 transition-colors hover:bg-muted/50 has-[button:focus-visible]:ring-3 has-[button:focus-visible]:ring-ring/50'>
+    <article
+      className={cn(
+        'relative flex gap-3 rounded-lg border bg-card p-3',
+        onEdit &&
+          'transition-colors hover:bg-muted/50 has-[button:focus-visible]:ring-3 has-[button:focus-visible]:ring-ring/50',
+      )}
+    >
       {handle}
       {onToggleDone && (
         <Checkbox
@@ -65,14 +72,18 @@ export function ItemCard({
               item.done_at && 'text-muted-foreground line-through',
             )}
           >
-            <button
-              type='button'
-              onClick={onEdit}
-              aria-label={t('item.edit', { title: item.title })}
-              className='text-left outline-none after:absolute after:inset-0 after:rounded-lg'
-            >
-              {item.title}
-            </button>
+            {onEdit ? (
+              <button
+                type='button'
+                onClick={onEdit}
+                aria-label={t('item.edit', { title: item.title })}
+                className='text-left outline-none after:absolute after:inset-0 after:rounded-lg'
+              >
+                {item.title}
+              </button>
+            ) : (
+              item.title
+            )}
           </h4>
           {time && (
             <span className='shrink-0 text-sm text-muted-foreground tabular-nums'>{time}</span>

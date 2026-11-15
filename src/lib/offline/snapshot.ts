@@ -1,3 +1,4 @@
+import type { ItemView } from '@/lib/trip/item-view';
 import { keepsOfflineSnapshot, resolveTimezone } from '@/lib/trip/trip-phase';
 import type { Tables } from '@/types/database';
 
@@ -8,25 +9,8 @@ import type { Tables } from '@/types/database';
 // 格式改變時加一；讀到其他版本的快照直接丟掉，下次線上打開行程時會重新存。
 export const OFFLINE_SNAPSHOT_VERSION = 1;
 
-export type OfflineItem = Pick<
-  Tables<'items'>,
-  | 'id'
-  | 'title'
-  | 'time_slot'
-  | 'category'
-  | 'start_time'
-  | 'end_time'
-  | 'description'
-  | 'url'
-  | 'position'
-  | 'done_at'
-> & {
-  item_places: Pick<Tables<'item_places'>, 'id' | 'name' | 'position' | 'place_id'>[];
-  fallbacks: Pick<Tables<'fallbacks'>, 'id' | 'condition' | 'alternative' | 'position'>[];
-};
-
 export type OfflineDay = Pick<Tables<'days'>, 'id' | 'date' | 'city' | 'timezone'> & {
-  items: OfflineItem[];
+  items: ItemView[];
 };
 
 export type OfflineStay = Pick<
@@ -59,7 +43,7 @@ export type OfflineSnapshot = {
 export type OfflineSnapshotSource = {
   trip: OfflineSnapshot['trip'];
   days: Omit<OfflineDay, 'items'>[];
-  items: (OfflineItem & { day_id: string })[];
+  items: (ItemView & { day_id: string })[];
   stays: OfflineStay[];
   notes: OfflineSnapshot['notes'];
   constraints: OfflineSnapshot['constraints'];
@@ -121,7 +105,7 @@ export function buildOfflineSnapshot(
   };
 }
 
-function pickItem(item: OfflineItem): OfflineItem {
+function pickItem(item: ItemView): ItemView {
   return {
     id: item.id,
     title: item.title,

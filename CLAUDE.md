@@ -35,7 +35,7 @@ npm run db:types      # 由已 link 的專案產生 src/types/database.ts
 - `src/lib/supabase/`：`client.ts`（Client Component）、`server.ts`（Server 端，`server-only`）、`proxy.ts`（在 proxy 刷新 session）。
 - **元件放哪裡**：頁面檔（`page.tsx`、`layout.tsx`）只負責讀參數、查資料（async 元件包在 `<Suspense>` 裡）再組畫面；顯示用的元件抽成獨立檔案。
   - 只有一個路由用到的元件，放在該路由資料夾的 `_components/`（例如 `trips/[tripId]/_components/day-items.tsx`、`trips/[tripId]/stays/_components/stay-form.tsx`）。底線開頭是 Next 的私有資料夾，不會變成路由，也和 `stays/` 這類路由資料夾分得開。
-  - 可以引用自己或上層路由的 `_components/`（例如 `stays/` 用 `[tripId]/_components/`，和 layout 的作用範圍一致）；不能引用兄弟或其他分支路由的（例如 `stays/` 用 `notes/_components/`、首頁用 `[tripId]/_components/`），這時搬到最近的共同上層路由的 `_components/`（例如 `trips/_components/import/` 給「匯入新行程」與「匯入到行程」共用）。共同上層是 `[locale]` 或 `(app)`（等於全站共用）的，以及不帶領域的 UI 元件，才放 `src/components/`（例如 `app-shell/`、`trip/trip-date-range.tsx`、`responsive-dialog.tsx`）。`_components/` 裡同一類的可以再分子資料夾（例如 `[tripId]/_components/maps/`）。
+  - 可以引用自己或上層路由的 `_components/`（例如 `stays/` 用 `[tripId]/_components/`，和 layout 的作用範圍一致）；不能引用兄弟或其他分支路由的（例如 `stays/` 用 `notes/_components/`、首頁用 `[tripId]/_components/`），這時搬到最近的共同上層路由的 `_components/`（例如 `trips/_components/import/` 給「匯入新行程」與「匯入到行程」共用）。共同上層是 `[locale]` 或 `(app)`（等於全站共用）的，以及不帶領域的 UI 元件，才放 `src/components/`（例如 `app-shell/`、`trip/trip-date-range.tsx`、`responsive-dialog.tsx`，以及行程頁與離線行程頁共用的 `itinerary/`）。`_components/` 裡同一類的可以再分子資料夾（例如 `[tripId]/_components/maps/`）。
   - 頁面引用自己的元件用 `./_components/...`，上層的用 `../_components/...`，同一個資料夾內用 `./`，其他用 `@/...`。
   - 不是元件的不放 `_components/`：伺服器端組資料的放 `src/data/`（例如 `day-maps.ts`），client hook 放 `src/hooks/`，純邏輯與共用型別放 `src/lib/`。`src/data/`、`src/lib/`、`src/components/` 不能引用路由裡的檔案。
 - `src/components/ui/`：shadcn/ui 產生的元件（`npx shadcn@latest add <name>`）。可以修改，但要知道重新 add 會覆蓋。

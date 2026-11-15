@@ -21,6 +21,7 @@ import { useFormatter, useTranslations } from 'next-intl';
 import { useId, useRef, useState, useTransition, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { deleteItem, restoreItem, saveItem } from '@/actions/items';
+import { CategoryIcon } from '@/components/itinerary/category-icon';
 import { Button } from '@/components/ui/button';
 import {
   Field,
@@ -42,7 +43,6 @@ import { ITEM_CATEGORIES } from '@/lib/trip/enums';
 import { ITEM_FIELDS } from '@/lib/trip/item-form';
 import { TIME_SLOTS, timeSlotForTime, toHourMinute, type TimeSlot } from '@/lib/trip/time-slot';
 import { localDateToUtc } from '@/lib/trip/trip-dates';
-import { CategoryIcon } from './category-icon';
 import { EditorError, EditorFormShell } from './editor-form-shell';
 import { PlaceLinkStatus } from './maps/place-link-status';
 import { PlaceSearchInput } from './maps/place-search-input';

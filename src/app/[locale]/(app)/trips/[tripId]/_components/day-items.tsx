@@ -26,6 +26,9 @@ import { useTranslations } from 'next-intl';
 import { useId, useOptimistic, useState, useTransition, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { reorderItems, setItemDone } from '@/actions/items';
+import { ItemCard } from '@/components/itinerary/item-card';
+import { LegLine } from '@/components/itinerary/leg-line';
+import { NowCard } from '@/components/itinerary/now-card';
 import { ResponsiveDialog, ResponsiveDialogContent } from '@/components/responsive-dialog';
 import { Button } from '@/components/ui/button';
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
@@ -43,10 +46,7 @@ import {
 } from '@/lib/trip/item-order';
 import { withDone, type NowStay } from '@/lib/trip/progress';
 import { TIME_SLOTS, type TimeSlot } from '@/lib/trip/time-slot';
-import { ItemCard } from './item-card';
 import { ItemForm, type DayOption } from './item-form';
-import { LegLine } from './leg-line';
-import { NowCard } from './now-card';
 
 type Props = {
   dayId: string;
