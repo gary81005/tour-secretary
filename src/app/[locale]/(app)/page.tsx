@@ -8,6 +8,7 @@ import { getTripListGroups } from '@/data/trips';
 import { Link } from '@/i18n/navigation';
 import { TRIP_PHASE_ORDER } from '@/lib/trip/trip-list';
 import { InstallPrompt } from './_components/install-prompt';
+import { OfflineSnapshotPruner } from './_components/offline-snapshot-pruner';
 import { EmptyTrips, ImportLink, TripGroup, TripListSkeleton } from './_components/trip-list';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -41,11 +42,14 @@ async function TripList() {
   const groups = await getTripListGroups();
   const hasTrips = TRIP_PHASE_ORDER.some((phase) => groups[phase].length > 0);
 
-  const offlineHint = [...groups.ongoing, ...groups.upcoming].some((trip) => trip.offlineSnapshot);
+  const offlineTripIds = [...groups.ongoing, ...groups.upcoming]
+    .filter((trip) => trip.offlineSnapshot)
+    .map((trip) => trip.id);
 
   return (
     <>
-      <InstallPrompt offlineHint={offlineHint} />
+      <OfflineSnapshotPruner tripIds={offlineTripIds} />
+      <InstallPrompt offlineHint={offlineTripIds.length > 0} />
       {hasTrips ? (
         <div className='flex flex-col gap-8'>
           {TRIP_PHASE_ORDER.map(

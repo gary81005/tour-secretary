@@ -46,6 +46,11 @@
   - 「離線中」橫幅與離線頁的連結用 `<a>` 整頁導覽，讓 Service Worker 回應；`<Link>` 的 soft navigation 離線時只會一直等待。
   - 只在正式版註冊 Service Worker（開發模式的熱更新會和快取互相干擾）；離線行為用 `next build && next start` 測。
   - 登出時刪除 `tour-secretary-` 開頭的快取（`clearOfflineData()`）。
+- 實作（第 6 步）：
+  - 快照用瀏覽器原生的 IndexedDB（`src/lib/offline/snapshot-store.ts`），不加套件：資料庫 `tour-secretary`，一趟行程一筆，key 是 tripId。
+  - 行程 layout 判斷「進行中或 7 天內出發」後，在 `<Suspense>` 裡查整趟行程（`src/data/offline.ts`），交給 Client Component 存進 IndexedDB。layout 只在進入行程時執行，切換分頁不會重查；編輯後的 `refresh()` 會帶來新快照，完成狀態也跟著更新。
+  - 快照格式（`src/lib/offline/snapshot.ts`）逐欄挑選，不含座標；記錄伺服器讀取時間（離線頁的「資料更新於」），已存的資料比較新時不覆蓋。格式改變時把 `OFFLINE_SNAPSHOT_VERSION` 加一，舊版本讀到就丟掉。
+  - 清除：線上打開首頁時只留下「仍是成員、未刪除、進行中或 7 天內出發」的快照；離線讀取時也會刪掉過期的（行程結束隔天）；登出時刪除整個資料庫。
 
 ### 安裝（Q6、Q7、Q14）
 

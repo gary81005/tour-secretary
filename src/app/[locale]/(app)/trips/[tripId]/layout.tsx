@@ -3,7 +3,10 @@ import { notFound } from 'next/navigation';
 import { Suspense, type ReactNode } from 'react';
 import { TripDateRange } from '@/components/trip/trip-date-range';
 import { getUndoableImportId } from '@/data/imports';
+import { getOfflineSnapshot } from '@/data/offline';
 import { getTrip, getTripDays } from '@/data/trips';
+import { keepsOfflineSnapshot, resolveTimezone } from '@/lib/trip/trip-phase';
+import { OfflineSnapshotSaver } from './_components/offline-snapshot-saver';
 import { TripMenu } from './_components/trip-menu';
 import { TripTabs } from './_components/trip-tabs';
 
@@ -35,6 +38,13 @@ async function TripHeader({ params }: { params: Params }) {
   ]);
   if (!trip) notFound();
 
+  // cacheComponents：讀過請求資料之後才能取目前時間。
+  const now = new Date();
+  const savesOffline = keepsOfflineSnapshot(
+    days.map((day) => ({ date: day.date, timezone: resolveTimezone(day, trip.default_timezone) })),
+    now,
+  );
+
   return (
     <div className='flex flex-col gap-3 pt-5'>
       <div className='flex items-start justify-between gap-3'>
@@ -51,6 +61,17 @@ async function TripHeader({ params }: { params: Params }) {
         />
       </div>
       <TripTabs tripId={trip.id} />
+      {/* 進行中或 7 天內出發：存一份離線快照到這支手機（ADR 0010 Q11），不擋頁首顯示。 */}
+      {savesOffline && (
+        <Suspense fallback={null}>
+          <TripOfflineSnapshot tripId={trip.id} />
+        </Suspense>
+      )}
     </div>
   );
+}
+
+async function TripOfflineSnapshot({ tripId }: { tripId: string }) {
+  const snapshot = await getOfflineSnapshot(tripId);
+  return snapshot && <OfflineSnapshotSaver snapshot={snapshot} />;
 }
