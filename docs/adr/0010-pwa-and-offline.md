@@ -40,12 +40,12 @@
 - 清除：行程結束隔天、不再是成員或行程進垃圾桶時刪除該快照（線上打開首頁時檢查）；登出時清除全部快照與 Service Worker 快取，避免共用手機外洩。
 - 訊號不穩時開啟 Next 的 `experimental.useOffline`：斷線時導覽與 Server Action 等網路恢復後自動重試，頂端提示「離線中」並連到離線行程頁（Q13）。
 - 實作（第 5 步）：
-  - Service Worker 自己寫（`public/sw.js`），不用套件：只快取 `/offline` 的 HTML、它用到的 `/_next/static` 檔案與圖示；安裝時與每次打開 app 時更新（最多每 10 分鐘一次），全部抓到才替換，避免 HTML 與檔案版本對不上。
-  - 頁面導覽先連網路；連不上時轉址到 `/offline`（網址也換掉，避免 Next 在別的網址上載入離線頁）。
+  - Service Worker 自己寫（`public/sw.js`），不用套件：只快取 `/offline` 的 HTML、它用到的 `/_next/static` 檔案與圖示；安裝時與每次打開 app 時更新（最多每 10 分鐘一次，更新時間記在快取的回應上，因為 Service Worker 閒置後會被結束），全部抓到才替換，避免 HTML 與檔案版本對不上。
+  - 頁面導覽先連網路；連不上或 8 秒沒有回應（訊號很差時請求常常不會失敗，只會一直等）時轉址到 `/offline`（網址也換掉，避免 Next 在別的網址上載入離線頁）。`/offline` 本身有快取就直接用，不再等網路。
   - 離線頁在 `(app)` 外面、不需要登入、完全靜態，快取的 HTML 不含個資；資料從 IndexedDB 讀。
-  - 「離線中」橫幅與離線頁的連結用 `<a>` 整頁導覽，讓 Service Worker 回應；`<Link>` 的 soft navigation 離線時只會一直等待。
+  - 「離線中」橫幅放在頂部列下方、跟著內容捲動（放進固定的頂部列會蓋住天數列）。橫幅與離線頁的連結用 `<a>` 整頁導覽，讓 Service Worker 回應；`<Link>` 的 soft navigation 離線時只會一直等待。
   - 只在正式版註冊 Service Worker（開發模式的熱更新會和快取互相干擾）；離線行為用 `next build && next start` 測。
-  - 登出時刪除 `tour-secretary-` 開頭的快取（`clearOfflineData()`）。
+  - 登出時刪除 `tour-secretary-` 開頭的快取（`clearOfflineData()`）；登出請求前後各清一次，避免等待期間剛存的快照留下來。
 - 實作（第 6 步）：
   - 快照用瀏覽器原生的 IndexedDB（`src/lib/offline/snapshot-store.ts`），不加套件：資料庫 `tour-secretary`，一趟行程一筆，key 是 tripId。
   - 行程 layout 判斷「進行中或 7 天內出發」後，在 `<Suspense>` 裡查整趟行程（`src/data/offline.ts`），交給 Client Component 存進 IndexedDB。layout 只在進入行程時執行，切換分頁不會重查；編輯後的 `refresh()` 會帶來新快照，完成狀態也跟著更新。

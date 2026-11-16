@@ -3,7 +3,6 @@ import { useTranslations } from 'next-intl';
 import { Suspense } from 'react';
 import { Link } from '@/i18n/navigation';
 import { getCurrentUser } from '@/lib/auth/user';
-import { OfflineBanner } from './offline-banner';
 import { UserMenu } from './user-menu';
 
 // 頂部列：左邊回到行程列表，右邊是帳號選單。
@@ -13,7 +12,6 @@ export function AppHeader() {
 
   return (
     <header className='sticky top-0 z-40 border-b bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75'>
-      <OfflineBanner />
       <div className='mx-auto flex h-14 w-full max-w-2xl items-center justify-between gap-4 px-4'>
         <Link
           href='/'

@@ -31,11 +31,13 @@ export function UserMenu({ displayName, email, avatarUrl }: Props) {
   const [isSigningOut, startTransition] = useTransition();
 
   // 登出後導去登入頁並重新整理，讓 Server Component 不再拿到舊的使用者資料。
-  // 先清掉這支手機上的離線資料（ADR 0010 Q12）。
+  // 清掉這支手機上的離線資料（ADR 0010 Q12）：登出前清一次（登出請求失敗也不留資料），
+  // 登出後再清一次——等登出請求的期間，行程頁可能剛存了新的快照；登出後伺服器不再給行程資料，不會再被寫回。
   function signOut() {
     startTransition(async () => {
       await clearOfflineData();
       await createClient().auth.signOut();
+      await clearOfflineData();
       router.replace(LOGIN_PATH);
       router.refresh();
     });

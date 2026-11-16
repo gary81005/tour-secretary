@@ -4,7 +4,7 @@ import { WifiOffIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useOffline } from 'next/offline';
 
-// 頁首上方的「離線中」提示（ADR 0010 Q13）。experimental.useOffline 會讓斷線時的導覽與
+// 頂部列下方的「離線中」提示（ADR 0010 Q13）。experimental.useOffline 會讓斷線時的導覽與
 // Server Action 等網路恢復後自動重試；這裡告訴使用者，並連到離線行程頁。
 // 連結用 <a> 做整頁導覽，讓 Service Worker 回應快取的離線頁；用 <Link> 的話會一直等網路。
 export function OfflineBanner() {
