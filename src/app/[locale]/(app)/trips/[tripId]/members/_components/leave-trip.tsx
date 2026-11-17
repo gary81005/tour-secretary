@@ -35,6 +35,8 @@ export function LeaveTrip({ tripId, tripName }: Props) {
       }
       toast.success(t('trips.members.left', { name: tripName }));
       router.replace('/');
+      // 首頁可能還在 client 的快取裡，重新整理才不會列出剛退出的行程。
+      router.refresh();
     });
   }
 

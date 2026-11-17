@@ -36,7 +36,8 @@ async function TripHeader({ params }: { params: Params }) {
     getTrip(tripId),
     getTripDays(tripId),
     isTripOwner(tripId),
-    getUndoableImportId(tripId),
+    // 復原上次匯入只有主辦人能做（ADR 0005「M5 旅伴與權限」），旅伴不用查。
+    isTripOwner(tripId).then((owner) => (owner ? getUndoableImportId(tripId) : null)),
   ]);
   if (!trip) notFound();
 
@@ -60,8 +61,7 @@ async function TripHeader({ params }: { params: Params }) {
           trip={trip}
           days={days.map((day) => ({ id: day.id, date: day.date }))}
           isOwner={isOwner}
-          // 復原上次匯入只有主辦人能做（ADR 0005「M5 旅伴與權限」）。
-          undoableImportId={isOwner ? undoableImportId : null}
+          undoableImportId={undoableImportId}
         />
       </div>
       <TripTabs tripId={trip.id} />

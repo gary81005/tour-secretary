@@ -38,7 +38,8 @@ async function Members({ params }: Pick<Props, 'params'>) {
     getTrip(tripId),
     isTripOwner(tripId),
     getTripMembers(tripId),
-    getTripInviteToken(tripId),
+    // 邀請連結只有主辦人讀得到，旅伴不用查。
+    isTripOwner(tripId).then((owner) => (owner ? getTripInviteToken(tripId) : null)),
     getLocale(),
   ]);
 

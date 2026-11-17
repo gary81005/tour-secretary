@@ -30,6 +30,8 @@ export function JoinTripForm({ token, invite, needsName }: Props) {
       if (!joined.ok) return;
       toast.success(t('invite.joined', { name: invite.name }));
       router.replace(`/trips/${joined.tripId}`);
+      // 頂部列在共用的 layout 裡，換頁不會重新讀取；加入時填的名稱要重新整理才會出現。
+      router.refresh();
     },
   );
   const fieldError = result && !result.ok ? result.fieldErrors?.displayName : undefined;

@@ -179,8 +179,8 @@ SELECT tests.is(
 
 :as_owner
 SELECT tests.throws(
-  $$UPDATE public.profiles SET avatar_url = 'javascript:alert(1)' WHERE id = auth.uid()$$,
-  '23514', '頭像不能改成 javascript: 網址');
+  $$UPDATE public.profiles SET avatar_url = 'https://example.com/x.png' WHERE id = auth.uid()$$,
+  '42501', '不能自己改頭像（只由註冊時帶入，20261117000003）');
 SELECT tests.is(
   tests.row_count($$UPDATE public.profiles SET display_name = '小林 Gary' WHERE id = auth.uid()$$),
   1, '可以改自己的名稱');

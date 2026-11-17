@@ -81,6 +81,10 @@
   - `get_trip_invite(token)`：登入後的確認頁資料，`status` 是 `joinable` / `member` / `full` / `trashed`（`trashed` 不回傳行程內容）；連結無效時沒有任何列。
   - `join_trip(token, display_name)`：鎖住行程再算人數；沒有名稱時要傳名稱（`22023 name_required`），滿 20 人是 `P0001 trip_full`，已經是旅伴直接回傳行程 id。
   - `leave_trip`（主辦人是 `P0001 owner_cannot_leave`）、`remove_trip_member(trip, user, reset_invite = true)`、`reset_trip_invite`（主辦人）。
+- 分支 review 後的修正（`20261117000003_member_review_fixes.sql`）：
+  - 使用者不能自己改 `profiles.avatar_url`：旅伴會載入彼此的頭像，任意網址會洩漏 IP 與使用時間；頭像只由註冊時的登入方式帶入。
+  - 名稱不能只有空白、前後不能有空白（check constraint），沒有名稱一律是 null。
+  - `reset_trip_invite`、`remove_trip_member` 和 `join_trip` 一樣先鎖住行程，重設當下正在加入的人不會用舊連結加入。
 
 ### 一起處理（Q6）
 
