@@ -1,0 +1,11 @@
+-- 每個測試檔開頭用 \ir setup/session.psql 載入：psql 設定與切換使用者的指令。
+-- 用法：:as_owner、:as_member、:as_outsider、:as_anon、:as_admin（回到 postgres，繞過 RLS）。
+\set ON_ERROR_STOP 1
+\set VERBOSITY default
+\set QUIET 1
+\pset pager off
+\set as_owner 'RESET ROLE; SET request.jwt.claim.sub = ''00000000-0000-0000-0000-00000000000a''; SET ROLE authenticated;'
+\set as_member 'RESET ROLE; SET request.jwt.claim.sub = ''00000000-0000-0000-0000-00000000000b''; SET ROLE authenticated;'
+\set as_outsider 'RESET ROLE; SET request.jwt.claim.sub = ''00000000-0000-0000-0000-00000000000c''; SET ROLE authenticated;'
+\set as_anon 'RESET ROLE; RESET request.jwt.claim.sub; SET ROLE anon;'
+\set as_admin 'RESET ROLE; RESET request.jwt.claim.sub;'

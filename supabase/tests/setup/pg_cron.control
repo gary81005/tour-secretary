@@ -1,0 +1,5 @@
+# 測試用的假 pg_cron：只提供 cron.schedule()，讓 migration 不用修改就能套用。
+comment = 'stub of pg_cron for tests'
+default_version = '1.0'
+relocatable = false
+schema = pg_catalog

@@ -17,9 +17,10 @@ npm run typecheck     # next typegen && tsc --noEmit
 npm run format        # prettier --write .（含 Tailwind class 排序）
 npm run db:push       # 套用 supabase/migrations/ 到已 link 的 Supabase 專案
 npm run db:types      # 由已 link 的專案產生 src/types/database.ts
+npm run db:test       # 用 Docker 的 Postgres 套用 migrations 再跑 supabase/tests/*.test.sql
 ```
 
-宣稱完成前要跑 `npm run build`、`npm run lint`、`npm test`。
+宣稱完成前要跑 `npm run build`、`npm run lint`、`npm test`。改了 `supabase/migrations/` 也要跑 `npm run db:test`（需要 Docker）。
 
 ## 產品與設計文件
 
@@ -68,7 +69,8 @@ npm run db:types      # 由已 link 的專案產生 src/types/database.ts
 
 ## Database
 
-- Supabase CLI 3 的 `db push` / `gen types` **預設連本機**，要對雲端專案一律加 `--remote`（`npm run db:*` 已加）。目前沒有本機 Supabase，migration push 前要先給使用者看 SQL。
+- Supabase CLI 3 的 `db push` / `gen types` **預設連本機**，要對雲端專案一律加 `--remote`（`npm run db:push`、`db:types` 已加）。目前沒有本機 Supabase，migration push 前要先給使用者看 SQL。
+- **SQL 回歸測試**在 `supabase/tests/`（不是 pgTAP，不要用 `supabase test db`）：`setup/` 模擬 Supabase 的角色、auth、pg_cron，每個 `*.test.sql` 在乾淨的資料庫裡執行，用 `:as_owner` / `:as_member` / `:as_outsider` / `:as_anon` 切換使用者，`tests.is` / `tests.ok` / `tests.throws` 斷言。改 migration 時同步補情境。
 - SQL 寫法：關鍵字大寫（`CREATE TABLE`、`NOT NULL`），型別、函式、識別字小寫（`uuid`、`now()`、`public.trips`），與 `vip-management-web` 一致。
 - migration 必須能重複執行：`if not exists`、`create or replace`、`drop policy if exists`、enum 用 `duplicate_object` 例外包起來。
 - 權限一律用 `is_trip_member()` / `can_access_trip()` 判斷；`trips.start_date/end_date`、`days.date` 只能透過 RPC 改（欄位層級 grant）。
