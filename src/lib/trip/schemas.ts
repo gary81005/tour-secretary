@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { isPlaceId } from '@/lib/maps/location';
+import { DISPLAY_NAME_MAX_LENGTH } from '@/lib/profile/display-name';
 import { ITEM_CATEGORIES, STAY_STATUSES, TRAVELER_CONSTRAINT_KINDS } from './enums';
 import { TIME_SLOTS } from './time-slot';
 import { isValidTimezone } from './timezones';
@@ -154,6 +155,12 @@ export const travelerConstraintSchema = z.object({
   subject: optionalText(50),
   content: requiredText(1000),
 });
+
+// ---------------------------------------------------------------------------
+// Profile（ADR 0005「M5 旅伴與權限」）
+// ---------------------------------------------------------------------------
+
+export const displayNameSchema = z.object({ displayName: requiredText(DISPLAY_NAME_MAX_LENGTH) });
 
 export type TripCreateInput = z.output<typeof tripCreateSchema>;
 export type TripUpdateInput = z.output<typeof tripUpdateSchema>;

@@ -8,6 +8,16 @@
     "accountMenu": "帳號選單",
     "trash": "垃圾桶"
   },
+  "profile": {
+    "menuItem": "我的名稱",
+    "noName": "還沒有設定名稱",
+    "title": "我的名稱",
+    "description": "旅伴會在行程的旅伴名單上看到這個名稱。",
+    "nameLabel": "名稱",
+    "cancel": "取消",
+    "save": "儲存",
+    "saved": "已更新名稱"
+  },
   "siteFooter": {
     "label": "網站資訊",
     "privacy": "隱私權政策",

@@ -1,13 +1,15 @@
 import 'server-only';
 import { getLocale } from 'next-intl/server';
 import { redirect } from '@/i18n/navigation';
+import { cleanDisplayName } from '@/lib/profile/display-name';
 import { createClient } from '@/lib/supabase/server';
 import { LOGIN_PATH } from './paths';
 
 export type CurrentUser = {
   id: string;
   email: string;
-  displayName: string;
+  // 沒有設定名稱時是 null（不用 Email 代替）。
+  displayName: string | null;
   avatarUrl: string | null;
 };
 
@@ -33,7 +35,7 @@ export async function getCurrentUser(): Promise<CurrentUser> {
   return {
     id: claims.sub,
     email,
-    displayName: profile?.display_name || email.split('@')[0] || '',
+    displayName: cleanDisplayName(profile?.display_name),
     avatarUrl: profile?.avatar_url ?? null,
   };
 }

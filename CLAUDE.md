@@ -42,7 +42,7 @@ npm run db:test       # 用 Docker 的 Postgres 套用 migrations 再跑 supabas
 - `src/components/ui/`：shadcn/ui 產生的元件（`npx shadcn@latest add <name>`）。可以修改，但要知道重新 add 會覆蓋。
 - `src/data/`：讀取資料的查詢（`server-only`，呼叫端要在 `<Suspense>` 裡）；`src/actions/`：Server Actions（`'use server'`，每個都重新確認登入，回傳 `ActionResult` / `FormState`）。
 - `src/hooks/`：共用的 client hook（例如 `useFormSubmit`：對話框表單送出 Server Action，失敗時保留輸入）。
-- `src/lib/trip/`：行程的純邏輯與 zod schema（有測試）；`src/lib/auth/`：登入相關的路徑判斷與 `getCurrentUser()`。
+- `src/lib/trip/`：行程的純邏輯與 zod schema（有測試）；`src/lib/auth/`：登入相關的路徑判斷與 `getCurrentUser()`；`src/lib/profile/`：使用者名稱的純邏輯（沒有名稱時是 null，不用 Email 代替；有測試）。旅伴的頭像一律用 `src/components/member/member-avatar.tsx`。
 - `src/lib/maps/`：MapProvider 介面與 Google 實作（`google.ts`，`server-only`）、回應轉換與各種純邏輯（營業時間、路段、地圖連結，有測試）。地點搜尋框、Google 地址、Google Maps 標誌等元件在 `trips/[tripId]/_components/maps/`；`src/data/places.ts`、`src/data/routes.ts` 是顯示時才向 Google 查的資料（`'use cache'` 短暫快取，查不到時略過，呼叫端不 await、把 Promise 交給畫面用 `use()` 串流）。
 - `src/lib/import/`：xlsx 匯入的純邏輯（解析、範本、合併規劃、payload schema，有測試）。exceljs 只能用 `loadExcelJS()` 動態載入，不要靜態 import。
 - `public/sw.js`、`src/app/[locale]/offline/`、`src/lib/offline/`：離線（ADR 0010）。Service Worker 只快取離線頁，只在正式版註冊；離線行為用 `npm run build && npx next start` 測，不要用 dev。
