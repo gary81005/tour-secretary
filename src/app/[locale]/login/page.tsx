@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { useTranslations } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
-import { safeNextPath } from '@/lib/auth/paths';
+import { isInvitePath, safeNextPath } from '@/lib/auth/paths';
 import { LoginForm, type LoginErrorKey } from './_components/login-form';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -37,11 +37,13 @@ async function LoginFormWithParams({ searchParams }: { searchParams: SearchParam
   const params = await searchParams;
   const first = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value);
   const error = first(params.error) as LoginErrorKey | undefined;
+  const next = safeNextPath(first(params.next));
 
   return (
     <LoginForm
-      next={safeNextPath(first(params.next))}
+      next={next}
       initialError={error && URL_ERRORS.has(error) ? error : null}
+      invite={isInvitePath(next)}
     />
   );
 }

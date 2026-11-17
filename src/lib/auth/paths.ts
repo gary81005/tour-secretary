@@ -3,6 +3,9 @@ import { routing } from '@/i18n/routing';
 export const LOGIN_PATH = '/login';
 export const HOME_PATH = '/';
 
+// 邀請連結：/invite/<token>（ADR 0005「M5 旅伴與權限」）。要登入，登入頁看到 next 是邀請連結時另外說明。
+const INVITE_PATH_PREFIX = '/invite/';
+
 // 不用登入就能進的路徑（含子路徑）。/auth 底下是登入完成後回來的 Route Handler。
 // /offline 是離線行程頁：Service Worker 要能抓到它的 HTML（資料在瀏覽器的 IndexedDB，頁面本身沒有個資）。
 const PUBLIC_PATHS = [LOGIN_PATH, '/auth', '/privacy', '/terms', '/offline'];
@@ -33,4 +36,9 @@ export function safeNextPath(next: string | null | undefined): string {
   if (url.origin !== base || isPublicPath(url.pathname)) return HOME_PATH;
 
   return `${url.pathname}${url.search}${url.hash}`;
+}
+
+// next 是不是邀請連結（已經過 safeNextPath，不含語系前綴）。
+export function isInvitePath(path: string): boolean {
+  return path.startsWith(INVITE_PATH_PREFIX);
 }

@@ -1,0 +1,18 @@
+{
+  "title": "加入行程",
+  "heading": "加入「{name}」",
+  "owner": "主辦人",
+  "ownerName": "主辦人：{name}",
+  "memberCount": "目前 {count} 位旅伴",
+  "nameLabel": "你的名稱",
+  "nameDescription": "旅伴會在名單上看到這個名稱，之後可以在帳號選單的「我的名稱」修改。",
+  "join": "加入",
+  "joined": "已加入「{name}」",
+  "backHome": "回到我的行程",
+  "invalidTitle": "這個邀請連結已經失效",
+  "invalidDescription": "連結可能已經被主辦人重設。請向主辦人要新的邀請連結。",
+  "trashedTitle": "這個行程已經被主辦人刪除",
+  "trashedDescription": "行程目前在垃圾桶裡，無法加入。",
+  "fullTitle": "「{name}」的旅伴已滿",
+  "fullDescription": "一個行程最多 {max} 人（含主辦人）。請聯絡主辦人。"
+}

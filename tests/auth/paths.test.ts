@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isPublicPath, safeNextPath, stripLocale } from '@/lib/auth/paths';
+import { isInvitePath, isPublicPath, safeNextPath, stripLocale } from '@/lib/auth/paths';
 
 describe('stripLocale', () => {
   it('去掉語系前綴', () => {
@@ -46,5 +46,15 @@ describe('safeNextPath', () => {
   it('不會導回登入相關頁面', () => {
     expect(safeNextPath('/login')).toBe('/');
     expect(safeNextPath('/auth/callback?code=x')).toBe('/');
+  });
+});
+
+describe('isInvitePath', () => {
+  it('邀請連結', () => {
+    expect(isInvitePath(safeNextPath('/invite/0b8f3c1e-1a2b-4c3d-8e9f-0a1b2c3d4e5f'))).toBe(true);
+  });
+
+  it.each(['/', '/trips/abc', '/invite', '/invites/abc'])('%s 不是邀請連結', (path) => {
+    expect(isInvitePath(path)).toBe(false);
   });
 });

@@ -35,11 +35,14 @@ function oauthRedirectUrl(next: string) {
 type Props = {
   next: string;
   initialError: LoginErrorKey | null;
+  // 從邀請連結過來（ADR 0005「M5 旅伴與權限」Q8、Q10）：說明有人邀請，Email 下方建議用 Google。
+  // 還沒接自己的 SMTP，Supabase 內建寄信只寄給專案成員，旅伴用 Email 可能收不到信。
+  invite?: boolean;
 };
 
 // 登入流程（Q1 (c)）：Google，或 Email → 同一封信裡有連結與 6 位數驗證碼。
 // PWA 裡點連結常會開到外部瀏覽器，所以驗證碼要能直接在這裡輸入。
-export function LoginForm({ next, initialError }: Props) {
+export function LoginForm({ next, initialError, invite = false }: Props) {
   const t = useTranslations('auth');
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -158,6 +161,11 @@ export function LoginForm({ next, initialError }: Props) {
 
   return (
     <div className='flex flex-col gap-6'>
+      {invite && (
+        <p role='status' className='rounded-lg bg-muted px-4 py-3 text-sm'>
+          {t('inviteNotice')}
+        </p>
+      )}
       <form action={signInWithGoogle}>
         <SubmitButton variant='outline' className='w-full'>
           <GoogleIcon />
@@ -185,6 +193,7 @@ export function LoginForm({ next, initialError }: Props) {
         </Field>
         {errorMessage}
         <SubmitButton className='w-full'>{t('sendEmail')}</SubmitButton>
+        {invite && <p className='text-sm text-muted-foreground'>{t('inviteEmailNote')}</p>}
       </form>
     </div>
   );

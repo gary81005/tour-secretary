@@ -68,3 +68,43 @@ export async function getTripInviteToken(tripId: string): Promise<string | null>
   if (error) throw error;
   return data?.token ?? null;
 }
+
+// 邀請頁（登入後）要顯示的內容。連結無效時是 null；行程在垃圾桶時只有狀態，不透露行程內容。
+// get_trip_invite 產生的型別把每個欄位都當成非 null，這裡依狀態整理成正確的型別。
+export type JoinableTripInvite = {
+  tripId: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  // 主辦人沒有設定名稱或頭像時是 null。
+  ownerName: string | null;
+  ownerAvatarUrl: string | null;
+  memberCount: number;
+};
+
+export type TripInvite =
+  { status: 'trashed' } | ({ status: 'joinable' | 'member' | 'full' } & JoinableTripInvite);
+
+const INVITE_STATUSES = new Set(['joinable', 'member', 'full']);
+
+export async function getTripInvite(token: string): Promise<TripInvite | null> {
+  if (!isUuid(token)) return null;
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc('get_trip_invite', { p_token: token }).maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  if (data.status === 'trashed') return { status: 'trashed' };
+  if (!INVITE_STATUSES.has(data.status)) return null;
+
+  return {
+    status: data.status as 'joinable' | 'member' | 'full',
+    tripId: data.trip_id,
+    name: data.name,
+    startDate: data.start_date,
+    endDate: data.end_date,
+    ownerName: cleanDisplayName(data.owner_name),
+    ownerAvatarUrl: (data.owner_avatar_url as string | null) ?? null,
+    memberCount: data.member_count,
+  };
+}
