@@ -1,6 +1,6 @@
 'use client';
 
-import { useFormatter, useTranslations } from 'next-intl';
+import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { setTripDates, shiftTrip, updateTrip } from '@/actions/trips';
@@ -18,7 +18,13 @@ import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui
 import { Input } from '@/components/ui/input';
 import { useFormSubmit } from '@/hooks/use-form-submit';
 import type { FieldErrors, FormResult } from '@/lib/form';
-import { addDays, countDays, localDateToUtc, planDateRangeChange } from '@/lib/trip/trip-dates';
+import {
+  addDays,
+  countDays,
+  formatTripDateRange,
+  localDateToUtc,
+  planDateRangeChange,
+} from '@/lib/trip/trip-dates';
 import { TimezoneField } from '../../_components/timezone-field';
 
 export type TripSettings = {
@@ -160,7 +166,7 @@ export function EditTripDialog({ trip, open, onOpenChange }: DialogProps) {
 
 export function ShiftTripDialog({ trip, open, onOpenChange }: DialogProps) {
   const t = useTranslations();
-  const format = useFormatter();
+  const locale = useLocale();
   const [startDate, setStartDate] = useState(trip.start_date);
   const { result, isPending, handleSubmit } = useFormSubmit(
     (formData) => shiftTrip(trip.id, formData),
@@ -201,17 +207,7 @@ export function ShiftTripDialog({ trip, open, onOpenChange }: DialogProps) {
         <FieldDescription>
           {isValid && !unchanged
             ? t('trips.settings.shift.preview', {
-                range: format.dateTimeRange(
-                  localDateToUtc(startDate),
-                  localDateToUtc(addDays(startDate, dayCount - 1)),
-                  {
-                    year: 'numeric',
-                    month: 'numeric',
-                    day: 'numeric',
-                    weekday: 'short',
-                    timeZone: 'UTC',
-                  },
-                ),
+                range: formatTripDateRange(locale, startDate, addDays(startDate, dayCount - 1)),
               })
             : t('trips.settings.shift.unchanged')}
         </FieldDescription>

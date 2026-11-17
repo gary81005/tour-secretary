@@ -44,3 +44,39 @@ export function planDateRangeChange<T extends { date: string }>(
 export function localDateToUtc(date: string): Date {
   return new Date(`${date}T00:00:00Z`);
 }
+
+const TRIP_DATE_FORMAT: Intl.DateTimeFormatOptions = {
+  year: 'numeric',
+  month: 'numeric',
+  day: 'numeric',
+  weekday: 'short',
+  timeZone: 'UTC',
+};
+
+// 行程的起訖日，例如「2027/3/5 週五 至 2027/3/9 週二」；同一天時只有一個日期。
+// 比較好讀的空格（分隔字與標點由語系決定，不寫死）：
+// - 起訖之間的分隔字（zh-TW 是「至」）前後加空格
+// - 星期緊接在日期後面時（zh-TW 範圍格式是「3/5週五」）中間加空格；前面已經有標點（「（週五）」）就不加
+export function formatTripDateRange(locale: string, startDate: string, endDate: string): string {
+  const parts = new Intl.DateTimeFormat(locale, TRIP_DATE_FORMAT).formatRangeToParts(
+    localDateToUtc(startDate),
+    localDateToUtc(endDate),
+  );
+  return parts
+    .map((part, index) => {
+      const previous = parts[index - 1];
+      if (
+        part.type === 'literal' &&
+        part.source === 'shared' &&
+        previous?.source === 'startRange' &&
+        parts[index + 1]?.source === 'endRange'
+      ) {
+        return ` ${part.value.trim()} `;
+      }
+      if (part.type === 'weekday' && previous && previous.type !== 'literal') {
+        return ` ${part.value}`;
+      }
+      return part.value;
+    })
+    .join('');
+}

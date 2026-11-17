@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, countDays, listDates, planDateRangeChange } from '@/lib/trip/trip-dates';
+import {
+  addDays,
+  countDays,
+  formatTripDateRange,
+  listDates,
+  planDateRangeChange,
+} from '@/lib/trip/trip-dates';
 
 describe('日期計算', () => {
   it('跨月、跨年、閏年', () => {
@@ -48,5 +54,20 @@ describe('planDateRangeChange', () => {
     const plan = planDateRangeChange(days, '2027-04-01', '2027-04-02');
     expect(plan.removed).toHaveLength(3);
     expect(plan.added).toEqual(['2027-04-01', '2027-04-02']);
+  });
+});
+
+describe('formatTripDateRange', () => {
+  it('起訖之間的分隔字前後、日期與星期之間加空格', () => {
+    expect(formatTripDateRange('zh-TW', '2027-03-05', '2027-03-09')).toBe(
+      '2027/3/5 週五 至 2027/3/9 週二',
+    );
+    expect(formatTripDateRange('zh-TW', '2027-12-30', '2028-01-03')).toBe(
+      '2027/12/30 週四 至 2028/1/3 週一',
+    );
+  });
+
+  it('同一天只有一個日期，星期前面已經有括號就不加空格', () => {
+    expect(formatTripDateRange('zh-TW', '2027-03-05', '2027-03-05')).toBe('2027/3/5（週五）');
   });
 });

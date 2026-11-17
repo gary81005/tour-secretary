@@ -1,18 +1,8 @@
-import { useFormatter } from 'next-intl';
-import { localDateToUtc } from '@/lib/trip/trip-dates';
+import { useLocale } from 'next-intl';
+import { formatTripDateRange } from '@/lib/trip/trip-dates';
 
 export function TripDateRange({ startDate, endDate }: { startDate: string; endDate: string }) {
-  const format = useFormatter();
+  const locale = useLocale();
 
-  return (
-    <time dateTime={startDate}>
-      {format.dateTimeRange(localDateToUtc(startDate), localDateToUtc(endDate), {
-        year: 'numeric',
-        month: 'numeric',
-        day: 'numeric',
-        weekday: 'short',
-        timeZone: 'UTC',
-      })}
-    </time>
-  );
+  return <time dateTime={startDate}>{formatTripDateRange(locale, startDate, endDate)}</time>;
 }
