@@ -165,6 +165,8 @@ export type Database = {
           end_time: string | null
           id: string
           position: number
+          replaces_item_id: string | null
+          skipped_at: string | null
           start_time: string | null
           time_slot: Database["public"]["Enums"]["time_slot"]
           title: string
@@ -182,6 +184,8 @@ export type Database = {
           end_time?: string | null
           id?: string
           position?: number
+          replaces_item_id?: string | null
+          skipped_at?: string | null
           start_time?: string | null
           time_slot: Database["public"]["Enums"]["time_slot"]
           title: string
@@ -199,6 +203,8 @@ export type Database = {
           end_time?: string | null
           id?: string
           position?: number
+          replaces_item_id?: string | null
+          skipped_at?: string | null
           start_time?: string | null
           time_slot?: Database["public"]["Enums"]["time_slot"]
           title?: string
@@ -212,6 +218,13 @@ export type Database = {
             columns: ["day_id", "trip_id"]
             isOneToOne: false
             referencedRelation: "days"
+            referencedColumns: ["id", "trip_id"]
+          },
+          {
+            foreignKeyName: "items_replaces_item_fk"
+            columns: ["replaces_item_id", "trip_id"]
+            isOneToOne: false
+            referencedRelation: "items"
             referencedColumns: ["id", "trip_id"]
           },
           {
@@ -352,6 +365,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "traveler_constraints_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_adjustments: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          created_item_ids: string[]
+          id: string
+          previous_items: Json
+          trip_id: string
+          undone_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          created_item_ids?: string[]
+          id?: string
+          previous_items?: Json
+          trip_id: string
+          undone_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          created_item_ids?: string[]
+          id?: string
+          previous_items?: Json
+          trip_id?: string
+          undone_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_adjustments_trip_id_fkey"
             columns: ["trip_id"]
             isOneToOne: false
             referencedRelation: "trips"
@@ -564,6 +615,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_trip_adjustment: {
+        Args: { p_plan: Json; p_trip_id: string }
+        Returns: string
+      }
       can_access_trip: { Args: { p_trip_id: string }; Returns: boolean }
       create_trip: {
         Args: {
@@ -654,6 +709,10 @@ export type Database = {
         Returns: undefined
       }
       undo_import: { Args: { p_import_id: string }; Returns: undefined }
+      undo_trip_adjustment: {
+        Args: { p_adjustment_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       item_category:
