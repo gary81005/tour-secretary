@@ -12,7 +12,9 @@
     "empty": {
       "title": "還沒有行程",
       "description": "建立第一個行程，開始規劃旅途。"
-    }
+    },
+    "sharedWith": "和 {count} 位旅伴共用",
+    "moreCompanions": "+{count}"
   },
   "create": {
     "title": "建立行程",

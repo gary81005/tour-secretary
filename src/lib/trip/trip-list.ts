@@ -1,3 +1,4 @@
+import { NO_COMPANIONS, type TripCompanions } from './members';
 import { countDays } from './trip-dates';
 import {
   currentDayIndex,
@@ -31,9 +32,15 @@ export type TripSummary = {
   currentDate: string | null;
   // 進行中或 7 天內出發：會存離線快照（ADR 0010）
   offlineSnapshot: boolean;
+  // 自己以外的旅伴頭像（ADR 0005「M5 旅伴與權限」Q12）
+  companions: TripCompanions;
 };
 
-export function summarizeTrip(trip: TripListSource, now: Date): TripSummary {
+export function summarizeTrip(
+  trip: TripListSource,
+  now: Date,
+  companions: TripCompanions = NO_COMPANIONS,
+): TripSummary {
   const days = trip.days.toSorted((a, b) => a.date.localeCompare(b.date));
   const daysInZone = days.map((day) => ({
     date: day.date,
@@ -53,6 +60,7 @@ export function summarizeTrip(trip: TripListSource, now: Date): TripSummary {
     currentDay: index >= 0 ? index + 1 : null,
     currentDate: index >= 0 ? days[index].date : null,
     offlineSnapshot: keepsOfflineSnapshot(daysInZone, now),
+    companions,
   };
 }
 

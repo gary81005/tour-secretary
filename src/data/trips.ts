@@ -1,6 +1,7 @@
 import 'server-only';
 import { cache } from 'react';
 import { createClient } from '@/lib/supabase/server';
+import { tripCompanions } from '@/lib/trip/members';
 import { groupTripsByPhase, summarizeTrip } from '@/lib/trip/trip-list';
 import { isUuid } from '@/lib/uuid';
 
@@ -8,17 +9,38 @@ import { isUuid } from '@/lib/uuid';
 // 軟刪除不在 RLS 過濾，所以每個查詢都要自己加 deleted_at 條件（CLAUDE.md「Database」）。
 // 這些函式會讀 cookie，呼叫端要放在 <Suspense> 裡。
 
-// 行程列表：依進行中／即將出發／已結束分組。
+// 行程列表：依進行中／即將出發／已結束分組。卡片上顯示自己以外的旅伴頭像（ADR 0005 Q12）；
+// profiles 和 trip_members 之間沒有外鍵，另外查一次。
 export async function getTripListGroups() {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('trips')
-    .select('id, name, start_date, end_date, default_timezone, days (date, city, timezone)')
-    .is('deleted_at', null);
+  const [{ data: auth }, { data, error }] = await Promise.all([
+    supabase.auth.getClaims(),
+    supabase
+      .from('trips')
+      .select(
+        'id, name, start_date, end_date, default_timezone, days (date, city, timezone), trip_members (user_id, created_at)',
+      )
+      .is('deleted_at', null),
+  ]);
   if (error) throw error;
 
+  const selfId = auth?.claims.sub ?? null;
+  const otherIds = [
+    ...new Set(data.flatMap((trip) => trip.trip_members.map((member) => member.user_id))),
+  ].filter((id) => id !== selfId);
+  const { data: profiles, error: profileError } =
+    otherIds.length > 0
+      ? await supabase.from('profiles').select('id, display_name, avatar_url').in('id', otherIds)
+      : { data: [], error: null };
+  if (profileError) throw profileError;
+  const profileById = new Map(profiles.map((profile) => [profile.id, profile]));
+
   const now = new Date();
-  return groupTripsByPhase(data.map((trip) => summarizeTrip(trip, now)));
+  return groupTripsByPhase(
+    data.map((trip) =>
+      summarizeTrip(trip, now, tripCompanions(trip.trip_members, selfId, profileById)),
+    ),
+  );
 }
 
 // React cache：同一個請求裡 generateMetadata 與頁面都會呼叫，只查一次資料庫。

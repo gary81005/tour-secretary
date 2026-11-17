@@ -2,14 +2,17 @@ import { MapPinIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
+import { MemberAvatar } from '@/components/member/member-avatar';
 import { TripDateRange } from '@/components/trip/trip-date-range';
+import { AvatarGroup, AvatarGroupCount } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { getTodayProgressItems } from '@/data/trips';
 import { Link } from '@/i18n/navigation';
 import { dayProgress } from '@/lib/trip/progress';
+import type { TripCompanions } from '@/lib/trip/members';
 import type { TripSummary } from '@/lib/trip/trip-list';
 
-// 首頁的行程卡片：日期、天數、城市；進行中時加上今天的進度。
+// 首頁的行程卡片：日期、天數、城市、旅伴頭像；進行中時加上今天的進度。
 export function TripCard({ trip }: { trip: TripSummary }) {
   const t = useTranslations('trips.list');
 
@@ -20,9 +23,10 @@ export function TripCard({ trip }: { trip: TripSummary }) {
     >
       <div className='flex items-start justify-between gap-3'>
         <span className='font-medium'>{trip.name}</span>
-        {trip.currentDay !== null && (
-          <Badge className='shrink-0'>{t('currentDay', { day: trip.currentDay })}</Badge>
-        )}
+        <div className='flex shrink-0 items-center gap-2'>
+          <Companions companions={trip.companions} />
+          {trip.currentDay !== null && <Badge>{t('currentDay', { day: trip.currentDay })}</Badge>}
+        </div>
       </div>
       <div className='text-sm text-muted-foreground'>
         <TripDateRange startDate={trip.startDate} endDate={trip.endDate} />
@@ -41,6 +45,31 @@ export function TripCard({ trip }: { trip: TripSummary }) {
         </Suspense>
       )}
     </Link>
+  );
+}
+
+// 其他旅伴的頭像，最多 3 個，再多顯示「+N」；只有自己時不顯示（ADR 0005 Q12）。
+// 頭像本身不念，改念「和 N 位旅伴共用」。
+function Companions({ companions }: { companions: TripCompanions }) {
+  const t = useTranslations('trips.list');
+  const { avatars, more } = companions;
+  if (avatars.length === 0) return null;
+
+  return (
+    <>
+      <span className='sr-only'>{t('sharedWith', { count: avatars.length + more })}</span>
+      <AvatarGroup aria-hidden='true'>
+        {avatars.map((avatar) => (
+          <MemberAvatar
+            key={avatar.userId}
+            name={avatar.displayName}
+            avatarUrl={avatar.avatarUrl}
+            size='sm'
+          />
+        ))}
+        {more > 0 && <AvatarGroupCount>{t('moreCompanions', { count: more })}</AvatarGroupCount>}
+      </AvatarGroup>
+    </>
   );
 }
 
