@@ -25,6 +25,9 @@ export type ActionErrorKey =
   | 'invalidImport'
   | 'importNotUndoable'
   | 'ownerOnly'
+  | 'tripFull'
+  | 'nameRequired'
+  | 'ownerCannotLeave'
   | 'unknown';
 
 export type ActionResult = { ok: true } | { ok: false; error: ActionErrorKey };

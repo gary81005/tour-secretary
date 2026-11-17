@@ -74,8 +74,8 @@ SELECT tests.is((SELECT count(*)::int FROM public.days), 0, '別人看不到天'
 SELECT tests.is((SELECT count(*)::int FROM public.items), 0, '別人看不到項目');
 SELECT tests.is((SELECT count(*)::int FROM public.trip_members), 0, '別人看不到旅伴名單');
 SELECT tests.is(
-  (SELECT string_agg(display_name, ', ') FROM public.profiles), 'outsider',
-  '別人只看得到自己的 profile（沒有名稱時用 Email 前半段）');
+  (SELECT string_agg(id::text, ', ') FROM public.profiles), tests.user_id('outsider')::text,
+  '別人只看得到自己的 profile');
 SELECT tests.is(
   tests.row_count(format($$UPDATE public.items SET title = 'hacked' WHERE id = %L$$, :'item_id')),
   0, '別人改不了項目');
@@ -171,11 +171,11 @@ INSERT INTO auth.users (id, email, raw_user_meta_data) VALUES
   ('00000000-0000-0000-0000-0000000000d3', 'd3@example.com',
    jsonb_build_object('full_name', repeat('長', 80), 'avatar_url', 'https://x/' || repeat('a', 3000)));
 SELECT tests.is(
-  (SELECT string_agg(left(display_name, 3) || ':' || char_length(display_name) || ':' || (avatar_url IS NOT NULL),
-                     ', ' ORDER BY id)
+  (SELECT string_agg(coalesce(left(display_name, 3), '-') || ':' || coalesce(char_length(display_name)::text, '-')
+                     || ':' || (avatar_url IS NOT NULL), ', ' ORDER BY id)
    FROM public.profiles WHERE id::text LIKE '%d_'),
-  'd1:2:true, d2:2:false, 長長長:50:false'::text,
-  '註冊時：名稱空白改用 Email 前半段、超過 50 字截斷；頭像只收 2000 字內的 http(s)');
+  '-:-:true, -:-:false, 長長長:50:false'::text,
+  '註冊時：沒有名字或空白時名稱是空的、超過 50 字截斷；頭像只收 2000 字內的 http(s)');
 
 :as_owner
 SELECT tests.throws(

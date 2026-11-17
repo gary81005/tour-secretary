@@ -427,6 +427,32 @@ export type Database = {
           },
         ]
       }
+      trip_invites: {
+        Row: {
+          token: string
+          trip_id: string
+          updated_at: string
+        }
+        Insert: {
+          token?: string
+          trip_id: string
+          updated_at?: string
+        }
+        Update: {
+          token?: string
+          trip_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_invites_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: true
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trip_members: {
         Row: {
           created_at: string
@@ -550,6 +576,19 @@ export type Database = {
       }
       delete_day: { Args: { p_day_id: string }; Returns: undefined }
       ensure_trip_owner: { Args: { p_trip_id: string }; Returns: undefined }
+      get_trip_invite: {
+        Args: { p_token: string }
+        Returns: {
+          end_date: string
+          member_count: number
+          name: string
+          owner_avatar_url: string
+          owner_name: string
+          start_date: string
+          status: string
+          trip_id: string
+        }[]
+      }
       import_trip: {
         Args: {
           p_mode?: Database["public"]["Enums"]["trip_import_mode"]
@@ -566,7 +605,16 @@ export type Database = {
       insert_day_after: { Args: { p_day_id: string }; Returns: string }
       is_trip_member: { Args: { p_trip_id: string }; Returns: boolean }
       is_trip_owner: { Args: { p_trip_id: string }; Returns: boolean }
+      join_trip: {
+        Args: { p_display_name?: string; p_token: string }
+        Returns: string
+      }
+      leave_trip: { Args: { p_trip_id: string }; Returns: undefined }
       purge_deleted_rows: { Args: never; Returns: undefined }
+      remove_trip_member: {
+        Args: { p_reset_invite?: boolean; p_trip_id: string; p_user_id: string }
+        Returns: undefined
+      }
       reorder_items: {
         Args: {
           p_day_id: string
@@ -579,6 +627,7 @@ export type Database = {
         Args: { p_note_ids: string[]; p_trip_id: string }
         Returns: undefined
       }
+      reset_trip_invite: { Args: { p_trip_id: string }; Returns: string }
       save_item: {
         Args: {
           p_category: Database["public"]["Enums"]["item_category"]

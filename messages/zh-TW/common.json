@@ -24,7 +24,10 @@
     "lastDay": "行程至少要保留一天。",
     "invalidImport": "匯入的資料有誤，請重新上傳檔案。",
     "importNotUndoable": "這次匯入已經無法復原：超過 30 天、已經復原過，或之後又匯入過其他檔案。",
-    "ownerOnly": "只有主辦人可以做這個操作。"
+    "ownerOnly": "只有主辦人可以做這個操作。",
+    "tripFull": "這個行程的旅伴已經滿 20 人了。",
+    "nameRequired": "請先填寫你的名稱。",
+    "ownerCannotLeave": "主辦人不能退出行程。"
   },
   "timezones": {
     "Asia/Tokyo": "東京（GMT+9）",

@@ -14,6 +14,10 @@ describe('rpcErrorKey', () => {
     [{ code: 'P0002', message: 'import not found' }, 'notFound'],
     [{ code: '42501', message: 'owner_only' }, 'ownerOnly'],
     [{ code: '42501', message: 'not authenticated' }, 'unknown'],
+    [{ code: 'P0002', message: 'invite not found' }, 'notFound'],
+    [{ code: 'P0001', message: 'trip_full' }, 'tripFull'],
+    [{ code: '22023', message: 'name_required' }, 'nameRequired'],
+    [{ code: 'P0001', message: 'owner_cannot_leave' }, 'ownerCannotLeave'],
     [{ code: '23514', message: 'new row violates check constraint' }, 'unknown'],
   ] as const)('%j → %s', (error, key) => {
     expect(rpcErrorKey(error)).toBe(key);

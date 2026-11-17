@@ -1,8 +1,8 @@
 import type { ActionErrorKey } from '@/lib/form';
 
 // 資料庫函式（supabase/migrations）拋出的錯誤 → 畫面上的錯誤 key。
-// 錯誤碼：P0002 找不到或沒有權限；40001 資料已變動；22023 / P0001 / 42501 用訊息區分原因
-// （42501 owner_only：只有主辦人能做）。
+// 錯誤碼：P0002 找不到或沒有權限（包含無效的邀請連結）；40001 資料已變動；
+// 22023 / P0001 / 42501 用訊息區分原因（42501 owner_only：只有主辦人能做）。
 export function rpcErrorKey(error: { code: string; message: string }): ActionErrorKey {
   if (error.code === 'P0002') return 'notFound';
   if (error.code === '40001') return 'conflict';
@@ -20,6 +20,12 @@ export function rpcErrorKey(error: { code: string; message: string }): ActionErr
       return 'importNotUndoable';
     case 'owner_only':
       return 'ownerOnly';
+    case 'trip_full':
+      return 'tripFull';
+    case 'name_required':
+      return 'nameRequired';
+    case 'owner_cannot_leave':
+      return 'ownerCannotLeave';
     default:
       return 'unknown';
   }

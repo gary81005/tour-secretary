@@ -74,6 +74,12 @@
 - 旅伴退出或被移除後，他新增的資料與打過的「完成」都留在行程裡；他手機上的離線快照，下次線上打開首頁時清掉（ADR 0010）。
 - 名稱：帳號選單有「我的名稱」可以設定（`profiles.display_name`）；加入行程時沒有名稱要先填。沒有名稱時顯示「旅伴」與預設頭像。
 - 首頁的行程卡片：有其他旅伴時顯示頭像（最多 3 個，再多顯示「+N」），只有自己時不顯示。
+- 註冊時只用登入方式給的名字（Google 的 `full_name` / `name`），沒有就是空的；不用 Email 前半段，否則旅伴會看到 Email 的一部分。之前這樣產生的名稱由 migration 清掉。
+- 實作（`20261117000002_trip_invites.sql`）：
+  - `trip_invites`：每個行程一筆（建立行程時由 trigger 產生），`token` 是隨機 uuid，只有主辦人讀得到。
+  - `get_trip_invite(token)`：登入後的確認頁資料，`status` 是 `joinable` / `member` / `full` / `trashed`（`trashed` 不回傳行程內容）；連結無效時沒有任何列。
+  - `join_trip(token, display_name)`：鎖住行程再算人數；沒有名稱時要傳名稱（`22023 name_required`），滿 20 人是 `P0001 trip_full`，已經是旅伴直接回傳行程 id。
+  - `leave_trip`（主辦人是 `P0001 owner_cannot_leave`）、`remove_trip_member(trip, user, reset_invite = true)`、`reset_trip_invite`（主辦人）。
 
 ### 一起處理（Q6）
 
