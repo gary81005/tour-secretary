@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { DaySelector } from '@/components/itinerary/day-selector';
 import { getDayMaps } from '@/data/day-maps';
+import { isTripOwner } from '@/data/members';
 import { getDayItems, getTrip, getTripDays, getTripStays } from '@/data/trips';
 import { resolveSelectedDayIndex } from '@/lib/trip/day-selection';
 import { canMarkDone, nowStay } from '@/lib/trip/progress';
@@ -40,7 +41,11 @@ async function Itinerary({ params, searchParams }: Props) {
     todayIndex,
   );
   const selectedDay = days[selectedIndex];
-  const [items, stays] = await Promise.all([getDayItems(selectedDay.id), getTripStays(tripId)]);
+  const [items, stays, isOwner] = await Promise.all([
+    getDayItems(selectedDay.id),
+    getTripStays(tripId),
+    isTripOwner(tripId),
+  ]);
   // 最後一天是回程日，不需要住宿。
   const isLastDay = selectedIndex === days.length - 1;
   const timezone = timezones[selectedIndex];
@@ -118,6 +123,7 @@ async function Itinerary({ params, searchParams }: Props) {
             dayCount={days.length}
             itemCount={items.length}
             defaultTimezone={trip.default_timezone}
+            canDeleteDay={isOwner}
           />
         }
       />

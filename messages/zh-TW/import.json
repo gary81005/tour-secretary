@@ -85,7 +85,7 @@
   "submitting": "匯入中…",
   "intoTrip": {
     "title": "匯入 xlsx 到這個行程",
-    "description": "上傳 xlsx 行程表，選擇附加或覆蓋，預覽確認後寫入。檔案只在你的瀏覽器裡讀取，不會上傳。",
+    "description": "上傳 xlsx 行程表，預覽確認後寫入行程。檔案只在你的瀏覽器裡讀取，不會上傳。",
     "modeLabel": "匯入方式",
     "append": "附加",
     "appendDescription": "檔案內容加到行程裡。已經有的資料預設不重複匯入，城市只填原本空白的天。",

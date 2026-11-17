@@ -48,10 +48,20 @@ type Props = {
   dayCount: number;
   itemCount: number;
   defaultTimezone: string;
+  // 刪除一天只有主辦人能做，旅伴看不到這個選項（ADR 0005 Q11）。
+  canDeleteDay: boolean;
 };
 
 // 單日畫面右上角的「⋯」選單（第 9 步）：編輯這一天、在後面插入一天、刪除這一天。
-export function DayMenu({ tripId, day, laterDays, dayCount, itemCount, defaultTimezone }: Props) {
+export function DayMenu({
+  tripId,
+  day,
+  laterDays,
+  dayCount,
+  itemCount,
+  defaultTimezone,
+  canDeleteDay,
+}: Props) {
   const t = useTranslations();
   const router = useRouter();
   const [dialog, setDialog] = useState<'edit' | 'delete' | null>(null);
@@ -99,15 +109,19 @@ export function DayMenu({ tripId, day, laterDays, dayCount, itemCount, defaultTi
             <CalendarPlusIcon />
             {t('trips.dayMenu.insertAfter')}
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            variant='destructive'
-            onClick={() => openDialog('delete')}
-            disabled={dayCount <= 1}
-          >
-            <Trash2Icon />
-            {t('trips.dayMenu.delete')}
-          </DropdownMenuItem>
+          {canDeleteDay && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant='destructive'
+                onClick={() => openDialog('delete')}
+                disabled={dayCount <= 1}
+              >
+                <Trash2Icon />
+                {t('trips.dayMenu.delete')}
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -119,14 +133,16 @@ export function DayMenu({ tripId, day, laterDays, dayCount, itemCount, defaultTi
         open={dialog === 'edit'}
         onOpenChange={(open) => !open && setDialog(null)}
       />
-      <DeleteDayDialog
-        key={`delete-day-${dialogKey}`}
-        day={day}
-        itemCount={itemCount}
-        open={dialog === 'delete'}
-        onOpenChange={(open) => !open && setDialog(null)}
-        onDeleted={() => goToDay(Math.min(day.dayNumber, dayCount - 1))}
-      />
+      {canDeleteDay && (
+        <DeleteDayDialog
+          key={`delete-day-${dialogKey}`}
+          day={day}
+          itemCount={itemCount}
+          open={dialog === 'delete'}
+          onOpenChange={(open) => !open && setDialog(null)}
+          onDeleted={() => goToDay(Math.min(day.dayNumber, dayCount - 1))}
+        />
+      )}
     </>
   );
 }

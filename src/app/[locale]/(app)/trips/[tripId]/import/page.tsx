@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { getImportTarget } from '@/data/imports';
+import { isTripOwner } from '@/data/members';
 import { ImportIntoTrip } from './_components/import-into-trip';
 
 type Props = PageProps<'/[locale]/trips/[tripId]/import'>;
@@ -33,8 +34,8 @@ export default function ImportIntoTripPage({ params }: Props) {
 // 預覽比對用的既有資料（重複資料、城市、覆蓋筆數、備案可以掛的既有項目）。
 async function ImportTarget({ params }: Pick<Props, 'params'>) {
   const { tripId } = await params;
-  const trip = await getImportTarget(tripId);
+  const [trip, isOwner] = await Promise.all([getImportTarget(tripId), isTripOwner(tripId)]);
   if (!trip) notFound();
 
-  return <ImportIntoTrip tripId={tripId} trip={trip} />;
+  return <ImportIntoTrip tripId={tripId} trip={trip} canOverwrite={isOwner} />;
 }

@@ -29,7 +29,12 @@ import { XlsxFilePicker, type LoadedFile } from '../../../_components/import/xls
 
 type Mode = 'append' | 'overwrite';
 
-type Props = { tripId: string; trip: ExistingTrip };
+type Props = {
+  tripId: string;
+  trip: ExistingTrip;
+  // 覆蓋與復原只有主辦人能做（ADR 0005「M5 旅伴與權限」）：旅伴只能附加，不顯示匯入方式與「復原」。
+  canOverwrite: boolean;
+};
 
 // 匯入到既有行程（ADR 0008 Q1、Q14、Q15）：選檔案 → 選附加或覆蓋 → 預覽 → 確認（覆蓋要再確認一次）。
 // 完成後到檔案的第一個日期，提示框提供「復原」。
@@ -43,6 +48,7 @@ export function ImportIntoTrip(props: Props) {
 function IntoTripPreview({
   tripId,
   trip,
+  canOverwrite,
   file,
   onReset,
 }: Props & { file: LoadedFile; onReset: () => void }) {
@@ -52,9 +58,16 @@ function IntoTripPreview({
     <div className='flex flex-col gap-8'>
       <ImportFileBar fileName={file.fileName} onReset={onReset} />
       <ImportIssues issues={file.draft.issues} />
-      <ModeField value={mode} onChange={setMode} />
+      {canOverwrite && <ModeField value={mode} onChange={setMode} />}
       {/* 換模式時重新開始勾選：重複資料只在附加模式預設不勾。 */}
-      <ModePreview key={mode} mode={mode} tripId={tripId} trip={trip} draft={file.draft} />
+      <ModePreview
+        key={mode}
+        mode={mode}
+        tripId={tripId}
+        trip={trip}
+        draft={file.draft}
+        canUndo={canOverwrite}
+      />
     </div>
   );
 }
@@ -93,11 +106,13 @@ function ModePreview({
   tripId,
   trip,
   draft,
+  canUndo,
 }: {
   mode: Mode;
   tripId: string;
   trip: ExistingTrip;
   draft: ImportDraft;
+  canUndo: boolean;
 }) {
   const t = useTranslations();
   const router = useRouter();
@@ -132,19 +147,20 @@ function ModePreview({
       }
       const { importId } = result;
       toast.success(t('import.intoTrip.done'), {
-        action: importId
-          ? {
-              label: t('import.undo.action'),
-              onClick: async () => {
-                const undone = await undoImport(importId).catch((): ActionResult => ({
-                  ok: false,
-                  error: 'unknown',
-                }));
-                if (undone.ok) toast.success(t('import.undo.done'));
-                else toast.error(t(`errors.${undone.error}`));
-              },
-            }
-          : undefined,
+        action:
+          importId && canUndo
+            ? {
+                label: t('import.undo.action'),
+                onClick: async () => {
+                  const undone = await undoImport(importId).catch((): ActionResult => ({
+                    ok: false,
+                    error: 'unknown',
+                  }));
+                  if (undone.ok) toast.success(t('import.undo.done'));
+                  else toast.error(t(`errors.${undone.error}`));
+                },
+              }
+            : undefined,
       });
       // 到檔案的第一個日期（匯入後的第幾天）；只有備案等其他工作表時到行程頁。
       const firstDate = draft.days[0]?.date;

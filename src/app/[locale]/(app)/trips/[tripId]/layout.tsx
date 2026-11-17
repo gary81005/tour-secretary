@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { Suspense, type ReactNode } from 'react';
 import { TripDateRange } from '@/components/trip/trip-date-range';
 import { getUndoableImportId } from '@/data/imports';
+import { isTripOwner } from '@/data/members';
 import { getOfflineSnapshot } from '@/data/offline';
 import { getTrip, getTripDays } from '@/data/trips';
 import { keepsOfflineSnapshot, resolveTimezone } from '@/lib/trip/trip-phase';
@@ -31,9 +32,10 @@ export default function TripLayout({ children, params }: { children: ReactNode; 
 
 async function TripHeader({ params }: { params: Params }) {
   const { tripId } = await params;
-  const [trip, days, undoableImportId] = await Promise.all([
+  const [trip, days, isOwner, undoableImportId] = await Promise.all([
     getTrip(tripId),
     getTripDays(tripId),
+    isTripOwner(tripId),
     getUndoableImportId(tripId),
   ]);
   if (!trip) notFound();
@@ -57,7 +59,9 @@ async function TripHeader({ params }: { params: Params }) {
         <TripMenu
           trip={trip}
           days={days.map((day) => ({ id: day.id, date: day.date }))}
-          undoableImportId={undoableImportId}
+          isOwner={isOwner}
+          // 復原上次匯入只有主辦人能做（ADR 0005「M5 旅伴與權限」）。
+          undoableImportId={isOwner ? undoableImportId : null}
         />
       </div>
       <TripTabs tripId={trip.id} />

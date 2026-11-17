@@ -8,6 +8,7 @@ import {
   PencilIcon,
   Trash2Icon,
   Undo2Icon,
+  UsersIcon,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
@@ -31,7 +32,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useRouter } from '@/i18n/navigation';
+import { Link, useRouter } from '@/i18n/navigation';
 import type { ActionResult } from '@/lib/form';
 import {
   ChangeDatesDialog,
@@ -43,15 +44,17 @@ import {
 type Props = {
   trip: TripSettings;
   days: { id: string; date: string }[];
+  // 只有主辦人能做的項目（平移、改起訖日、復原上次匯入、移到垃圾桶）對旅伴隱藏（ADR 0005 Q11）。
+  isOwner: boolean;
   // 還能復原的上次匯入（getUndoableImportId），沒有時不顯示「復原上次匯入」。
   undoableImportId: string | null;
 };
 
 type DialogName = 'edit' | 'shift' | 'dates' | 'undoImport';
 
-// 行程右上角的「⋯」選單（Q26-3）：編輯行程、整趟平移、修改起訖日、匯入 xlsx、
+// 行程右上角的「⋯」選單（Q26-3）：編輯行程、整趟平移、修改起訖日、旅伴、匯入 xlsx、
 // 復原上次匯入（ADR 0008 Q15）、移到垃圾桶。
-export function TripMenu({ trip, days, undoableImportId }: Props) {
+export function TripMenu({ trip, days, isOwner, undoableImportId }: Props) {
   const t = useTranslations();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -103,15 +106,23 @@ export function TripMenu({ trip, days, undoableImportId }: Props) {
             <PencilIcon />
             {t('trips.trip.edit')}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => openDialog('shift')}>
-            <CalendarClockIcon />
-            {t('trips.trip.shift')}
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => openDialog('dates')}>
-            <CalendarRangeIcon />
-            {t('trips.trip.changeDates')}
-          </DropdownMenuItem>
+          {isOwner && (
+            <>
+              <DropdownMenuItem onClick={() => openDialog('shift')}>
+                <CalendarClockIcon />
+                {t('trips.trip.shift')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => openDialog('dates')}>
+                <CalendarRangeIcon />
+                {t('trips.trip.changeDates')}
+              </DropdownMenuItem>
+            </>
+          )}
           <DropdownMenuSeparator />
+          <DropdownMenuItem render={<Link href={`/trips/${trip.id}/members`} />}>
+            <UsersIcon />
+            {t('trips.trip.members')}
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => router.push(`/trips/${trip.id}/import`)}>
             <FileSpreadsheetIcon />
             {t('import.entry')}
@@ -122,11 +133,15 @@ export function TripMenu({ trip, days, undoableImportId }: Props) {
               {t('import.undo.menu')}
             </DropdownMenuItem>
           )}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem variant='destructive' onClick={moveToTrash}>
-            <Trash2Icon />
-            {t('trips.trip.moveToTrash')}
-          </DropdownMenuItem>
+          {isOwner && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant='destructive' onClick={moveToTrash}>
+                <Trash2Icon />
+                {t('trips.trip.moveToTrash')}
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -136,19 +151,23 @@ export function TripMenu({ trip, days, undoableImportId }: Props) {
         open={dialog === 'edit'}
         onOpenChange={closeDialog}
       />
-      <ShiftTripDialog
-        key={`shift-trip-${dialogKey}`}
-        trip={trip}
-        open={dialog === 'shift'}
-        onOpenChange={closeDialog}
-      />
-      <ChangeDatesDialog
-        key={`change-dates-${dialogKey}`}
-        trip={trip}
-        days={days}
-        open={dialog === 'dates'}
-        onOpenChange={closeDialog}
-      />
+      {isOwner && (
+        <>
+          <ShiftTripDialog
+            key={`shift-trip-${dialogKey}`}
+            trip={trip}
+            open={dialog === 'shift'}
+            onOpenChange={closeDialog}
+          />
+          <ChangeDatesDialog
+            key={`change-dates-${dialogKey}`}
+            trip={trip}
+            days={days}
+            open={dialog === 'dates'}
+            onOpenChange={closeDialog}
+          />
+        </>
+      )}
       {undoableImportId && (
         <UndoImportDialog
           importId={undoableImportId}

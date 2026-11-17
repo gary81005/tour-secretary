@@ -37,7 +37,8 @@
     "undo": "復原",
     "edit": "編輯行程",
     "shift": "整趟平移",
-    "changeDates": "修改起訖日"
+    "changeDates": "修改起訖日",
+    "members": "旅伴"
   },
   "trash": {
     "title": "垃圾桶",
@@ -322,5 +323,38 @@
     "homeCurrent": "現在：{title}",
     "homeNext": "下一站：{title}",
     "homeAllDone": "今天的行程都完成了"
+  },
+  "members": {
+    "title": "旅伴",
+    "inviteTitle": "邀請連結",
+    "inviteDescription": "把連結貼到群組，對方登入後就能加入。一個行程最多 {max} 人（含主辦人）。",
+    "inviteLinkLabel": "邀請連結",
+    "copy": "複製連結",
+    "copied": "已複製邀請連結",
+    "copyFailed": "無法複製，請長按連結自行複製",
+    "reset": "重設連結",
+    "resetTitle": "重設邀請連結？",
+    "resetDescription": "原本的連結會立刻失效，已經加入的旅伴不受影響。",
+    "resetConfirm": "重設",
+    "resetDone": "已重設邀請連結",
+    "full": "旅伴已滿 {max} 人，其他人無法再加入。",
+    "listTitle": "名單",
+    "count": "{count} / {max} 人",
+    "noName": "旅伴",
+    "you": "（你）",
+    "owner": "主辦人",
+    "remove": "移除",
+    "removeTitle": "移除「{name}」？",
+    "removeDescription": "對方會看不到這個行程；他新增的內容會留在行程裡。",
+    "resetWithRemove": "同時重設邀請連結",
+    "resetWithRemoveDescription": "不重設的話，對方可以用原本的連結再加入。",
+    "removeConfirm": "移除",
+    "removed": "已移除「{name}」",
+    "leave": "退出行程",
+    "leaveTitle": "退出「{name}」？",
+    "leaveDescription": "退出後就看不到這個行程；你新增的內容會留在行程裡。要再加入，需要主辦人給的邀請連結。",
+    "leaveConfirm": "退出",
+    "left": "已退出「{name}」",
+    "cancel": "取消"
   }
 }
