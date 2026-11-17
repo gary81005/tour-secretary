@@ -82,8 +82,9 @@ async function setDeletedAt(tripId: string, deletedAt: string | null): Promise<A
     .update({ deleted_at: deletedAt })
     .eq('id', tripId)
     .select('id');
-  if (error) return { ok: false, error: 'unknown' };
-  // RLS 擋掉或行程不存在時，update 不會報錯，只是影響 0 筆。
+  // 旅伴改 deleted_at 會被 RLS 的 with check 擋下（42501，只有主辦人能移到垃圾桶與復原）。
+  if (error) return { ok: false, error: error.code === '42501' ? 'ownerOnly' : 'unknown' };
+  // 不是成員、行程不存在，或旅伴要復原垃圾桶裡（看不到）的行程時，update 不會報錯，只是影響 0 筆。
   return data.length > 0 ? { ok: true } : { ok: false, error: 'notFound' };
 }
 

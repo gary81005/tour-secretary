@@ -24,6 +24,7 @@ export type ActionErrorKey =
   | 'lastDay'
   | 'invalidImport'
   | 'importNotUndoable'
+  | 'ownerOnly'
   | 'unknown';
 
 export type ActionResult = { ok: true } | { ok: false; error: ActionErrorKey };

@@ -372,8 +372,6 @@ export type Database = {
           id: string
           mode: Database["public"]["Enums"]["trip_import_mode"]
           previous_cities: Json
-          previous_end_date: string
-          previous_start_date: string
           replaced_constraint_ids: string[]
           replaced_item_ids: string[]
           replaced_note_ids: string[]
@@ -393,8 +391,6 @@ export type Database = {
           id?: string
           mode: Database["public"]["Enums"]["trip_import_mode"]
           previous_cities?: Json
-          previous_end_date: string
-          previous_start_date: string
           replaced_constraint_ids?: string[]
           replaced_item_ids?: string[]
           replaced_note_ids?: string[]
@@ -414,8 +410,6 @@ export type Database = {
           id?: string
           mode?: Database["public"]["Enums"]["trip_import_mode"]
           previous_cities?: Json
-          previous_end_date?: string
-          previous_start_date?: string
           replaced_constraint_ids?: string[]
           replaced_item_ids?: string[]
           replaced_note_ids?: string[]
@@ -555,6 +549,7 @@ export type Database = {
         Returns: string
       }
       delete_day: { Args: { p_day_id: string }; Returns: undefined }
+      ensure_trip_owner: { Args: { p_trip_id: string }; Returns: undefined }
       import_trip: {
         Args: {
           p_mode?: Database["public"]["Enums"]["trip_import_mode"]

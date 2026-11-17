@@ -12,6 +12,8 @@ describe('rpcErrorKey', () => {
     [{ code: '22023', message: 'invalid_payload' }, 'invalidImport'],
     [{ code: 'P0001', message: 'import_not_undoable' }, 'importNotUndoable'],
     [{ code: 'P0002', message: 'import not found' }, 'notFound'],
+    [{ code: '42501', message: 'owner_only' }, 'ownerOnly'],
+    [{ code: '42501', message: 'not authenticated' }, 'unknown'],
     [{ code: '23514', message: 'new row violates check constraint' }, 'unknown'],
   ] as const)('%j → %s', (error, key) => {
     expect(rpcErrorKey(error)).toBe(key);

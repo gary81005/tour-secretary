@@ -40,7 +40,7 @@
 - 欄位層級 grant：`trips` 只能改名稱、預設時區、`deleted_at`；`days` 只能改城市與時區；新增行程與天的日期異動只能透過 RPC。
 - `anon` 沒有任何權限。永久刪除行程只有 owner 能做。
 - RPC：會照常套用 RLS 的用 `security invoker`（`save_item`、`reorder_items`、`reorder_trip_notes`）；需要繞過欄位 grant 的用 `security definer`，並在函式內先檢查 `can_access_trip()`（`create_trip`、日期相關的四個函式）。
-- RPC 錯誤碼：`P0002` 找不到或沒有權限、`40001` 資料已變動、`22023` / `P0001` 以訊息區分原因；由 `src/lib/rpc-errors.ts` 轉成畫面上的錯誤。
+- RPC 錯誤碼：`P0002` 找不到或沒有權限、`40001` 資料已變動、`42501` 只有主辦人能做（`owner_only`，M5）、`22023` / `P0001` 以訊息區分原因；由 `src/lib/rpc-errors.ts` 轉成畫面上的錯誤。
 
 ## M5 旅伴與權限
 
@@ -52,6 +52,9 @@
   - 旅伴也能做：插入一天（`insert_day_after`）、附加匯入、改行程名稱與預設時區、項目／住宿／提醒事項／旅伴限制的增刪改、打勾完成。
 - 只有主辦人能做的功能，旅伴的畫面上直接隱藏（不顯示停用的按鈕）；權限仍由 RLS 與函式把關。
 - 行程在垃圾桶時，旅伴看不到（垃圾桶列表也只列自己是主辦人的行程）。
+- 實作（`20261117000001_owner_permissions.sql`）：
+  - 主辦人專屬的函式開頭呼叫 `ensure_trip_owner()`：不是成員或在垃圾桶裡是 `P0002`，是旅伴是 `42501 owner_only`（不相干的人看不出行程存在）。
+  - `trips` 的 update policy 分兩條：旅伴只能改不在垃圾桶的行程，而且改完也不能在垃圾桶（填 `deleted_at` 被 with check 擋下）；主辦人不限。select policy 讓垃圾桶裡的行程只有主辦人看得到。
 
 ### 邀請連結（Q1、Q7、Q8、Q10、Q13）
 

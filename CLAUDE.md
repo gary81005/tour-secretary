@@ -73,7 +73,7 @@ npm run db:test       # 用 Docker 的 Postgres 套用 migrations 再跑 supabas
 - **SQL 回歸測試**在 `supabase/tests/`（不是 pgTAP，不要用 `supabase test db`）：`setup/` 模擬 Supabase 的角色、auth、pg_cron，每個 `*.test.sql` 在乾淨的資料庫裡執行，用 `:as_owner` / `:as_member` / `:as_outsider` / `:as_anon` 切換使用者，`tests.is` / `tests.ok` / `tests.throws` 斷言。改 migration 時同步補情境。
 - SQL 寫法：關鍵字大寫（`CREATE TABLE`、`NOT NULL`），型別、函式、識別字小寫（`uuid`、`now()`、`public.trips`），與 `vip-management-web` 一致。
 - migration 必須能重複執行：`if not exists`、`create or replace`、`drop policy if exists`、enum 用 `duplicate_object` 例外包起來。
-- 權限一律用 `is_trip_member()` / `can_access_trip()` 判斷；`trips.start_date/end_date`、`days.date` 只能透過 RPC 改（欄位層級 grant）。
+- 權限一律用 `is_trip_member()` / `can_access_trip()` 判斷，只有主辦人能做的 RPC 開頭呼叫 `ensure_trip_owner()`；`trips.start_date/end_date`、`days.date` 只能透過 RPC 改（欄位層級 grant）。
 - **軟刪除不在 RLS 過濾**（否則「復原」無法 update）：查詢 items、stays、trip_notes、traveler_constraints、trips 時要自己加 `deleted_at is null`。
 
 ## Styling
