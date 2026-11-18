@@ -62,7 +62,7 @@ export function StayCard({
       className={cn(
         'relative flex flex-col gap-1.5 rounded-lg border bg-card p-3',
         onEdit &&
-          'transition-colors hover:bg-muted/50 has-[button:focus-visible]:ring-3 has-[button:focus-visible]:ring-ring/50',
+          'pressable-card hover:bg-muted/50 has-[button:focus-visible]:ring-3 has-[button:focus-visible]:ring-ring/50',
       )}
     >
       <div className='flex items-start justify-between gap-2'>
@@ -73,7 +73,7 @@ export function StayCard({
               type='button'
               onClick={onEdit}
               aria-label={t('stays.edit', { name: stay.name })}
-              className='text-left outline-none after:absolute after:inset-0 after:rounded-lg'
+              className='text-left outline-none card-action after:absolute after:inset-0 after:rounded-lg'
             >
               {stay.name}
             </button>

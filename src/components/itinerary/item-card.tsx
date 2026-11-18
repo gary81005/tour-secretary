@@ -45,7 +45,7 @@ export function ItemCard({
       className={cn(
         'relative flex gap-3 rounded-lg border bg-card p-3',
         onEdit &&
-          'transition-colors hover:bg-muted/50 has-[button:focus-visible]:ring-3 has-[button:focus-visible]:ring-ring/50',
+          'pressable-card hover:bg-muted/50 has-[button:focus-visible]:ring-3 has-[button:focus-visible]:ring-ring/50',
       )}
     >
       {handle}
@@ -77,7 +77,7 @@ export function ItemCard({
                 type='button'
                 onClick={onEdit}
                 aria-label={t('item.edit', { title: item.title })}
-                className='text-left outline-none after:absolute after:inset-0 after:rounded-lg'
+                className='text-left outline-none card-action after:absolute after:inset-0 after:rounded-lg'
               >
                 {item.title}
               </button>

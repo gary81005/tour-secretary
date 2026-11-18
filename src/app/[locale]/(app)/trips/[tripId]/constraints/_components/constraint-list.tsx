@@ -59,7 +59,7 @@ export function ConstraintList({
             <ul className='flex flex-col gap-2'>
               {group.constraints.map((constraint) => (
                 <li key={constraint.id}>
-                  <article className='relative flex items-start gap-2 rounded-lg border bg-card p-3 transition-colors hover:bg-muted/50 has-[button:focus-visible]:ring-3 has-[button:focus-visible]:ring-ring/50'>
+                  <article className='relative flex pressable-card items-start gap-2 rounded-lg border bg-card p-3 hover:bg-muted/50 has-[button:focus-visible]:ring-3 has-[button:focus-visible]:ring-ring/50'>
                     {constraint.subject && (
                       <Badge variant='secondary' className='shrink-0'>
                         {constraint.subject}
@@ -69,7 +69,7 @@ export function ConstraintList({
                       type='button'
                       onClick={() => editor.openEditor(constraint)}
                       aria-label={t('constraints.edit', { content: constraint.content })}
-                      className='min-w-0 text-left break-words outline-none after:absolute after:inset-0 after:rounded-lg'
+                      className='min-w-0 text-left break-words outline-none card-action after:absolute after:inset-0 after:rounded-lg'
                     >
                       {constraint.content}
                     </button>

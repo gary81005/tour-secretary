@@ -24,7 +24,7 @@ export function TripTabs({ tripId }: { tripId: string }) {
             key={tab.key}
             href={href}
             aria-current={isActive ? 'page' : undefined}
-            className='-mb-px flex-1 border-b-2 border-transparent py-2.5 text-center text-sm font-medium text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 aria-[current=page]:border-primary aria-[current=page]:text-foreground'
+            className='-mb-px flex-1 border-b-2 border-transparent py-2.5 text-center text-sm font-medium text-muted-foreground transition-colors outline-none [-webkit-tap-highlight-color:transparent] hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 active:bg-muted/60 aria-[current=page]:border-primary aria-[current=page]:text-foreground'
           >
             {t(tab.key)}
           </Link>

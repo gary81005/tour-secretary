@@ -74,7 +74,7 @@ function TripPicker({
             <button
               type='button'
               onClick={() => onSelect(snapshot.tripId)}
-              className='flex w-full items-center gap-3 rounded-lg border bg-card p-4 text-left transition-colors outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50'
+              className='flex w-full pressable items-center gap-3 rounded-lg border bg-card p-4 text-left outline-none [--press-scale:0.98] hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50 active:bg-muted/50'
             >
               <span className='flex min-w-0 flex-1 flex-col gap-1'>
                 <span className='font-medium break-words'>{snapshot.trip.name}</span>

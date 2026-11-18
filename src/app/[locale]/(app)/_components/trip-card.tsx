@@ -19,7 +19,7 @@ export function TripCard({ trip }: { trip: TripSummary }) {
   return (
     <Link
       href={`/trips/${trip.id}`}
-      className='flex flex-col gap-1.5 rounded-lg border bg-card p-4 transition-colors outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50'
+      className='flex pressable flex-col gap-1.5 rounded-lg border bg-card p-4 outline-none [--press-scale:0.98] hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50 active:bg-muted/50'
     >
       <div className='flex items-start justify-between gap-3'>
         <span className='font-medium'>{trip.name}</span>

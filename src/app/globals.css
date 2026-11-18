@@ -48,6 +48,18 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  /* 換天等待中：舊的內容慢慢變淡再回來。延遲 150ms 才開始，資料很快回來時不會閃一下。 */
+  --animate-pending: pending 1.2s ease-in-out 150ms infinite;
+
+  @keyframes pending {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.45;
+    }
+  }
 }
 
 :root {
@@ -131,4 +143,110 @@
   html {
     @apply font-sans;
   }
+}
+
+/* 按下的回饋：微微縮小，取代手機瀏覽器預設的灰色點擊框。卡片這種大面積的用 [--press-scale:0.98]。 */
+@utility pressable {
+  -webkit-tap-highlight-color: transparent;
+  transition-property: scale, background-color, border-color, color;
+  transition-duration: 150ms;
+
+  &:active {
+    scale: var(--press-scale, 0.97);
+  }
+}
+
+/*
+ * 換天的轉場（行程分頁，React <ViewTransition>）：往後面的天，舊的往左淡出、新的從右邊滑入；往前面的天反過來。
+ * 位移只有 40px，交代方向就好。舊的先快速離開，新的稍後再進來，兩者不搶注意力。
+ */
+::view-transition {
+  /* 轉場中照樣可以點（未命名的內容）。 */
+  pointer-events: none;
+}
+
+::view-transition-old(.day-forward),
+::view-transition-old(.day-back) {
+  animation:
+    120ms ease-in both vt-fade reverse,
+    300ms ease-in-out both vt-slide reverse;
+}
+
+::view-transition-new(.day-forward),
+::view-transition-new(.day-back) {
+  animation:
+    180ms ease-out 100ms both vt-fade,
+    300ms ease-in-out both vt-slide;
+}
+
+::view-transition-old(.day-forward),
+::view-transition-new(.day-back) {
+  --vt-slide-offset: -40px;
+}
+
+::view-transition-new(.day-forward),
+::view-transition-old(.day-back) {
+  --vt-slide-offset: 40px;
+}
+
+/* 頂部列與天數列固定不動，也蓋在滑動的內容上面（否則轉場時內容會畫在 sticky 列上方）。 */
+::view-transition-group(app-header),
+::view-transition-group(day-selector) {
+  animation: none;
+  z-index: 100;
+}
+
+::view-transition-old(app-header),
+::view-transition-old(day-selector) {
+  display: none;
+}
+
+::view-transition-new(app-header),
+::view-transition-new(day-selector) {
+  animation: none;
+}
+
+@keyframes vt-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes vt-slide {
+  from {
+    translate: var(--vt-slide-offset);
+  }
+  to {
+    translate: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
+
+/*
+ * 整張可以點的卡片：標題按鈕（card-action）用 after: 蓋住整張卡，按下時整張卡有回饋。
+ * 只看 card-action，按卡片裡的勾選框、連結、拖拉把手不算。
+ */
+@utility pressable-card {
+  transition-property: scale, background-color;
+  transition-duration: 150ms;
+
+  &:has(.card-action:active) {
+    scale: 0.98;
+    background-color: var(--color-muted);
+  }
+}
+
+@utility card-action {
+  -webkit-tap-highlight-color: transparent;
 }

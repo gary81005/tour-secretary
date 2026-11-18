@@ -1,6 +1,5 @@
 import { notFound } from 'next/navigation';
-import { Suspense } from 'react';
-import { DaySelector } from '@/components/itinerary/day-selector';
+import { Suspense, ViewTransition } from 'react';
 import { getDayMaps } from '@/data/day-maps';
 import { isTripOwner } from '@/data/members';
 import { getDayItems, getTrip, getTripDays, getTripStays } from '@/data/trips';
@@ -9,10 +8,13 @@ import { canMarkDone, nowStay } from '@/lib/trip/progress';
 import { staysForNight } from '@/lib/trip/stays';
 import { currentDayIndex, localDate, resolveTimezone } from '@/lib/trip/trip-phase';
 import { DayMenu } from './_components/day-menu';
+import { DaySwitcher } from './_components/day-switcher';
 import { DayView, ItinerarySkeleton } from './_components/day-view';
 import { TonightStay } from './_components/tonight-stay';
 
 type Props = PageProps<'/[locale]/trips/[tripId]'>;
+
+const DAY_TRANSITION = { 'day-forward': 'day-forward', 'day-back': 'day-back', default: 'none' };
 
 // 行程分頁：上方是天數列，下面是選中那一天、依時段分組的項目（Q10、Q18）。
 export default function ItineraryPage({ params, searchParams }: Props) {
@@ -61,72 +63,79 @@ async function Itinerary({ params, searchParams }: Props) {
   });
 
   return (
-    <>
-      <DaySelector
-        tripId={trip.id}
-        selectedIndex={selectedIndex}
-        days={days.map((day, index) => ({
-          date: day.date,
-          city: day.city,
-          isToday: index === todayIndex,
-        }))}
-      />
-      <DayView
-        dayId={selectedDay.id}
-        dayOptions={days.map((day, index) => ({
-          id: day.id,
-          dayNumber: index + 1,
-          date: day.date,
-          city: day.city,
-        }))}
-        dayNumber={selectedIndex + 1}
-        date={selectedDay.date}
-        city={selectedDay.city}
-        // 只有和行程預設不同時才標示當地時區，例如回程那天在台北。
-        customTimezone={selectedDay.timezone !== null ? timezone : null}
-        items={items}
-        placeSearch={maps.placeSearch}
-        placeHours={maps.placeHours}
-        markDone={canMarkDone(selectedDay.date, localDate(timezone, now))}
-        isToday={selectedIndex === todayIndex}
-        nowStay={nowStay(tonightStays)}
-        routeUrl={maps.routeUrl}
-        travel={maps.travel}
-        googleAttribution={maps.googleAttribution}
-        tonight={
-          isLastDay ? null : (
-            <TonightStay
+    <DaySwitcher
+      tripId={trip.id}
+      selectedIndex={selectedIndex}
+      days={days.map((day, index) => ({
+        date: day.date,
+        city: day.city,
+        isToday: index === todayIndex,
+      }))}
+    >
+      {/* 換天時依方向滑入（DaySwitcher 帶 day-forward / day-back）；其他更新（例如打勾後重新整理）不動。 */}
+      <ViewTransition
+        key={selectedDay.id}
+        enter={DAY_TRANSITION}
+        exit={DAY_TRANSITION}
+        default='none'
+      >
+        <DayView
+          dayId={selectedDay.id}
+          dayOptions={days.map((day, index) => ({
+            id: day.id,
+            dayNumber: index + 1,
+            date: day.date,
+            city: day.city,
+          }))}
+          dayNumber={selectedIndex + 1}
+          date={selectedDay.date}
+          city={selectedDay.city}
+          // 只有和行程預設不同時才標示當地時區，例如回程那天在台北。
+          customTimezone={selectedDay.timezone !== null ? timezone : null}
+          items={items}
+          placeSearch={maps.placeSearch}
+          placeHours={maps.placeHours}
+          markDone={canMarkDone(selectedDay.date, localDate(timezone, now))}
+          isToday={selectedIndex === todayIndex}
+          nowStay={nowStay(tonightStays)}
+          routeUrl={maps.routeUrl}
+          travel={maps.travel}
+          googleAttribution={maps.googleAttribution}
+          tonight={
+            isLastDay ? null : (
+              <TonightStay
+                tripId={trip.id}
+                stays={tonightStays.map((stay) => ({
+                  id: stay.id,
+                  name: stay.name,
+                  status: stay.status,
+                  placeId: stay.address ? null : stay.place_id,
+                }))}
+                addresses={maps.addresses}
+              />
+            )
+          }
+          menu={
+            <DayMenu
               tripId={trip.id}
-              stays={tonightStays.map((stay) => ({
-                id: stay.id,
-                name: stay.name,
-                status: stay.status,
-                placeId: stay.address ? null : stay.place_id,
-              }))}
-              addresses={maps.addresses}
+              day={{
+                id: selectedDay.id,
+                dayNumber: selectedIndex + 1,
+                date: selectedDay.date,
+                city: selectedDay.city,
+                timezone: selectedDay.timezone,
+              }}
+              laterDays={days
+                .slice(selectedIndex + 1)
+                .map((day, offset) => ({ dayNumber: selectedIndex + 2 + offset, date: day.date }))}
+              dayCount={days.length}
+              itemCount={items.length}
+              defaultTimezone={trip.default_timezone}
+              canDeleteDay={isOwner}
             />
-          )
-        }
-        menu={
-          <DayMenu
-            tripId={trip.id}
-            day={{
-              id: selectedDay.id,
-              dayNumber: selectedIndex + 1,
-              date: selectedDay.date,
-              city: selectedDay.city,
-              timezone: selectedDay.timezone,
-            }}
-            laterDays={days
-              .slice(selectedIndex + 1)
-              .map((day, offset) => ({ dayNumber: selectedIndex + 2 + offset, date: day.date }))}
-            dayCount={days.length}
-            itemCount={items.length}
-            defaultTimezone={trip.default_timezone}
-            canDeleteDay={isOwner}
-          />
-        }
-      />
-    </>
+          }
+        />
+      </ViewTransition>
+    </DaySwitcher>
   );
 }

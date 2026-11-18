@@ -140,7 +140,7 @@ function SortableNote({ note, onEdit }: { note: TripNote; onEdit: () => void }) 
       style={{ transform: CSS.Translate.toString(transform), transition }}
       className={cn(isDragging && 'relative z-20 opacity-80 shadow-lg')}
     >
-      <article className='relative flex gap-2 rounded-lg border bg-card p-3 transition-colors hover:bg-muted/50 has-[button:focus-visible]:ring-3 has-[button:focus-visible]:ring-ring/50'>
+      <article className='relative flex pressable-card gap-2 rounded-lg border bg-card p-3 hover:bg-muted/50 has-[button:focus-visible]:ring-3 has-[button:focus-visible]:ring-ring/50'>
         <button
           type='button'
           ref={setActivatorNodeRef}
@@ -157,7 +157,7 @@ function SortableNote({ note, onEdit }: { note: TripNote; onEdit: () => void }) 
               type='button'
               onClick={onEdit}
               aria-label={t('notes.edit', { topic: note.topic })}
-              className='text-left outline-none after:absolute after:inset-0 after:rounded-lg'
+              className='text-left outline-none card-action after:absolute after:inset-0 after:rounded-lg'
             >
               {note.topic}
             </button>

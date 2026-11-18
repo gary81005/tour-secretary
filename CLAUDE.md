@@ -81,3 +81,6 @@ npm run db:test       # 用 Docker 的 Postgres 套用 migrations 再跑 supabas
 - 顏色只用主題 token（`bg-background`、`text-muted-foreground`、`bg-primary`…），不要寫死色碼。token 定義在 `src/app/globals.css`。
 - 深色模式跟隨系統（`prefers-color-scheme`），`dark:` variant 是 media query，不是 `.dark` class。
 - 主色是青綠色（teal）。手機優先：先寫手機版，再用 `sm:`、`md:` 往上加。
+- **按下的回饋**（`globals.css`）：`Button` 已內建（按下縮小）。自己寫的可點元素加 `pressable`（大的卡片再加 `[--press-scale:0.98]`）；標題按鈕用 `after:` 蓋住整張卡的卡片，卡片加 `pressable-card`、標題按鈕加 `card-action`。
+- **送出中**：`Button` 傳 `aria-busy={isPending}`（通常再加 `disabled`），會自動顯示轉圈圖示，不用自己加。
+- **轉場**：用 React 的 `<ViewTransition>`（例如行程分頁換天，`day-forward` / `day-back`）。動畫寫在 `globals.css`，要尊重 `prefers-reduced-motion`；sticky 的列要有 `view-transition-name` 並設成不動，否則轉場時內容會畫在它上面。

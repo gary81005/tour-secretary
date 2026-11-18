@@ -18,10 +18,10 @@ export function TonightStay({
   addresses: PlaceAddresses | null;
 }) {
   const t = useTranslations('trips');
-  const coverLink = 'outline-none after:absolute after:inset-0 after:rounded-lg';
+  const coverLink = 'card-action outline-none after:absolute after:inset-0 after:rounded-lg';
 
   return (
-    <div className='relative flex items-center gap-3 rounded-lg border border-dashed p-3 text-sm transition-colors hover:bg-muted/50 has-[a:focus-visible]:ring-3 has-[a:focus-visible]:ring-ring/50'>
+    <div className='relative flex pressable-card items-center gap-3 rounded-lg border border-dashed p-3 text-sm hover:bg-muted/50 has-[a:focus-visible]:ring-3 has-[a:focus-visible]:ring-ring/50'>
       <BedDoubleIcon className='size-4 shrink-0 text-muted-foreground' aria-hidden='true' />
       {stays.length === 0 ? (
         <Link href={`/trips/${tripId}/stays`} className={`text-muted-foreground ${coverLink}`}>
