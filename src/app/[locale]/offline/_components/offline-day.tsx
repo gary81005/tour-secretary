@@ -74,7 +74,13 @@ export function OfflineDay({ snapshot, now }: { snapshot: OfflineSnapshot; now: 
         />
 
         {selectedIndex === todayIndex && (
-          <NowCard items={day.items} stay={nowStay(tonightStays)} travel={travel} onDone={null} />
+          <NowCard
+            items={day.items}
+            stay={nowStay(tonightStays)}
+            travel={travel}
+            onDone={null}
+            onReport={null}
+          />
         )}
 
         {groups.length === 0 ? (

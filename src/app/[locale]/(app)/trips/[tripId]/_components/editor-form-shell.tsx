@@ -15,11 +15,14 @@ type Props = {
   isDeleting?: boolean;
   // 整體錯誤（例如「找不到這個行程」）；欄位錯誤顯示在各欄位下方
   error?: ReactNode;
+  // 送出按鈕的文字（預設「儲存」，調整行程是「套用」）；還不能送出時停用
+  submitLabel?: string;
+  submitDisabled?: boolean;
   children: ReactNode;
 };
 
 // 編輯面板（ResponsiveDialogContent 裡）的共用外框：標題與關閉、可捲動的欄位、底部的刪除／取消／儲存。
-// 行程項目、住宿、提醒事項、旅伴限制的表單都用這個外框，操作方式一致。
+// 行程項目、住宿、提醒事項、旅伴限制、調整行程的表單都用這個外框，操作方式一致。
 export function EditorFormShell({
   title,
   onSubmit,
@@ -27,6 +30,8 @@ export function EditorFormShell({
   onDelete,
   isDeleting = false,
   error,
+  submitLabel,
+  submitDisabled = false,
   children,
 }: Props) {
   const t = useTranslations('trips.editor');
@@ -64,8 +69,13 @@ export function EditorFormShell({
           <ResponsiveDialogClose render={<Button type='button' variant='outline' size='lg' />}>
             {t('cancel')}
           </ResponsiveDialogClose>
-          <Button type='submit' size='lg' disabled={isSaving || isDeleting} aria-busy={isSaving}>
-            {t('save')}
+          <Button
+            type='submit'
+            size='lg'
+            disabled={isSaving || isDeleting || submitDisabled}
+            aria-busy={isSaving}
+          >
+            {submitLabel ?? t('save')}
           </Button>
         </div>
       </div>

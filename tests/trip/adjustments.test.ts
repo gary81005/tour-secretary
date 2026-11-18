@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   describePlan,
+  isAdjustmentUndoable,
   lateMinutesByWalk,
   planDelay,
   planFallback,
@@ -242,5 +243,27 @@ describe('lateMinutesByWalk', () => {
     expect(lateMinutesByWalk('09:50', 14 * 60, '10:00')).toBeNull();
     expect(lateMinutesByWalk('09:50', 25 * 60, '10:00')).toBe(15);
     expect(lateMinutesByWalk('09:50', 25 * 60 + 1, '10:00')).toBe(16);
+  });
+});
+
+describe('isAdjustmentUndoable', () => {
+  const now = new Date('2026-11-18T12:00:00Z');
+
+  it('allows the latest adjustment within 7 days', () => {
+    expect(
+      isAdjustmentUndoable({ created_at: '2026-11-11T12:00:00+00:00', undone_at: null }, now),
+    ).toBe(true);
+  });
+
+  it('rejects adjustments older than 7 days or already undone', () => {
+    expect(
+      isAdjustmentUndoable({ created_at: '2026-11-11T11:59:59+00:00', undone_at: null }, now),
+    ).toBe(false);
+    expect(
+      isAdjustmentUndoable(
+        { created_at: '2026-11-18T10:00:00+00:00', undone_at: '2026-11-18T11:00:00+00:00' },
+        now,
+      ),
+    ).toBe(false);
   });
 });

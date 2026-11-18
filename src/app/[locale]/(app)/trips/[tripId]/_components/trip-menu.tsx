@@ -2,6 +2,7 @@
 
 import {
   CalendarClockIcon,
+  CalendarSyncIcon,
   CalendarRangeIcon,
   EllipsisVerticalIcon,
   FileSpreadsheetIcon,
@@ -13,6 +14,7 @@ import {
 import { useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
+import { undoAdjustment } from '@/actions/adjustments';
 import { undoImport } from '@/actions/imports';
 import { moveTripToTrash, restoreTrip } from '@/actions/trips';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -48,13 +50,15 @@ type Props = {
   isOwner: boolean;
   // 還能復原的上次匯入（getUndoableImportId），沒有時不顯示「復原上次匯入」。
   undoableImportId: string | null;
+  // 還能復原的上次調整（getUndoableAdjustmentId），所有旅伴都能復原（ADR 0009「M6 細節」）。
+  undoableAdjustmentId: string | null;
 };
 
-type DialogName = 'edit' | 'shift' | 'dates' | 'undoImport';
+type DialogName = 'edit' | 'shift' | 'dates' | 'undoImport' | 'undoAdjustment';
 
 // 行程右上角的「⋯」選單（Q26-3）：編輯行程、整趟平移、修改起訖日、旅伴、匯入 xlsx、
-// 復原上次匯入（ADR 0008 Q15）、移到垃圾桶。
-export function TripMenu({ trip, days, isOwner, undoableImportId }: Props) {
+// 復原上次匯入（ADR 0008 Q15）、復原上次調整（ADR 0009）、移到垃圾桶。
+export function TripMenu({ trip, days, isOwner, undoableImportId, undoableAdjustmentId }: Props) {
   const t = useTranslations();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -133,6 +137,12 @@ export function TripMenu({ trip, days, isOwner, undoableImportId }: Props) {
               {t('import.undo.menu')}
             </DropdownMenuItem>
           )}
+          {undoableAdjustmentId && (
+            <DropdownMenuItem onClick={() => openDialog('undoAdjustment')}>
+              <CalendarSyncIcon />
+              {t('trips.adjust.undoMenu')}
+            </DropdownMenuItem>
+          )}
           {isOwner && (
             <>
               <DropdownMenuSeparator />
@@ -175,7 +185,59 @@ export function TripMenu({ trip, days, isOwner, undoableImportId }: Props) {
           onOpenChange={closeDialog}
         />
       )}
+      {undoableAdjustmentId && (
+        <UndoAdjustmentDialog
+          adjustmentId={undoableAdjustmentId}
+          open={dialog === 'undoAdjustment'}
+          onOpenChange={closeDialog}
+        />
+      )}
     </>
+  );
+}
+
+// 復原上次調整：時間改回原值、取消跳過、刪掉新增的備案項目。調整後又手動改過的內容也會一起還原，所以先確認。
+function UndoAdjustmentDialog({
+  adjustmentId,
+  open,
+  onOpenChange,
+}: {
+  adjustmentId: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const t = useTranslations();
+  const [isPending, startTransition] = useTransition();
+
+  function confirm() {
+    startTransition(async () => {
+      const result = await undoAdjustment(adjustmentId).catch((): ActionResult => ({
+        ok: false,
+        error: 'unknown',
+      }));
+      onOpenChange(false);
+      if (result.ok) toast.success(t('trips.adjust.undoDone'));
+      else toast.error(t(`errors.${result.error}`));
+    });
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle>{t('trips.adjust.undoTitle')}</DialogTitle>
+          <DialogDescription>{t('trips.adjust.undoDescription')}</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <DialogClose render={<Button type='button' variant='outline' />}>
+            {t('trips.editor.cancel')}
+          </DialogClose>
+          <Button type='button' onClick={confirm} disabled={isPending} aria-busy={isPending}>
+            {t('trips.adjust.undoConfirm')}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

@@ -1,3 +1,4 @@
+import dayjs from '@/lib/dayjs';
 import { sortItems, type OrderableItem } from './item-order';
 import {
   minutesToTime,
@@ -181,6 +182,24 @@ export function describePlan(
       },
     ];
   });
+}
+
+// ---------------------------------------------------------------------------
+// 復原上次調整（Q11）
+// ---------------------------------------------------------------------------
+
+// 與 undo_trip_adjustment() 一致：行程最近一次的調整、還沒復原、7 天內
+// （之後 purge_deleted_rows 會刪掉紀錄）。latest 是行程最近一次的調整，復原過的也算。
+export const UNDO_ADJUSTMENT_DAYS = 7;
+
+export function isAdjustmentUndoable(
+  latest: { created_at: string; undone_at: string | null },
+  now: Date,
+): boolean {
+  return (
+    latest.undone_at === null &&
+    !dayjs.utc(latest.created_at).add(UNDO_ADJUSTMENT_DAYS, 'day').isBefore(now)
+  );
 }
 
 // ---------------------------------------------------------------------------

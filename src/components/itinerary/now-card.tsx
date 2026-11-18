@@ -1,6 +1,12 @@
 'use client';
 
-import { CheckIcon, ClockIcon, NavigationIcon, PartyPopperIcon } from 'lucide-react';
+import {
+  CheckIcon,
+  ClockIcon,
+  MessageSquareWarningIcon,
+  NavigationIcon,
+  PartyPopperIcon,
+} from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Suspense, use } from 'react';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -17,17 +23,20 @@ import { KoreaLinks, LegLine } from './leg-line';
 // 交通指南：移動時間與「查電車」（沿用 LegLine）、導航（Google 地圖用手機目前位置當起點）、
 // 下一站有精確時間且走路就到時的建議出發時間。
 // items 是 DayItems 樂觀更新後的項目，按「完成」後立刻換到下一個。
-// onDone 是 null 時（離線行程頁）「完成」按鈕停用，標示需要網路。
+// onReport：「回報狀況」（ADR 0009「M6 細節」），選延後、改用備案或跳過。
+// onDone、onReport 是 null 時（離線行程頁）按鈕停用，標示需要網路。
 export function NowCard<T extends ItemView>({
   items,
   stay: tonight,
   travel,
   onDone,
+  onReport,
 }: {
   items: T[];
   stay: NowStay | null;
   travel: DayTravel;
   onDone: ((item: T) => void) | null;
+  onReport: ((item: T) => void) | null;
 }) {
   const t = useTranslations('trips.now');
   if (items.length === 0) return null;
@@ -55,25 +64,30 @@ export function NowCard<T extends ItemView>({
       {current && (
         <div className='flex items-start gap-3'>
           <Stop label={t('current')} item={current} />
-          {onDone ? (
+          <div className='flex shrink-0 flex-col items-stretch gap-1.5'>
             <Button
               size='lg'
-              className='shrink-0'
-              onClick={() => onDone(current)}
+              onClick={onDone ? () => onDone(current) : undefined}
+              disabled={!onDone}
               aria-label={t('doneLabel', { title: current.title })}
             >
               <CheckIcon />
               {t('done')}
             </Button>
-          ) : (
-            <div className='flex shrink-0 flex-col items-center gap-1'>
-              <Button size='lg' disabled>
-                <CheckIcon />
-                {t('done')}
-              </Button>
-              <span className='text-xs text-muted-foreground'>{t('needsNetwork')}</span>
-            </div>
-          )}
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={onReport ? () => onReport(current) : undefined}
+              disabled={!onReport}
+              aria-label={t('reportLabel', { title: current.title })}
+            >
+              <MessageSquareWarningIcon />
+              {t('report')}
+            </Button>
+            {!onDone && (
+              <span className='text-center text-xs text-muted-foreground'>{t('needsNetwork')}</span>
+            )}
+          </div>
         </div>
       )}
       {allDone && (

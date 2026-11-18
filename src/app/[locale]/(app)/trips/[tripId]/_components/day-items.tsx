@@ -48,6 +48,7 @@ import {
 } from '@/lib/trip/item-order';
 import { withDone, type NowStay } from '@/lib/trip/progress';
 import { TIME_SLOTS, type TimeSlot } from '@/lib/trip/time-slot';
+import { AdjustmentDialog, type AdjustTarget } from './adjust/adjustment-dialog';
 import { ItemForm, type DayOption } from './item-form';
 import { ItemMenu } from './item-menu';
 
@@ -129,6 +130,7 @@ export function DayItems({
   // 拖拉中的暫時順序；放下或取消後清掉。
   const [dragOrder, setDragOrder] = useState<SlotOrder | null>(null);
   const editor = useEditorState<DayItem>();
+  const adjuster = useEditorState<AdjustTarget>();
 
   const groups = groupItemsBySlot(optimisticItems);
   const itemsById = new Map(optimisticItems.map((item) => [item.id, item]));
@@ -220,18 +222,21 @@ export function DayItems({
   const onToggleDone = (item: DayItem) =>
     markDone ? (done: boolean) => toggleDone(item, done) : null;
 
+  // 調整套用後的提示框，可以復原這次調整（ADR 0009 Q11）。
+  function announce(adjustmentId: string, message: string) {
+    toast.success(message, {
+      action: { label: t('trips.editor.undo'), onClick: () => undo(adjustmentId) },
+    });
+  }
+
   // 跳過（ADR 0009「M6 細節」）：直接套用、不開預覽，記成一次調整，提示框可以復原。
   function skip(item: DayItem) {
     startTransition(async () => {
       applyOptimistic({ kind: 'skip', itemId: item.id, skippedAt: new Date().toISOString() });
       const result = await applyAdjustment(tripId, planSkip(item));
-      if (!result.ok) {
-        toast.error(t(`errors.${result.error}`));
-        return;
-      }
-      toast.success(t('trips.item.skippedToast', { title: item.title }), {
-        action: { label: t('trips.editor.undo'), onClick: () => undo(result.adjustmentId) },
-      });
+      if (result.ok)
+        announce(result.adjustmentId, t('trips.item.skippedToast', { title: item.title }));
+      else toast.error(t(`errors.${result.error}`));
     });
   }
 
@@ -258,6 +263,7 @@ export function DayItems({
       <ItemMenu
         title={item.title}
         skipped={item.skipped_at !== null}
+        onUseFallback={() => adjuster.openEditor({ mode: 'fallback', itemId: item.id })}
         onSkip={() => skip(item)}
         onUnskip={() => unskip(item)}
       />
@@ -271,6 +277,7 @@ export function DayItems({
           stay={nowStay}
           travel={travel}
           onDone={(item) => toggleDone(item, true, true)}
+          onReport={(item) => adjuster.openEditor({ mode: 'report', itemId: item.id })}
         />
       )}
       {groups.length === 0 ? (
@@ -346,6 +353,24 @@ export function DayItems({
           {tonight}
         </div>
       )}
+
+      <AdjustmentDialog
+        tripId={tripId}
+        dayId={dayId}
+        items={items}
+        target={adjuster.target}
+        panelKey={adjuster.key}
+        open={adjuster.open}
+        onOpenChange={adjuster.setOpen}
+        onSkip={(item) => {
+          adjuster.setOpen(false);
+          skip(item);
+        }}
+        onApplied={(adjustmentId, message) => {
+          adjuster.setOpen(false);
+          announce(adjustmentId, message);
+        }}
+      />
 
       <ResponsiveDialog open={editor.open} onOpenChange={editor.setOpen}>
         <ResponsiveDialogContent>

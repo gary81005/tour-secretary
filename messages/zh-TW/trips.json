@@ -153,7 +153,8 @@
     "conditionPlaceholder": "狀況（選填），例如：纜車停駛",
     "alternativePlaceholder": "替代方案",
     "addFallback": "新增備案",
-    "removeFallback": "移除備案 {index}"
+    "removeFallback": "移除備案 {index}",
+    "useFallback": "改用備案"
   },
   "place": {
     "searching": "搜尋中…",
@@ -330,7 +331,9 @@
     "departAt": "建議 {time} 出發",
     "homeCurrent": "現在：{title}",
     "homeNext": "下一站：{title}",
-    "homeAllDone": "今天的行程都完成了"
+    "homeAllDone": "今天的行程都完成了",
+    "report": "回報狀況",
+    "reportLabel": "回報「{title}」的狀況"
   },
   "members": {
     "title": "旅伴",
@@ -364,5 +367,44 @@
     "leaveConfirm": "退出",
     "left": "已退出「{name}」",
     "cancel": "取消"
+  },
+  "adjust": {
+    "reportTitle": "回報狀況",
+    "reportDescription": "「{title}」怎麼了？選一個處理方式。",
+    "delay": "延後之後的行程",
+    "delayDescription": "這個項目和之後有精確時間的項目一起延後",
+    "useFallback": "改用備案",
+    "useFallbackDescription": "有 {count} 個寫好的備案，也可以當場輸入",
+    "useFallbackNone": "沒有寫好的備案，可以當場輸入",
+    "skip": "跳過（沒去）",
+    "skipDescription": "這個項目沒去，直接換到下一個",
+    "previewTitle": "會變動的項目",
+    "to": "改成",
+    "apply": "套用",
+    "delayTitle": "延後之後的行程",
+    "delayFromLabel": "從哪個項目開始",
+    "delayFromOption": "{time} {title}",
+    "delayFromDescription": "這個項目和同一天之後有精確時間的項目一起延後，只有時段的項目不動。",
+    "delayMinutesLabel": "延後多久",
+    "minutes": "{minutes} 分",
+    "custom": "自訂",
+    "customLabel": "自訂延後時間（分鐘）",
+    "minutesUnit": "分鐘",
+    "customInvalid": "請輸入 1 到 {max} 之間的整數。",
+    "nothingToDelay": "今天沒有可以延後的項目：只有填了精確時間、還沒完成或跳過的項目會延後。",
+    "pastMidnight": "延後之後會超過午夜：{titles}。目前不支援跨午夜，請把延後時間改短，或先把這些項目跳過、移到隔天。",
+    "delayed": "已延後 {minutes} 分鐘",
+    "fallbackTitle": "改用備案",
+    "fallbackDescription": "「{title}」會標成沒去，並在同一個位置新增備案項目，時間沿用原本的。地點之後可以用「幫我找地點」補上。",
+    "fallbackLabel": "改成",
+    "fallbackCustom": "其他（當場輸入）",
+    "fallbackCustomLabel": "備案內容",
+    "fallbackCustomPlaceholder": "例如：改去附近的咖啡廳",
+    "usedFallback": "已改用備案「{title}」",
+    "undoMenu": "復原上次調整",
+    "undoTitle": "復原上次調整？",
+    "undoDescription": "時間改回調整前、取消跳過，並刪掉這次新增的備案項目。調整之後又手動改過的時間或跳過狀態也會一起還原。",
+    "undoConfirm": "復原",
+    "undoDone": "已復原上次調整"
   }
 }
