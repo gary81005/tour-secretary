@@ -26,6 +26,10 @@ export function rpcErrorKey(error: { code: string; message: string }): ActionErr
       return 'nameRequired';
     case 'owner_cannot_leave':
       return 'ownerCannotLeave';
+    case 'invalid_plan':
+      return 'invalidPlan';
+    case 'adjustment_not_undoable':
+      return 'adjustmentNotUndoable';
     default:
       return 'unknown';
   }

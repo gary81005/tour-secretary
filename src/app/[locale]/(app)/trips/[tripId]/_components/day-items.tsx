@@ -25,7 +25,8 @@ import { ClockIcon, GripVerticalIcon, PlusIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useId, useOptimistic, useState, useTransition, type ReactNode } from 'react';
 import { toast } from 'sonner';
-import { reorderItems, setItemDone } from '@/actions/items';
+import { applyAdjustment, undoAdjustment } from '@/actions/adjustments';
+import { reorderItems, setItemDone, unskipItem } from '@/actions/items';
 import { ItemCard } from '@/components/itinerary/item-card';
 import { LegLine } from '@/components/itinerary/leg-line';
 import { NowCard } from '@/components/itinerary/now-card';
@@ -38,6 +39,7 @@ import { useEditorState } from '@/hooks/use-editor-state';
 import { planItemLegs, type DayTravel, type Leg } from '@/lib/maps/legs';
 import type { ItemPlaceHours } from '@/lib/maps/opening-hours';
 import type { PlaceSearchContext } from '@/lib/maps/types';
+import { isPending, planSkip } from '@/lib/trip/adjustments';
 import {
   applySlotOrder,
   groupItemsBySlot,
@@ -47,8 +49,10 @@ import {
 import { withDone, type NowStay } from '@/lib/trip/progress';
 import { TIME_SLOTS, type TimeSlot } from '@/lib/trip/time-slot';
 import { ItemForm, type DayOption } from './item-form';
+import { ItemMenu } from './item-menu';
 
 type Props = {
+  tripId: string;
   dayId: string;
   dayOptions: DayOption[];
   items: DayItem[];
@@ -67,10 +71,24 @@ type Props = {
 
 type SlotOrder = Partial<Record<TimeSlot, string[]>>;
 
-// 樂觀更新：拖拉排序，或「完成」打勾。
+// 樂觀更新：拖拉排序、「完成」打勾，或跳過與取消跳過。
 type OptimisticChange =
   | { kind: 'reorder'; slot: TimeSlot; ids: string[] }
-  | { kind: 'done'; itemId: string; doneAt: string | null };
+  | { kind: 'done'; itemId: string; doneAt: string | null }
+  | { kind: 'skip'; itemId: string; skippedAt: string | null };
+
+function applyChange(items: DayItem[], change: OptimisticChange): DayItem[] {
+  switch (change.kind) {
+    case 'reorder':
+      return applySlotOrder(items, change.slot, change.ids);
+    case 'done':
+      return withDone(items, change.itemId, change.doneAt);
+    case 'skip':
+      return items.map((item) =>
+        item.id === change.itemId ? { ...item, skipped_at: change.skippedAt } : item,
+      );
+  }
+}
 
 function isTimeSlot(id: UniqueIdentifier): id is TimeSlot {
   return (TIME_SLOTS as readonly UniqueIdentifier[]).includes(id);
@@ -92,6 +110,7 @@ function sameOrder(a: readonly string[], b: readonly string[]) {
 // - 放下後先用 useOptimistic 顯示新順序，伺服器失敗時自動還原
 // - 卡片上方顯示從上一個地點過來的移動（Q9）；拖拉中維持原本的段，放下後依新順序重新規劃
 export function DayItems({
+  tripId,
   dayId,
   dayOptions,
   items,
@@ -105,13 +124,7 @@ export function DayItems({
 }: Props) {
   const t = useTranslations();
   const dndId = useId();
-  const [optimisticItems, applyOptimistic] = useOptimistic(
-    items,
-    (current, change: OptimisticChange) =>
-      change.kind === 'reorder'
-        ? applySlotOrder(current, change.slot, change.ids)
-        : withDone(current, change.itemId, change.doneAt),
-  );
+  const [optimisticItems, applyOptimistic] = useOptimistic(items, applyChange);
   const [, startTransition] = useTransition();
   // 拖拉中的暫時順序；放下或取消後清掉。
   const [dragOrder, setDragOrder] = useState<SlotOrder | null>(null);
@@ -207,6 +220,49 @@ export function DayItems({
   const onToggleDone = (item: DayItem) =>
     markDone ? (done: boolean) => toggleDone(item, done) : null;
 
+  // 跳過（ADR 0009「M6 細節」）：直接套用、不開預覽，記成一次調整，提示框可以復原。
+  function skip(item: DayItem) {
+    startTransition(async () => {
+      applyOptimistic({ kind: 'skip', itemId: item.id, skippedAt: new Date().toISOString() });
+      const result = await applyAdjustment(tripId, planSkip(item));
+      if (!result.ok) {
+        toast.error(t(`errors.${result.error}`));
+        return;
+      }
+      toast.success(t('trips.item.skippedToast', { title: item.title }), {
+        action: { label: t('trips.editor.undo'), onClick: () => undo(result.adjustmentId) },
+      });
+    });
+  }
+
+  function undo(adjustmentId: string) {
+    startTransition(async () => {
+      const result = await undoAdjustment(adjustmentId);
+      if (!result.ok) toast.error(t(`errors.${result.error}`));
+    });
+  }
+
+  // 取消跳過是一般編輯，不記成調整。
+  function unskip(item: DayItem) {
+    startTransition(async () => {
+      applyOptimistic({ kind: 'skip', itemId: item.id, skippedAt: null });
+      const result = await unskipItem(item.id);
+      if (!result.ok) toast.error(t(`errors.${result.error}`));
+    });
+  }
+
+  // 「⋯」選單：只在可以打勾的天，還沒處理或跳過的項目（完成的要先取消完成）。
+  const itemMenu = (item: DayItem) =>
+    markDone &&
+    (isPending(item) || item.skipped_at !== null) && (
+      <ItemMenu
+        title={item.title}
+        skipped={item.skipped_at !== null}
+        onSkip={() => skip(item)}
+        onUnskip={() => unskip(item)}
+      />
+    );
+
   return (
     <>
       {isToday && (
@@ -248,6 +304,7 @@ export function DayItems({
                       handle={<TimedMarker />}
                       placeHours={placeHours}
                       onToggleDone={onToggleDone(item)}
+                      menu={itemMenu(item)}
                     />
                   </li>
                 ))}
@@ -266,6 +323,7 @@ export function DayItems({
                         onEdit={() => editor.openEditor(item)}
                         placeHours={placeHours}
                         onToggleDone={onToggleDone(item)}
+                        menu={itemMenu(item)}
                         leg={legLine(legsTo.get(item.id), previousIds.get(item.id))}
                       />
                     )
@@ -331,12 +389,14 @@ function SortableItem({
   onEdit,
   placeHours,
   onToggleDone,
+  menu,
   leg,
 }: {
   item: DayItem;
   onEdit: () => void;
   placeHours: ItemPlaceHours | null;
   onToggleDone: ((done: boolean) => void) | null;
+  menu: ReactNode;
   leg: ReactNode;
 }) {
   const t = useTranslations('trips.dnd');
@@ -362,6 +422,7 @@ function SortableItem({
         onEdit={onEdit}
         placeHours={placeHours}
         onToggleDone={onToggleDone}
+        menu={menu}
         handle={
           <button
             type='button'

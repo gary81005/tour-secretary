@@ -13,6 +13,7 @@ import { GoogleMapsAttribution } from './maps/google-maps-attribution';
 
 // 行程分頁選中的那一天：標題（第幾天、日期、城市、時區）、當天路線連結、項目列表。
 export type DayViewProps = {
+  tripId: string;
   dayId: string;
   dayOptions: DayOption[];
   dayNumber: number;
@@ -33,6 +34,7 @@ export type DayViewProps = {
 };
 
 export function DayView({
+  tripId,
   dayId,
   dayOptions,
   dayNumber,
@@ -79,6 +81,7 @@ export function DayView({
       </header>
 
       <DayItems
+        tripId={tripId}
         dayId={dayId}
         dayOptions={dayOptions}
         items={items}

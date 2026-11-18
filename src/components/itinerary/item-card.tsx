@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from 'cn';
-import { ExternalLinkIcon, GitBranchIcon, MapPinIcon } from 'lucide-react';
+import { CircleSlashIcon, ExternalLinkIcon, GitBranchIcon, MapPinIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Suspense, use, type ReactNode } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -19,20 +19,25 @@ import { CategoryIcon } from './category-icon';
 // handle：左側的拖拉把手，或有精確時間時的時鐘圖示（Q22）。
 // placeHours：伺服器查營業時間的 Promise（以 item_places.id 對應），沒有地圖金鑰或離線時是 null。
 // onToggleDone：「完成」勾選框（今天與之前的天，ADR 0010），null 時不顯示。完成的項目標題加刪除線。
+// 跳過的項目（ADR 0009「M6 細節」）：標題加刪除線、標「沒去」，勾選框的位置改成「沒去」圖示。
+// 「改用備案」新增的項目標「備案」。menu：右上角的「⋯」選單（跳過、取消跳過）。
 export function ItemCard({
   item,
   onEdit,
   handle,
   placeHours = null,
   onToggleDone = null,
+  menu,
 }: {
   item: ItemView;
   onEdit?: () => void;
   handle?: ReactNode;
   placeHours?: ItemPlaceHours | null;
   onToggleDone?: ((done: boolean) => void) | null;
+  menu?: ReactNode;
 }) {
   const t = useTranslations('trips');
+  const skipped = item.skipped_at !== null;
   const time = item.start_time
     ? [item.start_time, item.end_time]
         .filter((value): value is string => !!value)
@@ -49,13 +54,22 @@ export function ItemCard({
       )}
     >
       {handle}
-      {onToggleDone && (
-        <Checkbox
-          checked={item.done_at !== null}
-          onCheckedChange={onToggleDone}
-          aria-label={t('item.markDone', { title: item.title })}
-          className='relative z-10 mt-1.5 size-5 [&_svg]:size-4'
-        />
+      {skipped ? (
+        <span
+          className='mt-1.5 flex size-5 shrink-0 items-center justify-center text-muted-foreground'
+          title={t('item.skipped')}
+        >
+          <CircleSlashIcon className='size-4' aria-hidden='true' />
+        </span>
+      ) : (
+        onToggleDone && (
+          <Checkbox
+            checked={item.done_at !== null}
+            onCheckedChange={onToggleDone}
+            aria-label={t('item.markDone', { title: item.title })}
+            className='relative z-10 mt-1.5 size-5 [&_svg]:size-4'
+          />
+        )
       )}
       <div
         className='flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary'
@@ -66,25 +80,29 @@ export function ItemCard({
       </div>
       <div className='flex min-w-0 flex-1 flex-col gap-1'>
         <div className='flex items-baseline justify-between gap-2'>
-          <h4
-            className={cn(
-              'font-medium break-words',
-              item.done_at && 'text-muted-foreground line-through',
-            )}
-          >
-            {onEdit ? (
-              <button
-                type='button'
-                onClick={onEdit}
-                aria-label={t('item.edit', { title: item.title })}
-                className='text-left outline-none card-action after:absolute after:inset-0 after:rounded-lg'
-              >
-                {item.title}
-              </button>
-            ) : (
-              item.title
-            )}
-          </h4>
+          <div className='flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1'>
+            <h4
+              className={cn(
+                'font-medium break-words',
+                (item.done_at || skipped) && 'text-muted-foreground line-through',
+              )}
+            >
+              {onEdit ? (
+                <button
+                  type='button'
+                  onClick={onEdit}
+                  aria-label={t('item.edit', { title: item.title })}
+                  className='text-left outline-none card-action after:absolute after:inset-0 after:rounded-lg'
+                >
+                  {item.title}
+                </button>
+              ) : (
+                item.title
+              )}
+            </h4>
+            {skipped && <Badge variant='outline'>{t('item.skipped')}</Badge>}
+            {item.replaces_item_id && <Badge variant='secondary'>{t('item.fallbackItem')}</Badge>}
+          </div>
           {time && (
             <span className='shrink-0 text-sm text-muted-foreground tabular-nums'>{time}</span>
           )}
@@ -150,6 +168,7 @@ export function ItemCard({
           </ul>
         )}
       </div>
+      {menu && <div className='relative z-10 -my-1 -mr-1 shrink-0'>{menu}</div>}
     </article>
   );
 }

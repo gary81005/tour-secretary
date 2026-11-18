@@ -18,6 +18,8 @@ describe('rpcErrorKey', () => {
     [{ code: 'P0001', message: 'trip_full' }, 'tripFull'],
     [{ code: '22023', message: 'name_required' }, 'nameRequired'],
     [{ code: 'P0001', message: 'owner_cannot_leave' }, 'ownerCannotLeave'],
+    [{ code: '22023', message: 'invalid_plan' }, 'invalidPlan'],
+    [{ code: 'P0001', message: 'adjustment_not_undoable' }, 'adjustmentNotUndoable'],
     [{ code: '23514', message: 'new row violates check constraint' }, 'unknown'],
   ] as const)('%j → %s', (error, key) => {
     expect(rpcErrorKey(error)).toBe(key);

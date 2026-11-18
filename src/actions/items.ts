@@ -96,6 +96,26 @@ export async function setItemDone(itemId: string, done: boolean): Promise<Action
   return { ok: true };
 }
 
+// 取消跳過（ADR 0009「M6 細節」）：一般編輯，直接清掉 skipped_at，不記成調整（和取消「完成」一樣）。
+// 跳過要記成調整才能復原，走 applyAdjustment()。
+export async function unskipItem(itemId: string): Promise<ActionResult> {
+  if (!isUuid(itemId)) return { ok: false, error: 'notFound' };
+
+  const supabase = await getSignedInClient();
+  if (!supabase) return { ok: false, error: 'unauthorized' };
+
+  const { data, error } = await supabase
+    .from('items')
+    .update({ skipped_at: null })
+    .eq('id', itemId)
+    .is('deleted_at', null)
+    .select('id');
+  if (error) return { ok: false, error: 'unknown' };
+  if (data.length === 0) return { ok: false, error: 'notFound' };
+  refresh();
+  return { ok: true };
+}
+
 // 刪除是軟刪除，畫面上提供「復原」（Q13）。
 export async function deleteItem(itemId: string): Promise<ActionResult> {
   const result = await setDeletedAt('items', itemId, new Date().toISOString());

@@ -37,7 +37,9 @@
     "ownerOnly": "只有主辦人可以做這個操作。",
     "tripFull": "這個行程的旅伴已經滿 20 人了。",
     "nameRequired": "請先填寫你的名稱。",
-    "ownerCannotLeave": "主辦人不能退出行程。"
+    "ownerCannotLeave": "主辦人不能退出行程。",
+    "invalidPlan": "調整的內容有誤，請重新整理後再試一次。",
+    "adjustmentNotUndoable": "這次調整已經無法復原：超過 7 天、已經復原過，或之後又有其他調整。"
   },
   "timezones": {
     "Asia/Tokyo": "東京（GMT+9）",

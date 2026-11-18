@@ -28,6 +28,8 @@ export type ActionErrorKey =
   | 'tripFull'
   | 'nameRequired'
   | 'ownerCannotLeave'
+  | 'invalidPlan'
+  | 'adjustmentNotUndoable'
   | 'unknown';
 
 export type ActionResult = { ok: true } | { ok: false; error: ActionErrorKey };

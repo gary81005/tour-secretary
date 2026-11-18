@@ -80,6 +80,7 @@ async function Itinerary({ params, searchParams }: Props) {
         default='none'
       >
         <DayView
+          tripId={trip.id}
           dayId={selectedDay.id}
           dayOptions={days.map((day, index) => ({
             id: day.id,
