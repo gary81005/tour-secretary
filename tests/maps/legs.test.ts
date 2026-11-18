@@ -138,7 +138,22 @@ describe('planItemLegs', () => {
     time_slot,
     start_time: null,
     position,
+    skipped_at: null as string | null,
     item_places: names.map((name) => ({ name: name ?? '純文字', place_id: name && `id-${name}` })),
+  });
+
+  it('跳過的項目不算：路段直接接到下一個要去的項目', () => {
+    const legs = planItemLegs(
+      [
+        row('a', 'morning', 0, '淺草寺'),
+        { ...row('b', 'morning', 1, '晴空塔'), skipped_at: '2027-03-05T02:00:00Z' },
+        row('c', 'afternoon', 0, '上野公園'),
+      ],
+      { startStay: null, endStay: null },
+    );
+    expect(legs.map((leg) => `${leg.from.place.name}→${leg.to.place.name}`)).toEqual([
+      '淺草寺→上野公園',
+    ]);
   });
 
   it('依當天順序（時段、手動順序）規劃，沒有地點 ID 的地點略過', () => {

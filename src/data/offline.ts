@@ -26,7 +26,7 @@ async function getTripItems(tripId: string) {
   const { data, error } = await supabase
     .from('items')
     .select(
-      'id, day_id, title, time_slot, category, start_time, end_time, description, url, position, done_at, item_places (id, name, position, place_id), fallbacks (id, condition, alternative, position)',
+      'id, day_id, title, time_slot, category, start_time, end_time, description, url, position, done_at, skipped_at, updated_at, replaces_item_id, item_places (id, name, position, place_id), fallbacks (id, condition, alternative, position)',
     )
     .eq('trip_id', tripId)
     .is('deleted_at', null);

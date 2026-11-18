@@ -1,13 +1,15 @@
 import { DRIVE_WHEN_WALK_OVER_SECONDS } from '@/lib/maps/legs';
 import type { PlaceRef } from '@/lib/maps/links';
 import type { StayStatus } from './enums';
+import { isPending } from './adjustments';
 import { sortItems, type OrderableItem } from './item-order';
 import { primaryStay } from './stays';
 import { toHourMinute } from './time-slot';
 
-// 旅途中的進度（ADR 0010「現在／下一站」）：項目手動按「完成」，記在 items.done_at。
+// 旅途中的進度（ADR 0010「現在／下一站」）：項目手動按「完成」，記在 items.done_at；
+// 沒去的項目記在 items.skipped_at（ADR 0009「M6 細節」），兩者都算已處理。
 
-type ProgressItem = OrderableItem & { done_at: string | null };
+type ProgressItem = OrderableItem & { done_at: string | null; skipped_at: string | null };
 
 // 今天與之前的天才能打勾；未來的天不顯示勾選框，避免誤按。
 // date 是那一天的日期，today 是那一天時區的今天（都是 YYYY-MM-DD）。
@@ -15,12 +17,12 @@ export function canMarkDone(date: string, today: string): boolean {
   return date <= today;
 }
 
-// 現在＝當天第一個未完成的項目；下一站＝再下一個未完成的項目（依當天順序）。
-// allDone：當天有項目且全部完成。
+// 現在＝當天第一個還沒處理（未完成、未跳過）的項目；下一站＝再下一個（依當天順序）。
+// allDone：當天有項目且全部完成或跳過。
 export function dayProgress<T extends ProgressItem>(
   items: readonly T[],
 ): { current: T | null; next: T | null; allDone: boolean } {
-  const pending = sortItems(items).filter((item) => item.done_at === null);
+  const pending = sortItems(items).filter(isPending);
   return {
     current: pending[0] ?? null,
     next: pending[1] ?? null,

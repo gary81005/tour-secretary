@@ -32,3 +32,15 @@ export function timeSlotForTime(time: string): TimedSlot {
 export function timeSlotIndex(slot: TimeSlot): number {
   return TIME_SLOTS.indexOf(slot);
 }
+
+// 'HH:MM' 或 'HH:MM:SS' → 從 00:00 起算的分鐘數。
+export function timeToMinutes(time: string): number {
+  const [hour, minute] = toHourMinute(time).split(':').map(Number);
+  return hour * 60 + minute;
+}
+
+// 分鐘數 → 'HH:MM'。不支援跨午夜（ADR 0004），超出當天（< 0 或 ≥ 24:00）時回傳 null。
+export function minutesToTime(minutes: number): string | null {
+  if (minutes < 0 || minutes >= 24 * 60) return null;
+  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+}

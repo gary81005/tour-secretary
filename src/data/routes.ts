@@ -35,7 +35,10 @@ type PlaceRow = { name: string; place_id: string | null };
 // 準備單日畫面的移動資料。不 await 移動時間，讓頁面先顯示，查到後再串流到各段。
 // endStay：最後一天（回程日）傳 null。
 export function getDayTravel(input: {
-  items: readonly (OrderableItem & { item_places: readonly PlaceRow[] })[];
+  items: readonly (OrderableItem & {
+    skipped_at: string | null;
+    item_places: readonly PlaceRow[];
+  })[];
   startStay: LegStop | null;
   endStay: LegStop | null;
   timezone: string;

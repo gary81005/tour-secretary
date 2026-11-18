@@ -7,7 +7,8 @@ import type { Tables } from '@/types/database';
 // 與地點座標都不存（ADR 0006），地點只留名稱與地點 ID，用來產生「在 Google 地圖開啟」的連結。
 
 // 格式改變時加一；讀到其他版本的快照直接丟掉，下次線上打開行程時會重新存。
-export const OFFLINE_SNAPSHOT_VERSION = 1;
+// 2：項目加上 skipped_at、updated_at、replaces_item_id（M6）。
+export const OFFLINE_SNAPSHOT_VERSION = 2;
 
 export type OfflineDay = Pick<Tables<'days'>, 'id' | 'date' | 'city' | 'timezone'> & {
   items: ItemView[];
@@ -117,6 +118,9 @@ function pickItem(item: ItemView): ItemView {
     url: item.url,
     position: item.position,
     done_at: item.done_at,
+    skipped_at: item.skipped_at,
+    updated_at: item.updated_at,
+    replaces_item_id: item.replaces_item_id,
     item_places: item.item_places
       .toSorted((a, b) => a.position - b.position)
       .map((place) => ({

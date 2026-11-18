@@ -26,6 +26,9 @@ const item = (id: string, day_id: string, position: number) => ({
   url: null,
   position,
   done_at: null,
+  skipped_at: null,
+  updated_at: '2027-03-01T00:00:00Z',
+  replaces_item_id: null,
   item_places: [],
   fallbacks: [],
 });

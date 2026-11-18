@@ -21,7 +21,14 @@ const item = (
   position: number,
   done = false,
   start_time: string | null = null,
-) => ({ id, time_slot, start_time, position, done_at: done ? '2027-03-06T01:00:00Z' : null });
+) => ({
+  id,
+  time_slot,
+  start_time,
+  position,
+  done_at: done ? '2027-03-06T01:00:00Z' : null,
+  skipped_at: null as string | null,
+});
 
 describe('dayProgress', () => {
   it('依當天順序，第一個未完成的是現在、第二個是下一站', () => {
@@ -46,6 +53,15 @@ describe('dayProgress', () => {
   it('只剩一個未完成時沒有下一站', () => {
     const progress = dayProgress([item('a', 'morning', 0, true), item('b', 'morning', 1)]);
     expect(progress).toMatchObject({ current: { id: 'b' }, next: null, allDone: false });
+  });
+
+  it('跳過的項目當成已處理；全部完成或跳過時算全部完成', () => {
+    const skipped = { ...item('a', 'morning', 0), skipped_at: '2027-03-06T01:00:00Z' };
+    expect(dayProgress([skipped, item('b', 'morning', 1)])).toMatchObject({
+      current: { id: 'b' },
+      next: null,
+    });
+    expect(dayProgress([skipped, item('b', 'morning', 1, true)]).allDone).toBe(true);
   });
 
   it('全部完成；沒有項目時不算全部完成', () => {

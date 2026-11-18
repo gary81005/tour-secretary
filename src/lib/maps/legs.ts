@@ -54,14 +54,16 @@ export function planDayLegs(input: {
 
 // 單日畫面的項目（依 sortItems 排序）。伺服器算移動時間與畫面顯示都用這個，兩邊的段才對得上；
 // 拖拉排序後畫面先用新順序規劃，新的段要等伺服器重新查好才有時間。
+// 跳過的項目沒去，路段直接接到下一個要去的項目（ADR 0009「M6 細節」）。
 export function planItemLegs(
   items: readonly (OrderableItem & {
+    skipped_at: string | null;
     item_places: readonly { name: string; place_id: string | null }[];
   })[],
   stays: { startStay: LegStop | null; endStay: LegStop | null },
 ): Leg[] {
   return planDayLegs({
-    items: sortItems(items).map((item) => ({
+    items: sortItems(items.filter((item) => item.skipped_at === null)).map((item) => ({
       id: item.id,
       places: item.item_places.map((place) =>
         place.place_id ? { placeId: place.place_id, name: place.name } : null,
