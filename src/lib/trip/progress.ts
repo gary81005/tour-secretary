@@ -31,12 +31,14 @@ export function dayProgress<T extends ProgressItem>(
 }
 
 // 樂觀更新用：把某個項目設成完成（doneAt 為時間）或未完成（null）。
-export function withDone<T extends { id: string; done_at: string | null }>(
-  items: readonly T[],
-  itemId: string,
-  doneAt: string | null,
-): T[] {
-  return items.map((item) => (item.id === itemId ? { ...item, done_at: doneAt } : item));
+// 和 setItemDone 一致：設成完成時一併取消跳過（完成和跳過只能擇一）。
+export function withDone<
+  T extends { id: string; done_at: string | null; skipped_at: string | null },
+>(items: readonly T[], itemId: string, doneAt: string | null): T[] {
+  return items.map((item) => {
+    if (item.id !== itemId) return item;
+    return doneAt ? { ...item, done_at: doneAt, skipped_at: null } : { ...item, done_at: null };
+  });
 }
 
 // 出發前預留的緩衝時間。

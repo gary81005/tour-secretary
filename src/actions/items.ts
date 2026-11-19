@@ -78,6 +78,9 @@ async function resolvePlaces(
 }
 
 // 旅途中的「完成」（ADR 0010）：done 時記下完成時間，取消時清掉。權限由 RLS 把關，旅伴同步看到。
+// 完成和跳過只能擇一（items_done_or_skipped）：按了完成就是有去，一併取消跳過。
+// 否則畫面還沒拿到別人剛按的「跳過」時（或還不認得跳過的舊版畫面），完成會被資料庫擋下。
+// 失敗時也 refresh()，讓畫面拿到最新狀態。
 export async function setItemDone(itemId: string, done: boolean): Promise<ActionResult> {
   if (!isUuid(itemId) || typeof done !== 'boolean') return { ok: false, error: 'notFound' };
 
@@ -86,13 +89,13 @@ export async function setItemDone(itemId: string, done: boolean): Promise<Action
 
   const { data, error } = await supabase
     .from('items')
-    .update({ done_at: done ? new Date().toISOString() : null })
+    .update(done ? { done_at: new Date().toISOString(), skipped_at: null } : { done_at: null })
     .eq('id', itemId)
     .is('deleted_at', null)
     .select('id');
+  refresh();
   if (error) return { ok: false, error: 'unknown' };
   if (data.length === 0) return { ok: false, error: 'notFound' };
-  refresh();
   return { ok: true };
 }
 

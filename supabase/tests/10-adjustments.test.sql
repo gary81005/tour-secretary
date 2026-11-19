@@ -69,6 +69,11 @@ SELECT public.apply_trip_adjustment(:'trip_id', jsonb_build_object('ops', jsonb_
 SELECT tests.ok((SELECT skipped_at IS NOT NULL FROM public.items WHERE id = :'e'), '跳過');
 SELECT tests.throws(
   format('UPDATE public.items SET done_at = now() WHERE id = %L', :'e'), '23514', '跳過的項目不能同時是完成');
+-- setItemDone：按完成時一併取消跳過（畫面還沒拿到別人剛按的跳過，或舊版畫面不認得跳過時）。
+SELECT tests.is(
+  tests.row_count(format('UPDATE public.items SET done_at = now(), skipped_at = NULL WHERE id = %L', :'e')),
+  1, '完成時一併取消跳過');
+UPDATE public.items SET done_at = NULL, skipped_at = now() WHERE id = :'e';
 SELECT tests.is(
   tests.row_count(format('UPDATE public.items SET skipped_at = NULL WHERE id = %L', :'e')),
   1, '取消跳過是一般編輯');

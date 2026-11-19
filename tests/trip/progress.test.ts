@@ -79,6 +79,15 @@ describe('withDone', () => {
     ]);
     expect(withDone(items, 'b', null)[1].done_at).toBeNull();
   });
+
+  it('設成完成時一併取消跳過', () => {
+    const skipped = { ...item('a', 'morning', 0), skipped_at: '2027-03-06T01:30:00Z' };
+    expect(withDone([skipped], 'a', '2027-03-06T02:00:00Z')[0]).toMatchObject({
+      done_at: '2027-03-06T02:00:00Z',
+      skipped_at: null,
+    });
+    expect(withDone([skipped], 'a', null)[0].skipped_at).toBe('2027-03-06T01:30:00Z');
+  });
 });
 
 describe('suggestedDeparture', () => {
