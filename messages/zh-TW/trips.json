@@ -406,5 +406,17 @@
     "undoDescription": "時間改回調整前、取消跳過，並刪掉這次新增的備案項目。調整之後又手動改過的時間或跳過狀態也會一起還原。",
     "undoConfirm": "復原",
     "undoDone": "已復原上次調整"
+  },
+  "alert": {
+    "leaveNowTitle": "該出發了",
+    "leaveNow": "「{next}」{start} 開始。",
+    "leaveNowAt": "建議 {departure} 出發，「{next}」{start} 開始。",
+    "lateTitle": "已經晚了",
+    "late": "「{next}」{start} 開始，「{current}」還沒完成。",
+    "doneCurrent": "完成目前項目",
+    "report": "回報狀況",
+    "dismiss": "知道了",
+    "homeLeaveNow": "該出發了：{start}「{next}」",
+    "homeLate": "已經晚了：{start}「{next}」"
   }
 }

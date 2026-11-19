@@ -4,6 +4,7 @@ import {
   getTripPhase,
   keepsOfflineSnapshot,
   localDate,
+  localTime,
   resolveTimezone,
 } from '@/lib/trip/trip-phase';
 
@@ -16,6 +17,14 @@ describe('localDate', () => {
     expect(localDate('Asia/Tokyo', now)).toBe('2027-03-06');
     expect(localDate('Asia/Taipei', now)).toBe('2027-03-06');
     expect(localDate('UTC', now)).toBe('2027-03-05');
+  });
+});
+
+describe('localTime', () => {
+  it('依時區換算時間，24 小時制', () => {
+    const now = new Date('2027-03-05T16:30:00Z');
+    expect(localTime('Asia/Tokyo', now)).toBe('01:30');
+    expect(localTime('Europe/London', new Date('2027-03-05T14:05:00Z'))).toBe('14:05');
   });
 });
 

@@ -30,6 +30,7 @@ describe('summarizeTrip', () => {
       phase: 'ongoing',
       currentDay: 3,
       currentDate: '2027-03-07',
+      currentTimezone: 'Asia/Tokyo',
       offlineSnapshot: true,
     });
   });
@@ -48,6 +49,7 @@ describe('summarizeTrip', () => {
     ).toMatchObject({
       phase: 'upcoming',
       currentDay: null,
+      currentTimezone: null,
       offlineSnapshot: false,
     });
     expect(summarizeTrip(trip('old', '2027-01-01', '2027-01-02', [null, null]), NOW)).toMatchObject(

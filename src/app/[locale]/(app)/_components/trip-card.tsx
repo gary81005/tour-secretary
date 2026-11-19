@@ -11,6 +11,7 @@ import { Link } from '@/i18n/navigation';
 import { dayProgress } from '@/lib/trip/progress';
 import type { TripCompanions } from '@/lib/trip/members';
 import type { TripSummary } from '@/lib/trip/trip-list';
+import { TripCardAlert } from './trip-card-alert';
 
 // 首頁的行程卡片：日期、天數、城市、旅伴頭像；進行中時加上今天的進度。
 export function TripCard({ trip }: { trip: TripSummary }) {
@@ -39,9 +40,9 @@ export function TripCard({ trip }: { trip: TripSummary }) {
           <span className='truncate'>{trip.cities.join(' · ')}</span>
         </div>
       )}
-      {trip.currentDate && (
+      {trip.currentDate && trip.currentTimezone && (
         <Suspense fallback={null}>
-          <TodayProgress tripId={trip.id} date={trip.currentDate} />
+          <TodayProgress tripId={trip.id} date={trip.currentDate} timezone={trip.currentTimezone} />
         </Suspense>
       )}
     </Link>
@@ -73,8 +74,16 @@ function Companions({ companions }: { companions: TripCompanions }) {
   );
 }
 
-// 進行中的行程：今天進行到哪（ADR 0010）。查不到時不顯示，不影響行程列表。
-async function TodayProgress({ tripId, date }: { tripId: string; date: string }) {
+// 進行中的行程：今天進行到哪（ADR 0010），以及落後提醒（ADR 0009）。查不到時不顯示，不影響行程列表。
+async function TodayProgress({
+  tripId,
+  date,
+  timezone,
+}: {
+  tripId: string;
+  date: string;
+  timezone: string;
+}) {
   const items = await getTodayProgressItems(tripId, date).catch(() => null);
   if (!items || items.length === 0) return null;
 
@@ -85,6 +94,13 @@ async function TodayProgress({ tripId, date }: { tripId: string; date: string })
   }
   return (
     <div className='flex flex-col gap-0.5 text-sm'>
+      {next && (
+        <TripCardAlert
+          timezone={timezone}
+          current={{ done_at: current.done_at, skipped_at: current.skipped_at }}
+          next={{ id: next.id, title: next.title, start_time: next.start_time }}
+        />
+      )}
       <p className='truncate font-medium text-primary'>
         {t('homeCurrent', { title: current.title })}
       </p>

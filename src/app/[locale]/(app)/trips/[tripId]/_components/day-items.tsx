@@ -61,8 +61,9 @@ type Props = {
   placeHours: ItemPlaceHours | null;
   // 今天與之前的天顯示「完成」勾選框（ADR 0010）
   markDone: boolean;
-  // 選的是今天：最上方顯示「現在／下一站」
+  // 選的是今天：最上方顯示「現在／下一站」與落後提醒
   isToday: boolean;
+  timezone: string;
   // 「現在／下一站」的今晚住（最後一天沒有）
   nowStay: NowStay | null;
   travel: DayTravel;
@@ -119,6 +120,7 @@ export function DayItems({
   placeHours,
   markDone,
   isToday,
+  timezone,
   nowStay,
   travel,
   tonight,
@@ -276,6 +278,7 @@ export function DayItems({
           items={optimisticItems}
           stay={nowStay}
           travel={travel}
+          timezone={timezone}
           onDone={(item) => toggleDone(item, true, true)}
           onReport={(item) => adjuster.openEditor({ mode: 'report', itemId: item.id })}
         />

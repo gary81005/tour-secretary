@@ -92,6 +92,7 @@ async function Itinerary({ params, searchParams }: Props) {
           date={selectedDay.date}
           city={selectedDay.city}
           // 只有和行程預設不同時才標示當地時區，例如回程那天在台北。
+          timezone={timezone}
           customTimezone={selectedDay.timezone !== null ? timezone : null}
           items={items}
           placeSearch={maps.placeSearch}

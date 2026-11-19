@@ -19,6 +19,8 @@ export type DayViewProps = {
   dayNumber: number;
   date: string;
   city: string | null;
+  // 那一天的時區（落後提醒判斷現在幾點）；customTimezone 只有和行程預設不同時才有，用來標示
+  timezone: string;
   customTimezone: string | null;
   items: DayItem[];
   placeSearch: PlaceSearchContext | null;
@@ -40,6 +42,7 @@ export function DayView({
   dayNumber,
   date,
   city,
+  timezone,
   customTimezone,
   items,
   placeSearch,
@@ -89,6 +92,7 @@ export function DayView({
         placeHours={placeHours}
         markDone={markDone}
         isToday={isToday}
+        timezone={timezone}
         nowStay={nowStay}
         travel={travel}
         tonight={tonight}

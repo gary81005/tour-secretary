@@ -16,6 +16,7 @@ import type { ItemView } from '@/lib/trip/item-view';
 import { dayProgress, suggestedDeparture, type NowStay } from '@/lib/trip/progress';
 import { toHourMinute } from '@/lib/trip/time-slot';
 import { CategoryIcon } from './category-icon';
+import { DelayAlert } from './delay-alert';
 import { KoreaLinks, LegLine } from './leg-line';
 
 // 行程分頁選到今天時，最上方的「現在／下一站」（ADR 0010 Q9）。
@@ -25,16 +26,19 @@ import { KoreaLinks, LegLine } from './leg-line';
 // items 是 DayItems 樂觀更新後的項目，按「完成」後立刻換到下一個。
 // onReport：「回報狀況」（ADR 0009「M6 細節」），選延後、改用備案或跳過。
 // onDone、onReport 是 null 時（離線行程頁）按鈕停用，標示需要網路。
+// 卡片上方是落後提醒條（DelayAlert）；timezone 是今天的時區，用來判斷現在幾點。
 export function NowCard<T extends ItemView>({
   items,
   stay: tonight,
   travel,
+  timezone,
   onDone,
   onReport,
 }: {
   items: T[];
   stay: NowStay | null;
   travel: DayTravel;
+  timezone: string;
   onDone: ((item: T) => void) | null;
   onReport: ((item: T) => void) | null;
 }) {
@@ -56,98 +60,142 @@ export function NowCard<T extends ItemView>({
     ? (leg?.to.place ?? firstPlace(next))
     : (stay?.destination ?? null);
 
+  const durations = travel.routes.kind === 'google' ? travel.routes.durations : null;
+  const alertProps = current && next && { timezone, current, next, onDone, onReport };
+
   return (
-    <section
-      aria-label={t('label')}
-      className='flex flex-col gap-3 rounded-lg border border-primary/30 bg-primary/5 p-3'
-    >
-      {current && (
-        <div className='flex items-start gap-3'>
-          <Stop label={t('current')} item={current} />
-          <div className='flex shrink-0 flex-col items-stretch gap-1.5'>
-            <Button
-              size='lg'
-              onClick={onDone ? () => onDone(current) : undefined}
-              disabled={!onDone}
-              aria-label={t('doneLabel', { title: current.title })}
-            >
-              <CheckIcon />
-              {t('done')}
-            </Button>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={onReport ? () => onReport(current) : undefined}
-              disabled={!onReport}
-              aria-label={t('reportLabel', { title: current.title })}
-            >
-              <MessageSquareWarningIcon />
-              {t('report')}
-            </Button>
-            {!onDone && (
-              <span className='text-center text-xs text-muted-foreground'>{t('needsNetwork')}</span>
+    <>
+      {alertProps &&
+        (durations && leg && alertProps.next.start_time ? (
+          // 建議出發時間要等移動時間查好；查好之前先不提醒，避免先用「開始前 15 分鐘」又改掉。
+          <Suspense fallback={null}>
+            <AlertWithDeparture
+              {...alertProps}
+              durations={durations}
+              leg={leg}
+              startTime={alertProps.next.start_time}
+            />
+          </Suspense>
+        ) : (
+          <DelayAlert {...alertProps} departure={null} />
+        ))}
+      <section
+        aria-label={t('label')}
+        className='flex flex-col gap-3 rounded-lg border border-primary/30 bg-primary/5 p-3'
+      >
+        {current && (
+          <div className='flex items-start gap-3'>
+            <Stop label={t('current')} item={current} />
+            <div className='flex shrink-0 flex-col items-stretch gap-1.5'>
+              <Button
+                size='lg'
+                onClick={onDone ? () => onDone(current) : undefined}
+                disabled={!onDone}
+                aria-label={t('doneLabel', { title: current.title })}
+              >
+                <CheckIcon />
+                {t('done')}
+              </Button>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={onReport ? () => onReport(current) : undefined}
+                disabled={!onReport}
+                aria-label={t('reportLabel', { title: current.title })}
+              >
+                <MessageSquareWarningIcon />
+                {t('report')}
+              </Button>
+              {!onDone && (
+                <span className='text-center text-xs text-muted-foreground'>
+                  {t('needsNetwork')}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+        {allDone && (
+          <p className='flex items-center gap-2 font-medium'>
+            <PartyPopperIcon className='size-4 text-primary' aria-hidden='true' />
+            {t('allDone')}
+          </p>
+        )}
+
+        {/* 還有未完成的項目時一定顯示「下一站」這塊，最後一站之後沒有住宿時說明沒有下一站。 */}
+        {(current || stay) && (
+          <div className='flex flex-col gap-2 border-t border-primary/20 pt-3'>
+            {next ? (
+              <Stop label={t('next')} item={next} />
+            ) : (
+              <div className='flex min-w-0 flex-col gap-0.5'>
+                <span className='text-xs font-medium text-primary'>{t('next')}</span>
+                {stay ? (
+                  <span className='font-medium break-words'>
+                    {t('tonight', { name: stay.name })}
+                  </span>
+                ) : (
+                  <span className='text-sm text-muted-foreground'>{t('noNext')}</span>
+                )}
+              </div>
+            )}
+            {leg && <LegLine leg={leg} showFrom={false} routes={travel.routes} className='px-0' />}
+            {destination && (
+              <div className='flex flex-wrap items-center gap-x-3 gap-y-2 text-sm'>
+                {travel.routes.kind === 'google' ? (
+                  <a
+                    href={googleNavigationUrl(destination)}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    aria-label={t('navigateLabel', { name: destination.name })}
+                    className={buttonVariants({ variant: 'outline' })}
+                  >
+                    <NavigationIcon />
+                    {t('navigate')}
+                  </a>
+                ) : (
+                  // 韓國：有移動段時 LegLine 已附 KakaoMap／Naver Map，沒有時在這裡補上。
+                  !leg && <KoreaLinks destination={destination.name} />
+                )}
+                {next?.start_time &&
+                  leg &&
+                  travel.routes.kind === 'google' &&
+                  travel.routes.durations && (
+                    <Suspense fallback={null}>
+                      <Departure
+                        durations={travel.routes.durations}
+                        leg={leg}
+                        startTime={next.start_time}
+                      />
+                    </Suspense>
+                  )}
+              </div>
             )}
           </div>
-        </div>
-      )}
-      {allDone && (
-        <p className='flex items-center gap-2 font-medium'>
-          <PartyPopperIcon className='size-4 text-primary' aria-hidden='true' />
-          {t('allDone')}
-        </p>
-      )}
-
-      {/* 還有未完成的項目時一定顯示「下一站」這塊，最後一站之後沒有住宿時說明沒有下一站。 */}
-      {(current || stay) && (
-        <div className='flex flex-col gap-2 border-t border-primary/20 pt-3'>
-          {next ? (
-            <Stop label={t('next')} item={next} />
-          ) : (
-            <div className='flex min-w-0 flex-col gap-0.5'>
-              <span className='text-xs font-medium text-primary'>{t('next')}</span>
-              {stay ? (
-                <span className='font-medium break-words'>{t('tonight', { name: stay.name })}</span>
-              ) : (
-                <span className='text-sm text-muted-foreground'>{t('noNext')}</span>
-              )}
-            </div>
-          )}
-          {leg && <LegLine leg={leg} showFrom={false} routes={travel.routes} className='px-0' />}
-          {destination && (
-            <div className='flex flex-wrap items-center gap-x-3 gap-y-2 text-sm'>
-              {travel.routes.kind === 'google' ? (
-                <a
-                  href={googleNavigationUrl(destination)}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  aria-label={t('navigateLabel', { name: destination.name })}
-                  className={buttonVariants({ variant: 'outline' })}
-                >
-                  <NavigationIcon />
-                  {t('navigate')}
-                </a>
-              ) : (
-                // 韓國：有移動段時 LegLine 已附 KakaoMap／Naver Map，沒有時在這裡補上。
-                !leg && <KoreaLinks destination={destination.name} />
-              )}
-              {next?.start_time &&
-                leg &&
-                travel.routes.kind === 'google' &&
-                travel.routes.durations && (
-                  <Suspense fallback={null}>
-                    <Departure
-                      durations={travel.routes.durations}
-                      leg={leg}
-                      startTime={next.start_time}
-                    />
-                  </Suspense>
-                )}
-            </div>
-          )}
-        </div>
-      )}
-    </section>
+        )}
+      </section>
+    </>
   );
+}
+
+// 下一站走路就到時，用建議出發時間判斷「該出發了」；需要搭車或查不到時用開始前 15 分鐘。
+function AlertWithDeparture<T extends ItemView>({
+  durations,
+  leg,
+  startTime,
+  ...props
+}: {
+  timezone: string;
+  current: T;
+  next: T;
+  onDone: ((item: T) => void) | null;
+  onReport: ((item: T) => void) | null;
+  durations: Promise<Record<string, LegDurations>>;
+  leg: Leg;
+  startTime: string;
+}) {
+  const walkSeconds = use(durations)[legKey(leg)]?.walkSeconds;
+  const departure = walkSeconds == null ? null : suggestedDeparture(startTime, walkSeconds);
+  return <DelayAlert {...props} departure={departure} />;
 }
 
 function Stop({ label, item }: { label: string; item: ItemView }) {

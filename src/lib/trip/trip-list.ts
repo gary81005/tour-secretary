@@ -28,8 +28,9 @@ export type TripSummary = {
   phase: TripPhase;
   // 進行中時是第幾天（從 1 起算），其他狀態為 null
   currentDay: number | null;
-  // 進行中時今天的日期（YYYY-MM-DD），用來查今天的進度；其他狀態為 null
+  // 進行中時今天的日期（YYYY-MM-DD）與那一天的時區，用來查今天的進度與落後提醒；其他狀態為 null
   currentDate: string | null;
+  currentTimezone: string | null;
   // 進行中或 7 天內出發：會存離線快照（ADR 0010）
   offlineSnapshot: boolean;
   // 自己以外的旅伴頭像（ADR 0005「M5 旅伴與權限」Q12）
@@ -59,6 +60,7 @@ export function summarizeTrip(
     phase: getTripPhase(daysInZone, now),
     currentDay: index >= 0 ? index + 1 : null,
     currentDate: index >= 0 ? days[index].date : null,
+    currentTimezone: index >= 0 ? daysInZone[index].timezone : null,
     offlineSnapshot: keepsOfflineSnapshot(daysInZone, now),
     companions,
   };
