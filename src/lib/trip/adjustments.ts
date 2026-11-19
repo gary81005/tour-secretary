@@ -116,8 +116,18 @@ export function planSkip(item: AdjustableItem): AdjustmentPlan {
   return { ops: [{ op: 'skip', item_id: item.id, expected_updated_at: item.updated_at }] };
 }
 
-// 項目標題最多 200 字（與資料庫一致）；備案內容最多 1000 字，超過的截掉。
+// 項目標題最多 200 字；備案內容最多 1000 字，超過的截掉。
+// 以 UTF-16 長度計（和 zod 的 max 一致，資料庫以字元計只會更寬），也不把 emoji 切成一半。
 const TITLE_MAX_LENGTH = 200;
+
+function truncateTitle(text: string): string {
+  let result = '';
+  for (const char of text) {
+    if (result.length + char.length > TITLE_MAX_LENGTH) break;
+    result += char;
+  }
+  return result;
+}
 
 // 原項目跳過，同一個位置新增備案項目：標題是備案內容，時段、時間、類別沿用原項目。
 export function planFallback(
@@ -131,7 +141,7 @@ export function planFallback(
       {
         op: 'add_item',
         day_id: dayId,
-        title: Array.from(alternative.trim()).slice(0, TITLE_MAX_LENGTH).join('').trim(),
+        title: truncateTitle(alternative.trim()).trim(),
         time_slot: item.time_slot,
         category: item.category,
         start_time: item.start_time && toHourMinute(item.start_time),

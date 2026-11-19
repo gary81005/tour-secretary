@@ -113,7 +113,7 @@ export function DelayAlert<T extends ItemView>({
                 {t('report')}
               </Button>
             )}
-        <Button size='sm' variant='ghost' className='ml-auto' onClick={() => dismiss(next.id)}>
+        <Button size='sm' variant='ghost' className='ml-auto' onClick={() => dismiss(alert)}>
           {t('dismiss')}
         </Button>
       </div>

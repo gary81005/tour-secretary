@@ -384,6 +384,7 @@
     "delayTitle": "延後之後的行程",
     "delayFromLabel": "從哪個項目開始",
     "delayFromOption": "{time} {title}",
+    "delayFromGone": "原本選的項目已經被刪除、完成或跳過，改從「{time} {title}」開始。",
     "delayFromDescription": "這個項目和同一天之後有精確時間的項目一起延後，只有時段的項目不動。",
     "delayMinutesLabel": "延後多久",
     "minutes": "{minutes} 分",

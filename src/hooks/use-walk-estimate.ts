@@ -79,7 +79,14 @@ export function useWalkEstimate({
         report({ kind: 'needsPermission' });
         return;
       }
-      report({ kind: 'locating' });
+      // 重新定位時保留上一次的步行時間，「會遲到」提醒不會每 5 分鐘消失一下。
+      if (!cancelled) {
+        setResult((previous) =>
+          previous?.itemId === id && previous.status.kind === 'walk'
+            ? previous
+            : { itemId: id, status: { kind: 'locating' } },
+        );
+      }
       try {
         const { coords } = await currentPosition();
         const estimate = await estimateWalk(id, { lat: coords.latitude, lng: coords.longitude });
@@ -102,6 +109,8 @@ export function useWalkEstimate({
     return () => {
       cancelled = true;
       clearInterval(timer);
+      // 關掉開關、離開 2 小時範圍或換下一站：舊的步行時間不再用，下次重新定位。
+      setResult(null);
     };
   }, [active, itemId, asked]);
 

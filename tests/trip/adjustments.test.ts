@@ -157,6 +157,12 @@ describe('planSkip / planFallback', () => {
     const plan = planFallback(original, 'day-1', '長'.repeat(300));
     expect(plan.ops[1]).toMatchObject({ title: '長'.repeat(200) });
   });
+
+  it('改用備案：emoji 以 UTF-16 長度計（和送出時的檢查一致），不切成一半', () => {
+    const plan = planFallback(original, 'day-1', '🍜'.repeat(150));
+    expect(plan.ops[1]).toMatchObject({ title: '🍜'.repeat(100) });
+    expect(plan.ops[1]).toHaveProperty('title.length', 200);
+  });
 });
 
 describe('describePlan', () => {

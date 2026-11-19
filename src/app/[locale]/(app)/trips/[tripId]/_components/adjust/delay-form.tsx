@@ -32,6 +32,7 @@ const MAX_DELAY_MINUTES = 720;
 // 「延後之後的行程」（ADR 0009 Q10）：選從哪個項目開始、延後多久，下方即時預覽會變動的項目。
 // 只有精確時間的項目會延後，所以起點只列有精確時間、還沒處理的項目；預設是 fromItemId 或它之後的第一個。
 // initialMinutes：「會遲到」預先帶入的延後時間（不是 15／30／45／60 時放進自訂）。
+// 面板開著時選的起點被旅伴刪除、完成或跳過，改回預設的起點並說明，不默默從別的項目開始延後。
 export function DelayForm({
   items,
   fromItemId,
@@ -66,7 +67,10 @@ export function DelayForm({
   const customValid =
     Number.isInteger(customMinutes) && customMinutes >= 1 && customMinutes <= MAX_DELAY_MINUTES;
   const minutes = preset === 'custom' ? (customValid ? customMinutes : null) : preset;
-  const result = startId && minutes ? planDelay(items, startId, minutes) : null;
+  const selected = starts.find((item) => item.id === startId);
+  const start = selected ?? defaultStart;
+  const startGone = startId !== '' && !selected && start !== undefined;
+  const result = start && minutes ? planDelay(items, start.id, minutes) : null;
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -96,7 +100,7 @@ export function DelayForm({
             <FieldLabel htmlFor={fromId}>{t('delayFromLabel')}</FieldLabel>
             <NativeSelect
               id={fromId}
-              value={startId}
+              value={start?.id ?? ''}
               onChange={(event) => setStartId(event.target.value)}
             >
               {starts.map((item) => (
@@ -108,6 +112,14 @@ export function DelayForm({
                 </NativeSelectOption>
               ))}
             </NativeSelect>
+            {startGone && (
+              <p role='status' className='text-sm text-destructive'>
+                {t('delayFromGone', {
+                  time: toHourMinute(start.start_time as string),
+                  title: start.title,
+                })}
+              </p>
+            )}
             <FieldDescription>{t('delayFromDescription')}</FieldDescription>
           </Field>
 
