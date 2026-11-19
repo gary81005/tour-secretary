@@ -5,7 +5,7 @@ import type { PlaceAddresses } from '@/lib/maps/address';
 import type { StayStatus } from '@/lib/trip/enums';
 import { GoogleAddress } from './maps/google-address';
 
-// 單日畫面最下方的「今晚住」（Q8），由住宿日期推算；點了到住宿分頁。
+// 單日畫面最下方的「今晚住」（ADR 0004 Q8），由住宿日期推算；點了到住宿分頁。
 // placeId：沒寫地址、有連結地點時才有，用來顯示 Google 的地址。
 // 整塊可以點：連結用 after: 蓋住整塊，地址的語言切換按鈕再浮到上層（連結裡不能放按鈕）。
 export function TonightStay({

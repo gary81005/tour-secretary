@@ -18,7 +18,7 @@ export function localTime(timezone: string, now: Date): string {
   return dayjs(now).tz(timezone).format('HH:mm');
 }
 
-// 「今天」是第幾天（從 0 起算），依每一天自己的時區判斷，不看裝置時區（Q20）。
+// 「今天」是第幾天（從 0 起算），依每一天自己的時區判斷，不看裝置時區（ADR 0004 Q20）。
 // 還沒出發或已經結束時回傳 -1。跨時區換日的空檔（例如前一天在台北、隔天在東京）算在前一天。
 export function currentDayIndex(days: readonly DayInZone[], now: Date): number {
   let index = -1;

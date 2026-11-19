@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   return { title: trip?.name };
 }
 
-// 行程頁共用的頁首：名稱、日期、「⋯」選單，以及「行程、住宿、提醒、限制」四個分頁（Q10）。
+// 行程頁共用的頁首：名稱、日期、「⋯」選單，以及「行程、住宿、提醒、限制」四個分頁（ADR 0004 Q10）。
 export default function TripLayout({ children, params }: { children: ReactNode; params: Params }) {
   return (
     <div className='flex flex-col'>

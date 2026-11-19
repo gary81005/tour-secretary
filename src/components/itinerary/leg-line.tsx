@@ -94,7 +94,7 @@ function Durations({
   );
 }
 
-// 韓國（Q13）：用目的地名稱在 KakaoMap／Naver Map 搜尋，再從那裡查路線。
+// 韓國（ADR 0006 Q13）：用目的地名稱在 KakaoMap／Naver Map 搜尋，再從那裡查路線。
 export function KoreaLinks({ destination }: { destination: string }) {
   const t = useTranslations('trips.day');
 

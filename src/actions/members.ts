@@ -29,7 +29,7 @@ export async function resetInviteLink(tripId: string): Promise<ActionResult> {
   return { ok: true };
 }
 
-// resetInvite：同時重設邀請連結，不然被移除的人可以用原本的連結再加入（Q14）。
+// resetInvite：同時重設邀請連結，不然被移除的人可以用原本的連結再加入（ADR 0005 Q14）。
 export async function removeMember(
   tripId: string,
   userId: string,
@@ -66,7 +66,7 @@ export async function leaveTrip(tripId: string): Promise<ActionResult> {
 export type JoinTripResult =
   { ok: true; tripId: string } | { ok: false; fieldErrors?: FieldErrors; error?: ActionErrorKey };
 
-// 用邀請連結加入（Q8）。表單有名稱欄位（還沒有名稱的人）時，名稱必填，加入時一起存。
+// 用邀請連結加入（ADR 0005 Q8）。表單有名稱欄位（還沒有名稱的人）時，名稱必填，加入時一起存。
 // 已經是旅伴時照樣成功，回傳行程 id。
 export async function joinTrip(token: string, formData: FormData): Promise<JoinTripResult> {
   if (!isUuid(token)) return { ok: false, error: 'notFound' };

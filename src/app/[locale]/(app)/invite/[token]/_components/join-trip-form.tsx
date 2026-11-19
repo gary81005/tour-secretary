@@ -16,11 +16,11 @@ import { DISPLAY_NAME_MAX_LENGTH } from '@/lib/profile/display-name';
 type Props = {
   token: string;
   invite: JoinableTripInvite;
-  // 還沒有名稱：先填名稱才能加入（Q13）。
+  // 還沒有名稱：先填名稱才能加入（ADR 0005 Q13）。
   needsName: boolean;
 };
 
-// 邀請的確認頁：看清楚是哪個行程、誰邀請的，按「加入」才加入（Q8）。
+// 邀請的確認頁：看清楚是哪個行程、誰邀請的，按「加入」才加入（ADR 0005 Q8）。
 export function JoinTripForm({ token, invite, needsName }: Props) {
   const t = useTranslations();
   const router = useRouter();

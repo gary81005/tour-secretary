@@ -84,7 +84,7 @@ function directionsUrl(from: PlaceRef, to: PlaceRef): URL {
   return url;
 }
 
-// 韓國：Google 沒有步行與開車路線，改用 Naver Map／KakaoMap（Q13）。只用名稱搜尋：
+// 韓國：Google 沒有步行與開車路線，改用 Naver Map／KakaoMap（ADR 0006 Q13）。只用名稱搜尋：
 // 服務條款不允許把 Google 的資料（例如座標）用在其他地圖服務。
 export function naverSearchUrl(name: string): string {
   return `https://map.naver.com/p/search/${encodeURIComponent(name)}`;

@@ -73,7 +73,7 @@ CREATE POLICY "trip_imports: members can read"
 --   "notes": [{ "topic", "content" }] | null,
 --   "constraints": [{ "kind", "subject", "content" }] | null
 -- }
--- 備案用 item_ref 掛到這次匯入的項目，或用 item_id 掛到行程裡的既有項目（附加模式，Q16）。
+-- 備案用 item_ref 掛到這次匯入的項目，或用 item_id 掛到行程裡的既有項目（附加模式，ADR 0008 Q16）。
 --
 -- security definer：days 與 trips 的日期沒有開放直接寫入，所以先用 can_access_trip() 檢查權限。
 -- 長度、網址、時間範圍等規則由各資料表的 check constraint 把關。
@@ -383,7 +383,7 @@ GRANT EXECUTE ON FUNCTION public.import_trip(
 ) TO authenticated;
 
 -- ---------------------------------------------------------------------------
--- undo_import：復原上次匯入（Q15）。只有行程「最近一次」的匯入、30 天內、還沒復原過才可以。
+-- undo_import：復原上次匯入（ADR 0008 Q15）。只有行程「最近一次」的匯入、30 天內、還沒復原過才可以。
 -- - 這次新增的資料軟刪除；掛在既有項目上的備案刪除。
 -- - 被覆蓋的資料還原，城市改回原值。
 -- - 延長出來的天從最外側往內刪，遇到還有其他項目的天就停止，起訖日跟著剩下的天調整。

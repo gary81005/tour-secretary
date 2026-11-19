@@ -104,7 +104,7 @@ BEGIN
     END IF;
   END IF;
 
-  -- 新項目，或換了天／時段的項目，排到該時段手動順序的最後（Q22）。
+  -- 新項目，或換了天／時段的項目，排到該時段手動順序的最後（ADR 0004 Q22）。
   IF v_item_id IS NULL OR v_old_day_id <> p_day_id OR v_old_slot <> p_time_slot THEN
     SELECT coalesce(max(i.position) + 1, 0) INTO v_position
     FROM public.items i

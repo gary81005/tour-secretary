@@ -249,7 +249,7 @@ function TripChanges({ plan }: { plan: ImportPlan }) {
   );
 }
 
-// 覆蓋前的確認（Q15-a）：列出將取代的天數與筆數。
+// 覆蓋前的確認（ADR 0008 Q15-a）：列出將取代的天數與筆數。
 function OverwriteDialog({
   replaced,
   open,

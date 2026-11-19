@@ -1,4 +1,4 @@
--- M1 第 9 步：修改行程日期與天數（Q15）。
+-- M1 第 9 步：修改行程日期與天數（ADR 0004 Q15）。
 -- trips.start_date/end_date、days.date 沒有開放直接改（20261105000002_rls.sql 的欄位層級 grant），
 -- 一律透過這裡的函式，天數才不會和日期範圍脫節；住宿的日期也一起調整。
 -- security definer：days 沒有開放 insert/delete，所以每個函式都先用 can_access_trip() 檢查權限。

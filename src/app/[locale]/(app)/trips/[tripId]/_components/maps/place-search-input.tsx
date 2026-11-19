@@ -25,7 +25,7 @@ type Props = Omit<ComponentProps<'input'>, 'value' | 'onChange' | 'defaultValue'
   // 選了建議的地點；sessionToken 要跟著地點送到伺服器查座標，結束這個搜尋 session。
   onPlaceSelect: (suggestion: PlaceSuggestion, sessionToken: string) => void;
   search: PlaceSearchContext;
-  // 已連結的地點：輸入只是改名稱（Q11-a），不再搜尋。
+  // 已連結的地點：輸入只是改名稱（ADR 0006 Q11-a），不再搜尋。
   linked: boolean;
 };
 

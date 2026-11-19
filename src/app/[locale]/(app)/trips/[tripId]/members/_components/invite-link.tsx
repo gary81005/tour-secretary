@@ -27,7 +27,7 @@ type Props = {
 
 const subscribeNothing = () => () => {};
 
-// 主辦人的邀請連結（Q7）：複製後貼到 LINE 群組；可以重設，舊連結立刻失效。
+// 主辦人的邀請連結（ADR 0005 Q7）：複製後貼到 LINE 群組；可以重設，舊連結立刻失效。
 export function InviteLink({ tripId, invitePath, memberCount }: Props) {
   const t = useTranslations();
   const origin = useSyncExternalStore(

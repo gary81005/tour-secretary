@@ -109,7 +109,7 @@ function staysWithin(
   return (payload.stays ?? []).every((stay) => validateStayRange(stay, range) === null);
 }
 
-// 復原上次匯入（Q15）：只有行程最近一次、30 天內、尚未復原的匯入可以復原，由 undo_import() 判斷。
+// 復原上次匯入（ADR 0008 Q15）：只有行程最近一次、30 天內、尚未復原的匯入可以復原，由 undo_import() 判斷。
 export async function undoImport(importId: string): Promise<ActionResult> {
   if (!isUuid(importId)) return { ok: false, error: 'notFound' };
 

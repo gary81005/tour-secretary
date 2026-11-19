@@ -54,7 +54,7 @@ export default async function RootLayout({ children }: LayoutProps<'/[locale]'>)
           <SiteFooter />
         </NextIntlClientProvider>
         <ServiceWorkerRegistration />
-        {/* 「已刪除・復原」等提示（Q26-6）；手機上放下方中間，拇指好按。 */}
+        {/* 「已刪除・復原」等提示（ADR 0004 Q26-6）；手機上放下方中間，拇指好按。 */}
         <Toaster position='bottom-center' />
       </body>
     </html>

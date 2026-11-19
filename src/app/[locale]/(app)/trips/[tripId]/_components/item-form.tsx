@@ -66,7 +66,7 @@ type Row<T> = T & { key: string };
 // 存檔時讓伺服器查座標並結束 session，既有的連結是空字串。
 type PlaceRow = Row<{ name: string; placeId: string | null; sessionToken: string }>;
 
-// 行程項目的新增／編輯表單（Q7、Q16、Q19）。
+// 行程項目的新增／編輯表單（ADR 0004 Q7、Q16、Q19）。
 // 不用 <form action>：React 19 在 action 結束後會重設非受控欄位，驗證失敗時使用者加的地點、備案會消失。
 // 改成 onSubmit 自己呼叫 Server Action，欄位維持原樣，只顯示錯誤。
 export function ItemForm({ item, dayId, defaultSlot, dayOptions, placeSearch, onDone }: Props) {
@@ -220,7 +220,7 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, placeSearch, on
             name={ITEM_FIELDS.startTime}
             type='time'
             defaultValue={item?.start_time ? toHourMinute(item.start_time) : undefined}
-            // 填了開始時間就自動帶入對應的時段，使用者仍可改回來（Q19）。
+            // 填了開始時間就自動帶入對應的時段，使用者仍可改回來（ADR 0004 Q19）。
             onChange={(event) => {
               if (event.target.value) setTimeSlot(timeSlotForTime(event.target.value));
             }}

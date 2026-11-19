@@ -7,7 +7,7 @@ import { isUuid } from '@/lib/uuid';
 
 // 旅伴與邀請連結的查詢（ADR 0005「M5 旅伴與權限」）。會讀 cookie，呼叫端要放在 <Suspense> 裡。
 
-// 自己是不是主辦人：決定畫面要不要顯示主辦人專屬的功能（Q11）。權限仍由 RLS 與函式把關。
+// 自己是不是主辦人：決定畫面要不要顯示主辦人專屬的功能（ADR 0005 Q11）。權限仍由 RLS 與函式把關。
 // layout 與頁面都會用到，同一個請求只查一次。
 export const isTripOwner = cache(async (tripId: string) => {
   if (!isUuid(tripId)) return false;

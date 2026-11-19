@@ -16,7 +16,7 @@ type Props = PageProps<'/[locale]/trips/[tripId]'>;
 
 const DAY_TRANSITION = { 'day-forward': 'day-forward', 'day-back': 'day-back', default: 'none' };
 
-// 行程分頁：上方是天數列，下面是選中那一天、依時段分組的項目（Q10、Q18）。
+// 行程分頁：上方是天數列，下面是選中那一天、依時段分組的項目（ADR 0004 Q10、Q18）。
 export default function ItineraryPage({ params, searchParams }: Props) {
   return (
     <Suspense fallback={<ItinerarySkeleton />}>

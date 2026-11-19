@@ -1,6 +1,6 @@
 export const DEFAULT_TIMEZONE = 'Asia/Tokyo';
 
-// 時區選單的常用選項（Q5）；選單最下面另有「其他」可以搜尋完整清單。
+// 時區選單的常用選項（ADR 0004 Q5）；選單最下面另有「其他」可以搜尋完整清單。
 export const COMMON_TIMEZONES = [
   'Asia/Tokyo',
   'Asia/Seoul',

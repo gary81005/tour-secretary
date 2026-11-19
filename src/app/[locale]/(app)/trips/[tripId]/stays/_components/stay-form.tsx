@@ -27,11 +27,11 @@ type Props = {
   onDone: () => void;
 };
 
-// 住宿的新增／編輯表單（Q8）。入住到退房要在行程日期內（伺服器端也會檢查）。
+// 住宿的新增／編輯表單（ADR 0004 Q8）。入住到退房要在行程日期內（伺服器端也會檢查）。
 export function StayForm({ trip, stay, defaults, placeSearch, onDone }: Props) {
   const t = useTranslations();
   const [isDeleting, startDelete] = useTransition();
-  // 名稱與連結的地點。選了 Google 的地點時預填 Google 的名稱，可以再改；地址文字不動（Q14）。
+  // 名稱與連結的地點。選了 Google 的地點時預填 Google 的名稱，可以再改；地址文字不動（ADR 0006 Q14）。
   const [name, setName] = useState(stay?.name ?? '');
   const [place, setPlace] = useState({ placeId: stay?.place_id ?? null, sessionToken: '' });
   const { result, isPending, handleSubmit } = useFormSubmit(

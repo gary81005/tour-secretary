@@ -56,7 +56,7 @@ type Props = {
 
 type DialogName = 'edit' | 'shift' | 'dates' | 'undoImport' | 'undoAdjustment';
 
-// 行程右上角的「⋯」選單（Q26-3）：編輯行程、整趟平移、修改起訖日、旅伴、匯入 xlsx、
+// 行程右上角的「⋯」選單（ADR 0004 Q26-3）：編輯行程、整趟平移、修改起訖日、旅伴、匯入 xlsx、
 // 復原上次匯入（ADR 0008 Q15）、復原上次調整（ADR 0009）、移到垃圾桶。
 export function TripMenu({ trip, days, isOwner, undoableImportId, undoableAdjustmentId }: Props) {
   const t = useTranslations();

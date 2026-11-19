@@ -4,7 +4,7 @@ import { ConstraintList } from './_components/constraint-list';
 
 type Props = PageProps<'/[locale]/trips/[tripId]/constraints'>;
 
-// 旅伴限制分頁（Q9）：依類型分組。
+// 旅伴限制分頁（ADR 0004 Q9）：依類型分組。
 export default function ConstraintsPage({ params }: Props) {
   return (
     <Suspense fallback={<div className='mt-4 h-24 animate-pulse rounded-lg bg-muted' />}>

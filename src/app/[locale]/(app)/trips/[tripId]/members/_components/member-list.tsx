@@ -25,7 +25,7 @@ type Props = {
   members: TripMember[];
 };
 
-// 旅伴名單：頭像、名稱、主辦人標記、「（你）」，不顯示 Email（Q9）。主辦人可以移除旅伴。
+// 旅伴名單：頭像、名稱、主辦人標記、「（你）」，不顯示 Email（ADR 0005 Q9）。主辦人可以移除旅伴。
 export function MemberList({ tripId, isOwner, members }: Props) {
   const t = useTranslations('trips.members');
   // 要移除的旅伴：關閉對話框時保留，讓關閉動畫跑完。

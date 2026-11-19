@@ -111,7 +111,7 @@ export const itemSchema = z
       .array(z.object({ condition: optionalText(500), alternative: requiredText(1000) }))
       .max(20, error('tooMany')),
   })
-  // 不支援跨午夜（Q19）。
+  // 不支援跨午夜（ADR 0004 Q19）。
   .refine((v) => !v.endTime || v.startTime, {
     path: ['endTime'],
     ...error('endTimeWithoutStart'),

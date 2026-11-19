@@ -13,7 +13,7 @@ import { TimezoneField } from '../../_components/timezone-field';
 
 const INITIAL_STATE: FormState<CreateTripValues> = {};
 
-// 建立行程（Q21）：只填名稱、起訖日、時區，建好直接進第 1 天。
+// 建立行程（ADR 0004 Q21）：只填名稱、起訖日、時區，建好直接進第 1 天。
 // 驗證在伺服器端（zod）；失敗時用回傳的 values 把使用者填的內容帶回表單。
 export function CreateTripForm() {
   const t = useTranslations();

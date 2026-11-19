@@ -106,11 +106,11 @@ function sameOrder(a: readonly string[], b: readonly string[]) {
   return a.length === b.length && a.every((id, index) => id === b[index]);
 }
 
-// 單日的項目列表、拖拉排序與編輯面板（Q16、Q18、Q22）。
+// 單日的項目列表、拖拉排序與編輯面板（ADR 0004 Q16、Q18、Q22）。
 // - 依時段分組，只顯示有項目的時段；有精確時間的項目排前面、不能拖
 // - 沒有時間的項目可在同時段內排序，也能拖到別的時段組（改成那個時段）
 // - 放下後先用 useOptimistic 顯示新順序，伺服器失敗時自動還原
-// - 卡片上方顯示從上一個地點過來的移動（Q9）；拖拉中維持原本的段，放下後依新順序重新規劃
+// - 卡片上方顯示從上一個地點過來的移動（ADR 0006 Q9）；拖拉中維持原本的段，放下後依新順序重新規劃
 export function DayItems({
   tripId,
   dayId,
@@ -472,7 +472,7 @@ function SortableItem({
   );
 }
 
-// 有精確時間的項目依時間排序、不能拖（Q22），在把手的位置顯示時鐘。
+// 有精確時間的項目依時間排序、不能拖（ADR 0004 Q22），在把手的位置顯示時鐘。
 function TimedMarker() {
   const t = useTranslations('trips.dnd');
   return (

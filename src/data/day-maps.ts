@@ -25,7 +25,7 @@ export type DayMaps = {
 
 // 單日畫面的地圖資料（ADR 0006）。向 Google 查的部分（營業時間、移動時間、地址）都不 await，
 // 讓頁面先顯示，查到後再串流到畫面上。
-// 沒有地圖金鑰時地點只能輸入文字，也不顯示營業時間、移動時間與 Google 的地址（Q15）。
+// 沒有地圖金鑰時地點只能輸入文字，也不顯示營業時間、移動時間與 Google 的地址（ADR 0006 Q15）。
 export function getDayMaps(input: {
   items: readonly DayItem[];
   stays: readonly TripStay[];
@@ -66,7 +66,7 @@ export function getDayMaps(input: {
   const startStay = stops.startStay;
   const endStay = input.isLastDay ? null : stops.endStay;
 
-  // 當天路線（Q3）：前一晚的住宿 → 各項目的地點 → 當晚的住宿。Google 在韓國沒有路線（Q13）。
+  // 當天路線（ADR 0006 Q3）：前一晚的住宿 → 各項目的地點 → 當晚的住宿。Google 在韓國沒有路線（ADR 0006 Q13）。
   const routeUrl = routesSupported(timezone)
     ? googleDayRouteUrl(
         dayRoutePlaces({
@@ -82,7 +82,7 @@ export function getDayMaps(input: {
       )
     : null;
 
-  // 卡片之間的移動時間（Q9）。
+  // 卡片之間的移動時間（ADR 0006 Q9）。
   const travel = getDayTravel({ items, startStay, endStay, timezone, mapsEnabled });
 
   // 住宿沒寫地址時顯示 Google 的地址（「地點連結」）。

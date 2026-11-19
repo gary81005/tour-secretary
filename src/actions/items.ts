@@ -119,7 +119,7 @@ export async function unskipItem(itemId: string): Promise<ActionResult> {
   return { ok: true };
 }
 
-// 刪除是軟刪除，畫面上提供「復原」（Q13）。
+// 刪除是軟刪除，畫面上提供「復原」（ADR 0004 Q13）。
 export async function deleteItem(itemId: string): Promise<ActionResult> {
   const result = await setDeletedAt('items', itemId, new Date().toISOString());
   if (result.ok) refresh();
@@ -138,7 +138,7 @@ const reorderSchema = z.object({
   itemIds: z.array(z.uuid()).max(100),
 });
 
-// 拖拉排序（Q22）：把 itemIds 依序設成 timeSlot 的手動順序。
+// 拖拉排序（ADR 0004 Q22）：把 itemIds 依序設成 timeSlot 的手動順序。
 // 不論成功與否都 refresh()：衝突時（資料已被別人或別的分頁改過）讓畫面拿到最新內容。
 export async function reorderItems(
   dayId: string,

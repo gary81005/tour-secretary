@@ -10,7 +10,7 @@ import { staySchema } from '@/lib/trip/schemas';
 import { validateStayRange } from '@/lib/trip/stays';
 import { isUuid } from '@/lib/uuid';
 
-// 住宿的 Server Actions（Q8、Q23）。
+// 住宿的 Server Actions（ADR 0004 Q8、Q23）。
 
 export async function saveStay(
   tripId: string,
@@ -47,7 +47,7 @@ export async function saveStay(
   if (!trip) return { ok: false, error: 'notFound' };
 
   const stay = parsed.data;
-  // 入住到退房要在行程日期內，退房日可以是最後一天（Q23）。
+  // 入住到退房要在行程日期內，退房日可以是最後一天（ADR 0004 Q23）。
   if (validateStayRange({ check_in: stay.checkIn, check_out: stay.checkOut }, trip)) {
     return { ok: false, fieldErrors: { checkIn: 'outsideTrip' } };
   }

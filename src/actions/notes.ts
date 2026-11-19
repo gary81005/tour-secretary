@@ -9,7 +9,7 @@ import { setDeletedAt } from '@/lib/supabase/soft-delete';
 import { tripNoteSchema } from '@/lib/trip/schemas';
 import { isUuid } from '@/lib/uuid';
 
-// 提醒事項的 Server Actions（Q9、Q23）。
+// 提醒事項的 Server Actions（ADR 0004 Q9、Q23）。
 
 export async function saveNote(
   tripId: string,

@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import type { ItemCategory } from '@/lib/trip/enums';
 
-// 每個類別固定一個圖示，只用主題色區分（Q26-5）。
+// 每個類別固定一個圖示，只用主題色區分（ADR 0004 Q26-5）。
 const CATEGORY_ICONS = {
   sightseeing: LandmarkIcon,
   meal: UtensilsIcon,

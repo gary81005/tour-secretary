@@ -7,7 +7,7 @@ import { setDeletedAt } from '@/lib/supabase/soft-delete';
 import { travelerConstraintSchema } from '@/lib/trip/schemas';
 import { isUuid } from '@/lib/uuid';
 
-// 旅伴限制的 Server Actions（Q9）。
+// 旅伴限制的 Server Actions（ADR 0004 Q9）。
 
 export async function saveConstraint(
   tripId: string,

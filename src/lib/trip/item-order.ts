@@ -7,7 +7,7 @@ export type OrderableItem = {
   position: number;
 };
 
-// 同一天的排序規則（Q6、Q22）：
+// 同一天的排序規則（ADR 0004 Q6、Q22）：
 // 1. 依時段（整天 → 清晨 → … → 晚上）
 // 2. 同時段內，有精確時間的排前面並照時間排
 // 3. 沒有時間的照手動順序（position）
@@ -31,7 +31,7 @@ export function sortItems<T extends OrderableItem>(items: readonly T[]): T[] {
   return items.toSorted(compareItems);
 }
 
-// 單日畫面依時段分組，只回傳有項目的時段（Q18）。
+// 單日畫面依時段分組，只回傳有項目的時段（ADR 0004 Q18）。
 export function groupItemsBySlot<T extends OrderableItem>(
   items: readonly T[],
 ): { slot: TimeSlot; items: T[] }[] {

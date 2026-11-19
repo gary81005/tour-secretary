@@ -25,7 +25,7 @@ export type DateRangeChangePlan<T extends { date: string }> = {
   added: string[];
 };
 
-// 「修改起訖日」的預告（Q15）：以日期對應，保留還在新範圍內的天。
+// 「修改起訖日」的預告（ADR 0004 Q15）：以日期對應，保留還在新範圍內的天。
 // 要刪的天如果還有項目，由資料庫的 set_trip_dates() 擋下並回傳日期，這裡不判斷。
 export function planDateRangeChange<T extends { date: string }>(
   days: readonly T[],

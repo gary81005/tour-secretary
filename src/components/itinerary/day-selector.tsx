@@ -22,7 +22,7 @@ type Props = {
 const dayClass =
   'pressable flex min-w-16 flex-col items-center rounded-lg border px-3 py-1.5 text-center outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 active:bg-muted aria-[current=date]:border-primary aria-[current=date]:bg-primary aria-[current=date]:text-primary-foreground';
 
-// 可以橫向捲動的天數列（Q10）。捲動時固定在頂部列下方；切換天數不捲回頁首。
+// 可以橫向捲動的天數列（ADR 0004 Q10）。捲動時固定在頂部列下方；切換天數不捲回頁首。
 // 換天的轉場時固定不動（view-transition-name，見 globals.css）。
 export function DaySelector({ selectedIndex, days, onSelect, tripId, className }: Props) {
   const t = useTranslations('trips.day');

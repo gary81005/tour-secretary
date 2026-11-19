@@ -15,7 +15,7 @@ export type ImportSelection = {
   fallbackTargets: ReadonlyMap<string, FallbackTarget | null>;
 };
 
-// 附加模式下已存在的資料預設不勾（Q13）。
+// 附加模式下已存在的資料預設不勾（ADR 0008 Q13）。
 export function initialSelection(plan: ImportPlan): ImportSelection {
   return {
     excluded: new Set(plan.duplicates),

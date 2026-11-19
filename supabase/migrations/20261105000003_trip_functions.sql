@@ -44,7 +44,7 @@ REVOKE EXECUTE ON FUNCTION public.create_trip(text, date, date, text) FROM PUBLI
 GRANT EXECUTE ON FUNCTION public.create_trip(text, date, date, text) TO authenticated;
 
 -- ---------------------------------------------------------------------------
--- purge_deleted_rows：永久刪除軟刪除超過 30 天的資料（docs/adr/0005、Q14）
+-- purge_deleted_rows：永久刪除軟刪除超過 30 天的資料（ADR 0004 Q14）
 -- ---------------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION public.purge_deleted_rows()

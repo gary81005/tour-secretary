@@ -14,7 +14,7 @@ import type { TripSummary } from '@/lib/trip/trip-list';
 import type { TripPhase } from '@/lib/trip/trip-phase';
 import { TripCard } from './trip-card';
 
-// 首頁的行程列表（Q20）：依狀態分組；沒有行程時引導建立或匯入。
+// 首頁的行程列表（ADR 0004 Q20）：依狀態分組；沒有行程時引導建立或匯入。
 
 export function TripGroup({ phase, trips }: { phase: TripPhase; trips: TripSummary[] }) {
   const t = useTranslations('trips.list');

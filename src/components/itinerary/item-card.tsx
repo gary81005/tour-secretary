@@ -16,7 +16,7 @@ import { CategoryIcon } from './category-icon';
 // 行程項目卡片。整張卡可以點開編輯：標題按鈕用 after: 蓋住整張卡，
 // 卡片裡的連結與拖拉把手再用 relative z-10 浮到上層，避免在 <button> 裡放互動元素。
 // onEdit：沒有時是唯讀卡片（離線行程頁），標題只是文字。
-// handle：左側的拖拉把手，或有精確時間時的時鐘圖示（Q22）。
+// handle：左側的拖拉把手，或有精確時間時的時鐘圖示（ADR 0004 Q22）。
 // placeHours：伺服器查營業時間的 Promise（以 item_places.id 對應），沒有地圖金鑰或離線時是 null。
 // onToggleDone：「完成」勾選框（今天與之前的天，ADR 0010），null 時不顯示。完成的項目標題加刪除線。
 // 跳過的項目（ADR 0009「M6 細節」）：標題加刪除線、標「沒去」，勾選框的位置改成「沒去」圖示。

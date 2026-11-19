@@ -49,7 +49,7 @@ export type PlaceSearchInput = {
 // 搜尋偏向（ADR 0006 Q10）：當天已連結地點或住宿的座標，以及由時區推測的國家。
 export type SearchBias = { center: LatLng | null; regionCode: string | null };
 
-// 有設定地圖金鑰時才有：頁面算好的搜尋偏向（ADR 0006 Q10）。null 表示地點只能輸入文字（Q15）。
+// 有設定地圖金鑰時才有：頁面算好的搜尋偏向（ADR 0006 Q10）。null 表示地點只能輸入文字（ADR 0006 Q15）。
 export type PlaceSearchContext = { bias: SearchBias };
 
 export interface MapProvider {

@@ -15,7 +15,7 @@ const dayFormSchema = dayUpdateSchema.extend({
   cityUntil: z.union([z.literal(''), z.iso.date()]),
 });
 
-// 改城市與時區。城市可以一次套用到之後連續幾天（Q21）。
+// 改城市與時區。城市可以一次套用到之後連續幾天（ADR 0004 Q21）。
 export async function updateDay(dayId: string, formData: FormData): Promise<FormResult> {
   if (!isUuid(dayId)) return { ok: false, error: 'notFound' };
 
@@ -59,7 +59,7 @@ export async function insertDayAfter(dayId: string): Promise<ActionResult> {
   return callDayRpc('insert_day_after', dayId);
 }
 
-// 刪除一天（連同項目），之後的日期往前移（Q15）。畫面上有項目時會先確認。
+// 刪除一天（連同項目），之後的日期往前移（ADR 0004 Q15）。畫面上有項目時會先確認。
 export async function deleteDay(dayId: string): Promise<ActionResult> {
   return callDayRpc('delete_day', dayId);
 }

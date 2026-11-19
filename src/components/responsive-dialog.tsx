@@ -3,7 +3,7 @@
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog';
 import { cn } from 'cn';
 
-// 編輯面板（Q16）：手機從底部滑出、接近全高；sm 以上是置中的對話框。
+// 編輯面板（ADR 0004 Q16）：手機從底部滑出、接近全高；sm 以上是置中的對話框。
 // 不用 shadcn 的 Sheet：它的 data-[side=bottom]:inset-x-0、bottom-0、h-auto 權重比 sm: 高，
 // 桌機版的置中與手機版的高度都會被蓋掉。
 

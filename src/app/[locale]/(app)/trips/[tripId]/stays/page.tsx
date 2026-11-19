@@ -9,7 +9,7 @@ import { StayList } from './_components/stay-list';
 
 type Props = PageProps<'/[locale]/trips/[tripId]/stays'>;
 
-// 住宿分頁（Q8）：依入住日排序，日期重疊只提醒不阻擋（Q23）。
+// 住宿分頁（ADR 0004 Q8）：依入住日排序，日期重疊只提醒不阻擋（ADR 0004 Q23）。
 export default function StaysPage({ params }: Props) {
   return (
     <Suspense fallback={<div className='mt-4 h-24 animate-pulse rounded-lg bg-muted' />}>

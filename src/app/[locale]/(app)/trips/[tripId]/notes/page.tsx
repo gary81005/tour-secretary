@@ -4,7 +4,7 @@ import { NoteList } from './_components/note-list';
 
 type Props = PageProps<'/[locale]/trips/[tripId]/notes'>;
 
-// 提醒事項分頁（Q9、Q23）：主題 + 內容，可以拖拉排序。
+// 提醒事項分頁（ADR 0004 Q9、Q23）：主題 + 內容，可以拖拉排序。
 export default function NotesPage({ params }: Props) {
   return (
     <Suspense fallback={<div className='mt-4 h-24 animate-pulse rounded-lg bg-muted' />}>

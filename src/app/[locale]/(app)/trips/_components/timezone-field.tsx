@@ -25,7 +25,7 @@ type Props = {
   inheritLabel?: string;
 };
 
-// 時區選單（Q5）：常用的亞洲時區，最下面的「其他時區…」切換成可搜尋完整 IANA 清單的輸入框。
+// 時區選單（ADR 0004 Q5）：常用的亞洲時區，最下面的「其他時區…」切換成可搜尋完整 IANA 清單的輸入框。
 // 送出的值一律在 `name` 欄位；伺服器端再用 isValidTimezone 驗證。
 export function TimezoneField({
   id,

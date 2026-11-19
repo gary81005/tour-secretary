@@ -40,7 +40,7 @@ type Props = {
   invite?: boolean;
 };
 
-// 登入流程（Q1 (c)）：Google，或 Email → 同一封信裡有連結與 6 位數驗證碼。
+// 登入流程（ADR 0004 Q1-c）：Google，或 Email → 同一封信裡有連結與 6 位數驗證碼。
 // PWA 裡點連結常會開到外部瀏覽器，所以驗證碼要能直接在這裡輸入。
 export function LoginForm({ next, initialError, invite = false }: Props) {
   const t = useTranslations('auth');

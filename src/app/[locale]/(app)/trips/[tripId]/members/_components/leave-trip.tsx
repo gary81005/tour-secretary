@@ -19,7 +19,7 @@ import { useRouter } from '@/i18n/navigation';
 
 type Props = { tripId: string; tripName: string };
 
-// 旅伴退出行程（Q4）。他新增的內容留在行程裡；這支手機上的離線快照，回到首頁時清掉（ADR 0010）。
+// 旅伴退出行程（ADR 0005 Q4）。他新增的內容留在行程裡；這支手機上的離線快照，回到首頁時清掉（ADR 0010）。
 export function LeaveTrip({ tripId, tripName }: Props) {
   const t = useTranslations();
   const router = useRouter();

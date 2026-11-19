@@ -4,7 +4,7 @@ import { OfflineBanner } from '@/components/app-shell/offline-banner';
 import { InstallPromptListener } from './_components/install-prompt';
 
 // 登入後的頁面共用的外框。登入頁在 (app) 之外，不套用。
-// 手機優先；桌機只把內容置中、最寬 max-w-2xl（Q26-7），不做雙欄。
+// 手機優先；桌機只把內容置中、最寬 max-w-2xl（ADR 0004 Q26-7），不做雙欄。
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <>

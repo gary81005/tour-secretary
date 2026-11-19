@@ -68,7 +68,7 @@ export function summarizeTrip(
 
 export const TRIP_PHASE_ORDER = ['ongoing', 'upcoming', 'past'] as const satisfies TripPhase[];
 
-// 行程列表分組（Q20）：進行中、即將出發依出發日由近到遠；已結束由新到舊。
+// 行程列表分組（ADR 0004 Q20）：進行中、即將出發依出發日由近到遠；已結束由新到舊。
 export function groupTripsByPhase(trips: readonly TripSummary[]) {
   const byStart = (a: TripSummary, b: TripSummary) => a.startDate.localeCompare(b.startDate);
   const inPhase = (phase: TripPhase) => trips.filter((trip) => trip.phase === phase);

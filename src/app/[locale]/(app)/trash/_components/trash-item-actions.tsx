@@ -44,7 +44,7 @@ export function TrashItemActions({ tripId, tripName }: Props) {
   );
 }
 
-// 永久刪除前要輸入行程名稱確認（Q14），伺服器端也會再比對一次。
+// 永久刪除前要輸入行程名稱確認（ADR 0004 Q14），伺服器端也會再比對一次。
 function DeleteForeverDialog({ tripId, tripName }: Props) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);

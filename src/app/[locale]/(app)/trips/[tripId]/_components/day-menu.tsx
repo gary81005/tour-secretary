@@ -260,7 +260,7 @@ function EditDayDialog({
   );
 }
 
-// 刪除一天前一律確認；有項目時特別說明會一起刪除（Q15）。
+// 刪除一天前一律確認；有項目時特別說明會一起刪除（ADR 0004 Q15）。
 function DeleteDayDialog({
   day,
   itemCount,

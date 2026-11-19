@@ -92,7 +92,7 @@ export type DayTravel = {
         // 以 legKey 對應；沒有地圖金鑰時是 null（只顯示「查電車」連結）
         durations: Promise<Record<string, LegDurations>> | null;
       }
-    // 韓國（Q13）：不算移動時間，改附 KakaoMap／Naver Map 連結（用目的地名稱搜尋）。
+    // 韓國（ADR 0006 Q13）：不算移動時間，改附 KakaoMap／Naver Map 連結（用目的地名稱搜尋）。
     | { kind: 'korea' };
 };
 

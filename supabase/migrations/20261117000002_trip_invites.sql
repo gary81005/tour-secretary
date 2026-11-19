@@ -269,7 +269,7 @@ GRANT EXECUTE ON FUNCTION public.leave_trip(uuid) TO authenticated;
 
 -- ---------------------------------------------------------------------------
 -- remove_trip_member：主辦人移除旅伴。p_reset_invite（預設 true）同時重設邀請連結，
--- 不然被移除的人可以用舊連結再加回來（Q14）。只能移除旅伴，不能移除主辦人。
+-- 不然被移除的人可以用舊連結再加回來（ADR 0005 Q14）。只能移除旅伴，不能移除主辦人。
 -- ---------------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION public.remove_trip_member(

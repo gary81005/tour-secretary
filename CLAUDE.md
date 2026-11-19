@@ -25,7 +25,7 @@ npm run db:test       # 用 Docker 的 Postgres 套用 migrations 再跑 supabas
 ## 產品與設計文件
 
 - `CONTEXT.md`：領域名詞表（Trip、Day、Item、TimeSlot、Place、Fallback、Stay…）。程式碼用這些名稱，UI 用表中的中文。
-- `docs/adr/`：架構決策。改動相關行為前先讀對應的 ADR。
+- `docs/adr/`：架構決策。改動相關行為前先讀對應的 ADR。註解與 migration 引用決策時寫「ADR 0004 Q22」：每份 ADR 的 Q 編號是各自 milestone 的需求訪談，只寫 Q22 無法判斷是哪一份。
 - `docs/roadmap.md`：M0–M7 milestone 與目前進度。
 - `docs/samples/`：使用者實際的行程表範例（M2 範本設計、M7 AI 匯入的測試資料）。
 

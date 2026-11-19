@@ -17,7 +17,7 @@ import { blockedDatesOf, rpcErrorKey } from '@/lib/rpc-errors';
 import { tripCreateSchema, tripDateRangeSchema, tripUpdateSchema } from '@/lib/trip/schemas';
 import { isUuid } from '@/lib/uuid';
 
-// 行程的 Server Actions（Q11）。每個 action 都重新確認登入，權限最後由 RLS 把關。
+// 行程的 Server Actions（ADR 0004 Q11）。每個 action 都重新確認登入，權限最後由 RLS 把關。
 // next/root-params 在 Server Action 不能用，需要語系的地方由呼叫端傳入。
 
 export type CreateTripValues = {
@@ -88,7 +88,7 @@ async function setDeletedAt(tripId: string, deletedAt: string | null): Promise<A
   return data.length > 0 ? { ok: true } : { ok: false, error: 'notFound' };
 }
 
-// 永久刪除（只有 owner 能做，RLS 把關）。要輸入行程名稱確認（Q14）。
+// 永久刪除（只有 owner 能做，RLS 把關）。要輸入行程名稱確認（ADR 0004 Q14）。
 export async function deleteTripPermanently(
   tripId: string,
   confirmName: string,
@@ -170,7 +170,7 @@ export async function shiftTrip(tripId: string, formData: FormData): Promise<For
 export type SetTripDatesResult =
   FormResult | { ok: false; error: 'daysHaveItems'; blockedDates: string[] };
 
-// 修改起訖日：以日期對應（Q15）；要刪的天還有項目時擋下，並回傳那些日期。
+// 修改起訖日：以日期對應（ADR 0004 Q15）；要刪的天還有項目時擋下，並回傳那些日期。
 export async function setTripDates(
   tripId: string,
   formData: FormData,
