@@ -17,7 +17,7 @@ export function TripCardAlert({
   next: { id: string; title: string; start_time: string | null };
 }) {
   const t = useTranslations('trips.alert');
-  const { alert } = useTimeAlert({ timezone, current, next, departure: null });
+  const { alert } = useTimeAlert({ timezone, current, next, departure: null, walkSeconds: null });
   if (!alert || !next.start_time) return null;
 
   const late = alert.kind === 'late';

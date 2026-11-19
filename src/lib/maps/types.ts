@@ -61,9 +61,9 @@ export interface MapProvider {
   getPlaceAddress(placeId: string, language?: string): Promise<string | null>;
   // 顯示用：地址、營業狀態、營業時間（Enterprise）。查不到時回傳 null。
   getPlaceDetails(placeId: string): Promise<PlaceDetails | null>;
-  // 算不出路線時回傳 null。
+  // 算不出路線時回傳 null。from 是地點 ID，或手機目前的座標（「用我的位置」）。
   computeRoute(
-    fromPlaceId: string,
+    from: string | LatLng,
     toPlaceId: string,
     mode: TravelMode,
   ): Promise<RouteResult | null>;

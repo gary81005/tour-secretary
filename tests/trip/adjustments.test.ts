@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
+  delayAlert,
   describePlan,
   isAdjustmentUndoable,
   lateMinutesByWalk,
   planDelay,
   planFallback,
   planSkip,
+  shouldLocate,
   suggestedDelayMinutes,
   timeAlert,
   type AdjustableItem,
@@ -243,6 +245,55 @@ describe('lateMinutesByWalk', () => {
     expect(lateMinutesByWalk('09:50', 14 * 60, '10:00')).toBeNull();
     expect(lateMinutesByWalk('09:50', 25 * 60, '10:00')).toBe(15);
     expect(lateMinutesByWalk('09:50', 25 * 60 + 1, '10:00')).toBe(16);
+  });
+});
+
+describe('shouldLocate', () => {
+  it('下一站 2 小時內開始、還沒開始時才定位', () => {
+    expect(shouldLocate('07:59', '10:00')).toBe(false);
+    expect(shouldLocate('08:00', '10:00')).toBe(true);
+    expect(shouldLocate('09:59', '10:00')).toBe(true);
+    expect(shouldLocate('10:00', '10:00')).toBe(false);
+  });
+});
+
+describe('delayAlert', () => {
+  const pending = { done_at: null, skipped_at: null };
+  const next = { id: 'n', start_time: '10:00:00' };
+
+  it('會遲到優先於該出發了', () => {
+    const base = { current: pending, next, now: '09:50', departure: null };
+    expect(delayAlert({ ...base, walkSeconds: null })).toEqual({ kind: 'leaveNow', itemId: 'n' });
+    expect(delayAlert({ ...base, walkSeconds: 30 * 60 })).toEqual({
+      kind: 'lateByWalk',
+      itemId: 'n',
+      lateMinutes: 20,
+    });
+  });
+
+  it('趕得上時照時間判斷；已經晚了優先', () => {
+    expect(
+      delayAlert({ current: pending, next, now: '09:30', departure: null, walkSeconds: 10 * 60 }),
+    ).toBeNull();
+    expect(
+      delayAlert({ current: pending, next, now: '10:05', departure: null, walkSeconds: 30 * 60 }),
+    ).toEqual({ kind: 'late', itemId: 'n' });
+  });
+
+  it('現在的項目已處理、下一站沒有時間時不提醒', () => {
+    const done = { done_at: '2027-03-06T00:00:00Z', skipped_at: null };
+    expect(
+      delayAlert({ current: done, next, now: '09:50', departure: null, walkSeconds: 30 * 60 }),
+    ).toBeNull();
+    expect(
+      delayAlert({
+        current: pending,
+        next: { id: 'n', start_time: null },
+        now: '09:50',
+        departure: null,
+        walkSeconds: 30 * 60,
+      }),
+    ).toBeNull();
   });
 });
 

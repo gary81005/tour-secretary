@@ -85,11 +85,11 @@ export function createGoogleMapProvider(apiKey: string): MapProvider {
       return url ? toPlaceDetails(await request(url, FIELD_MASKS.details)) : null;
     },
 
-    async computeRoute(fromPlaceId, toPlaceId, mode) {
+    async computeRoute(from, toPlaceId, mode) {
       const json = await request(
         ROUTES_URL,
         FIELD_MASKS.route,
-        routeRequest(fromPlaceId, toPlaceId, mode),
+        routeRequest(from, toPlaceId, mode),
       );
       return toRouteResult(json);
     },

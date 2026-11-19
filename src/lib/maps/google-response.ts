@@ -55,9 +55,13 @@ export function autocompleteRequest(input: PlaceSearchInput) {
   };
 }
 
-export function routeRequest(fromPlaceId: string, toPlaceId: string, mode: TravelMode) {
+// from：地點 ID，或手機目前的座標（「用我的位置」，ADR 0009「M6 細節」，不存也不記錄）。
+export function routeRequest(from: string | LatLng, toPlaceId: string, mode: TravelMode) {
   return {
-    origin: { placeId: fromPlaceId },
+    origin:
+      typeof from === 'string'
+        ? { placeId: from }
+        : { location: { latLng: { latitude: from.lat, longitude: from.lng } } },
     destination: { placeId: toPlaceId },
     travelMode: mode === 'walk' ? 'WALK' : 'DRIVE',
     // routingPreference 只能用在開車；TRAFFIC_UNAWARE 是 Essentials 級別。

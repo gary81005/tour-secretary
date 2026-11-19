@@ -79,8 +79,10 @@ export function OfflineDay({ snapshot, now }: { snapshot: OfflineSnapshot; now: 
             stay={nowStay(tonightStays)}
             travel={travel}
             timezone={timezone}
+            locate={false}
             onDone={null}
             onReport={null}
+            onDelay={null}
           />
         )}
 

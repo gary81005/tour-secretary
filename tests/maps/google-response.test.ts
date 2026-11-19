@@ -56,6 +56,13 @@ describe('routeRequest', () => {
       routingPreference: 'TRAFFIC_UNAWARE',
     });
   });
+
+  it('起點可以是座標（用我的位置）', () => {
+    expect(routeRequest({ lat: 35.71, lng: 139.79 }, 'b', 'walk')).toMatchObject({
+      origin: { location: { latLng: { latitude: 35.71, longitude: 139.79 } } },
+      destination: { placeId: 'b' },
+    });
+  });
 });
 
 describe('toPlaceSuggestions', () => {

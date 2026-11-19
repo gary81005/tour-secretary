@@ -417,6 +417,22 @@
     "report": "回報狀況",
     "dismiss": "知道了",
     "homeLeaveNow": "該出發了：{start}「{next}」",
-    "homeLate": "已經晚了：{start}「{next}」"
+    "homeLate": "已經晚了：{start}「{next}」",
+    "lateByWalkTitle": "會遲到",
+    "lateByWalk": "從你的位置走過去，會比「{next}」{start} 晚約 {minutes} 分鐘。",
+    "delay": "延後之後的行程"
+  },
+  "location": {
+    "toggle": "用我的位置",
+    "allow": "允許定位",
+    "waiting": "下一站開始前 2 小時內才會定位",
+    "locating": "定位中…",
+    "walk": "從你的位置步行約 {minutes} 分",
+    "errors": {
+      "denied": "沒有定位權限，無法估算會不會遲到",
+      "unavailable": "暫時算不出步行時間，5 分鐘後再試",
+      "noPlace": "下一站沒有連結地點，無法估算會不會遲到",
+      "tooFar": "離下一站步行超過 30 分鐘，不估算會不會遲到"
+    }
   }
 }

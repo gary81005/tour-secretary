@@ -279,8 +279,12 @@ export function DayItems({
           stay={nowStay}
           travel={travel}
           timezone={timezone}
+          locate={placeSearch !== null}
           onDone={(item) => toggleDone(item, true, true)}
           onReport={(item) => adjuster.openEditor({ mode: 'report', itemId: item.id })}
+          onDelay={(item, minutes) =>
+            adjuster.openEditor({ mode: 'delay', itemId: item.id, minutes })
+          }
         />
       )}
       {groups.length === 0 ? (

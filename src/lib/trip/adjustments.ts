@@ -242,3 +242,33 @@ export function lateMinutesByWalk(
   const late = timeToMinutes(now) + Math.ceil(walkSeconds / 60) - timeToMinutes(startTime);
   return late >= LATE_TOLERANCE_MINUTES ? late : null;
 }
+
+// 「用我的位置」只在下一站 2 小時內開始時定位，最多每 5 分鐘一次（ADR 0009 Q9）。
+export const LOCATION_WINDOW_MINUTES = 120;
+export const LOCATION_INTERVAL_MS = 5 * 60 * 1000;
+
+// 下一站還沒開始、2 小時內開始時才需要定位（已經開始就是「已經晚了」，不用再算）。
+export function shouldLocate(now: string, startTime: string): boolean {
+  const minutesLeft = timeToMinutes(startTime) - timeToMinutes(now);
+  return minutesLeft > 0 && minutesLeft <= LOCATION_WINDOW_MINUTES;
+}
+
+export type DelayAlert = TimeAlert | { kind: 'lateByWalk'; itemId: string; lateMinutes: number };
+
+// 「現在／下一站」上方的提醒：已經晚了 > 會遲到（用定位）> 該出發了。
+// walkSeconds 是從手機位置步行到下一站的時間（沒開「用我的位置」或算不出來時是 null）。
+export function delayAlert(input: {
+  current: { done_at: string | null; skipped_at: string | null } | null;
+  next: { id: string; start_time: string | null } | null;
+  now: string;
+  departure: string | null;
+  walkSeconds: number | null;
+}): DelayAlert | null {
+  const alert = timeAlert(input);
+  const { current, next, now, walkSeconds } = input;
+  if (alert?.kind === 'late' || walkSeconds === null) return alert;
+  if (!current || !isPending(current) || !next?.start_time) return null;
+
+  const lateMinutes = lateMinutesByWalk(now, walkSeconds, next.start_time);
+  return lateMinutes === null ? alert : { kind: 'lateByWalk', itemId: next.id, lateMinutes };
+}
