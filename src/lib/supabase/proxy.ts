@@ -8,7 +8,7 @@ import { getSupabaseEnv } from './env';
  * `response` 由呼叫端（next-intl 的 middleware）產生，這樣語系的 rewrite／redirect 不會被蓋掉。
  *
  * 回傳的 isAuthenticated 只用來決定要不要先導去登入頁（樂觀檢查）；
- * 真正的權限由頁面裡的 getCurrentUser() 與資料庫的 RLS 把關。
+ * 真正的權限由資料庫的 RLS 把關：頁面的查詢沒登入時查不到資料，Server Action 另外用 getSignedInClient() 重新確認登入。
  */
 export async function updateSession(request: NextRequest, response: NextResponse) {
   const { url, publishableKey } = getSupabaseEnv();

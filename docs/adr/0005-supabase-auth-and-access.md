@@ -29,7 +29,7 @@
 ### 三層檢查
 
 1. `src/proxy.ts`：沒登入就導去 `/login`（樂觀檢查，轉址時帶上剛刷新的 session cookie）。
-2. 頁面：`getCurrentUser()`；Server Action：`getSignedInClient()`，每個都重新確認登入。
+2. Server Action：`getSignedInClient()`，每個都重新確認登入。頁面不另外檢查，查詢沒登入時由 RLS 擋下；要顯示使用者資料的地方（頂部列、邀請頁）才用 `getCurrentUser()`。
 3. 資料庫：RLS。
 
 ### RLS 與權限

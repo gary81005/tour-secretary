@@ -28,6 +28,7 @@ npm run dev                 # http://localhost:3000
 
 ## 文件
 
+- [docs/architecture.md](docs/architecture.md)：程式架構（請求怎麼走、錯誤與權限、程式放哪裡），第一次接觸先讀這份
 - [CONTEXT.md](CONTEXT.md)：領域名詞表
 - [docs/adr/](docs/adr/)：架構決策
 - [docs/roadmap.md](docs/roadmap.md)：Milestone 與進度
