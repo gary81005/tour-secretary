@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { updateDisplayName } from '@/actions/profile';
+import { ActionError } from '@/components/form-error';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -32,7 +33,6 @@ export function DisplayNameDialog({ displayName, open, onOpenChange }: Props) {
     onOpenChange(false);
   });
   const fieldError = result && !result.ok ? result.fieldErrors?.displayName : undefined;
-  const actionError = result && !result.ok ? result.error : undefined;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -56,11 +56,7 @@ export function DisplayNameDialog({ displayName, open, onOpenChange }: Props) {
             />
             {fieldError && <FieldError>{t(`validation.${fieldError}`)}</FieldError>}
           </Field>
-          {actionError && (
-            <p role='alert' className='text-sm text-destructive'>
-              {t(`errors.${actionError}`)}
-            </p>
-          )}
+          <ActionError result={result} />
           <DialogFooter>
             <DialogClose render={<Button type='button' variant='outline' />}>
               {t('profile.cancel')}

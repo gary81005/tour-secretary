@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { FormError } from '@/components/form-error';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Link } from '@/i18n/navigation';
 import type { ActionErrorKey } from '@/lib/form';
@@ -29,11 +30,7 @@ export function ImportFooter({
   return (
     <div className='sticky bottom-0 -mx-4 flex flex-col gap-3 border-t bg-background px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]'>
       <ImportBlockers id={BLOCKERS_ID} blockers={blockers} />
-      {error && (
-        <p role='alert' className='text-sm text-destructive'>
-          {t(`errors.${error}`)}
-        </p>
-      )}
+      <FormError>{error && t(`errors.${error}`)}</FormError>
       <div className='flex justify-end gap-3'>
         <Link href={cancelHref} className={buttonVariants({ variant: 'outline', size: 'lg' })}>
           {t('import.cancel')}

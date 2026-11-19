@@ -3,6 +3,7 @@
 import { cn } from 'cn';
 import { useTranslations } from 'next-intl';
 import { useId, useState, type FormEvent } from 'react';
+import { FormError } from '@/components/form-error';
 import {
   Field,
   FieldDescription,
@@ -84,13 +85,7 @@ export function DelayForm({
       isSaving={isApplying}
       submitLabel={t('apply')}
       submitDisabled={!result?.ok}
-      error={
-        error && (
-          <p role='alert' className='text-sm text-destructive'>
-            {error}
-          </p>
-        )
-      }
+      error={<FormError>{error}</FormError>}
     >
       {starts.length === 0 ? (
         <p className='text-sm text-muted-foreground'>{t('nothingToDelay')}</p>
@@ -175,9 +170,9 @@ export function DelayForm({
 
           {result?.ok && <PlanPreview changes={describePlan(result.plan, items)} />}
           {result?.ok === false && result.reason === 'pastMidnight' && (
-            <p role='alert' className='text-sm text-destructive'>
+            <FormError>
               {t('pastMidnight', { titles: result.items.map((item) => item.title).join('、') })}
-            </p>
+            </FormError>
           )}
         </>
       )}

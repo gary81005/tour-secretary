@@ -4,6 +4,7 @@ import { cn } from 'cn';
 import { GitBranchIcon, PencilLineIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useId, useState, type FormEvent, type ReactNode } from 'react';
+import { FormError } from '@/components/form-error';
 import { Field, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import type { DayItem } from '@/data/trips';
@@ -55,13 +56,7 @@ export function FallbackForm({
       isSaving={isApplying}
       submitLabel={t('adjust.apply')}
       submitDisabled={!plan}
-      error={
-        error && (
-          <p role='alert' className='text-sm text-destructive'>
-            {error}
-          </p>
-        )
-      }
+      error={<FormError>{error}</FormError>}
     >
       <p className='text-sm text-muted-foreground'>
         {t('adjust.fallbackDescription', { title: item.title })}

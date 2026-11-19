@@ -4,6 +4,7 @@ import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { setTripDates, shiftTrip, updateTrip } from '@/actions/trips';
+import { ActionError, FormError } from '@/components/form-error';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -17,7 +18,7 @@ import {
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { useFormSubmit } from '@/hooks/use-form-submit';
-import type { FieldErrors, FormResult } from '@/lib/form';
+import type { FieldErrors } from '@/lib/form';
 import {
   addDays,
   countDays,
@@ -92,16 +93,6 @@ function SettingsDialog({
         </form>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function ActionError({ result }: { result: FormResult | null }) {
-  const t = useTranslations('errors');
-  if (!result || result.ok || !result.error) return null;
-  return (
-    <p role='alert' className='text-sm text-destructive'>
-      {t(result.error)}
-    </p>
   );
 }
 
@@ -274,9 +265,9 @@ export function ChangeDatesDialog({
       submitDisabled={!isValid || unchanged}
       error={
         blockedDates.length > 0 ? (
-          <p role='alert' className='text-sm text-destructive'>
+          <FormError>
             {t('trips.settings.dates.blocked', { days: describeDays(blockedDates) })}
-          </p>
+          </FormError>
         ) : (
           <ActionError result={result} />
         )

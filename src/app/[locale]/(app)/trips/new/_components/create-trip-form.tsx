@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useActionState } from 'react';
 import { createTrip, type CreateTripValues } from '@/actions/trips';
+import { FormError } from '@/components/form-error';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -95,11 +96,7 @@ export function CreateTripForm() {
         )}
       </Field>
 
-      {state.error && (
-        <p role='alert' className='text-sm text-destructive'>
-          {t(`errors.${state.error}`)}
-        </p>
-      )}
+      <FormError>{state.error && t(`errors.${state.error}`)}</FormError>
 
       <div className='flex justify-end gap-3'>
         <Link href='/' className={buttonVariants({ variant: 'outline', size: 'lg' })}>

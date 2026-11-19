@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { deleteStay, restoreStay, saveStay } from '@/actions/stays';
+import { ActionError } from '@/components/form-error';
 import { Field, FieldError, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,7 +12,7 @@ import type { TripStay } from '@/data/trips';
 import { useFormSubmit } from '@/hooks/use-form-submit';
 import type { PlaceSearchContext } from '@/lib/maps/types';
 import { STAY_STATUSES } from '@/lib/trip/enums';
-import { EditorError, EditorFormShell } from '../../_components/editor-form-shell';
+import { EditorFormShell } from '../../_components/editor-form-shell';
 import { PlaceLinkStatus } from '../../_components/maps/place-link-status';
 import { PlaceSearchInput } from '../../_components/maps/place-search-input';
 
@@ -86,11 +87,7 @@ export function StayForm({ trip, stay, defaults, placeSearch, onDone }: Props) {
       isSaving={isPending}
       onDelete={stay ? handleDelete : undefined}
       isDeleting={isDeleting}
-      error={
-        <EditorError
-          message={result && !result.ok && result.error ? t(`errors.${result.error}`) : null}
-        />
-      }
+      error={<ActionError result={result} />}
     >
       <Field data-invalid={!!errors?.name}>
         <FieldLabel htmlFor='stay-name'>{t('trips.stays.nameLabel')}</FieldLabel>

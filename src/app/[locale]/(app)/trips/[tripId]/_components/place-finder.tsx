@@ -4,6 +4,7 @@ import { XIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Suspense, use, useId, useState } from 'react';
 import { findPlaces, type FindPlacesResult } from '@/actions/places';
+import { FormError } from '@/components/form-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -91,11 +92,7 @@ function FinderResults({ search, addedPlaceIds, onAdd }: Omit<Props, 'onClose'>)
   const [picked, setPicked] = useState<(string | null)[]>(() => search.queries.map(() => null));
 
   if (!result.ok) {
-    return (
-      <p role='alert' className='text-sm text-destructive'>
-        {t('place.searchFailed')}
-      </p>
-    );
+    return <FormError>{t('place.searchFailed')}</FormError>;
   }
 
   const found = search.queries.flatMap((query, index): FoundPlace[] => {

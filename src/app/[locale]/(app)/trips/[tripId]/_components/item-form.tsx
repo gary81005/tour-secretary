@@ -21,6 +21,7 @@ import { useFormatter, useTranslations } from 'next-intl';
 import { useId, useRef, useState, useTransition, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { deleteItem, restoreItem, saveItem } from '@/actions/items';
+import { ActionError } from '@/components/form-error';
 import { CategoryIcon } from '@/components/itinerary/category-icon';
 import { Button } from '@/components/ui/button';
 import {
@@ -43,7 +44,7 @@ import { ITEM_CATEGORIES } from '@/lib/trip/enums';
 import { ITEM_FIELDS } from '@/lib/trip/item-form';
 import { TIME_SLOTS, timeSlotForTime, toHourMinute, type TimeSlot } from '@/lib/trip/time-slot';
 import { localDateToUtc } from '@/lib/trip/trip-dates';
-import { EditorError, EditorFormShell } from './editor-form-shell';
+import { EditorFormShell } from './editor-form-shell';
 import { PlaceLinkStatus } from './maps/place-link-status';
 import { PlaceSearchInput } from './maps/place-search-input';
 import { PlaceFinder, startPlaceFinder, type PlaceFinderSearch } from './place-finder';
@@ -172,11 +173,7 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, placeSearch, on
       isSaving={isSaving}
       onDelete={item ? handleDelete : undefined}
       isDeleting={isDeleting}
-      error={
-        <EditorError
-          message={result && !result.ok && result.error ? t(`errors.${result.error}`) : null}
-        />
-      }
+      error={<ActionError result={result} />}
     >
       <Field data-invalid={!!fieldErrors?.title}>
         <FieldLabel htmlFor='item-title'>{t('trips.item.titleLabel')}</FieldLabel>

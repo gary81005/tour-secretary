@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { joinTrip } from '@/actions/members';
+import { ActionError } from '@/components/form-error';
 import { MemberAvatar } from '@/components/member/member-avatar';
 import { TripDateRange } from '@/components/trip/trip-date-range';
 import { Button } from '@/components/ui/button';
@@ -35,7 +36,6 @@ export function JoinTripForm({ token, invite, needsName }: Props) {
     },
   );
   const fieldError = result && !result.ok ? result.fieldErrors?.displayName : undefined;
-  const actionError = result && !result.ok ? result.error : undefined;
 
   return (
     <form
@@ -87,11 +87,7 @@ export function JoinTripForm({ token, invite, needsName }: Props) {
         </Field>
       )}
 
-      {actionError && (
-        <p role='alert' className='text-sm text-destructive'>
-          {t(`errors.${actionError}`)}
-        </p>
-      )}
+      <ActionError result={result} />
 
       <Button type='submit' size='lg' disabled={isPending} aria-busy={isPending}>
         {t('invite.join')}

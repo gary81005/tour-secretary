@@ -4,12 +4,13 @@ import { useTranslations } from 'next-intl';
 import { useTransition } from 'react';
 import { toast } from 'sonner';
 import { deleteNote, restoreNote, saveNote } from '@/actions/notes';
+import { ActionError } from '@/components/form-error';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import type { TripNote } from '@/data/trips';
 import { useFormSubmit } from '@/hooks/use-form-submit';
-import { EditorError, EditorFormShell } from '../../_components/editor-form-shell';
+import { EditorFormShell } from '../../_components/editor-form-shell';
 
 type Props = {
   tripId: string;
@@ -58,11 +59,7 @@ export function NoteForm({ tripId, note, onDone }: Props) {
       isSaving={isPending}
       onDelete={note ? handleDelete : undefined}
       isDeleting={isDeleting}
-      error={
-        <EditorError
-          message={result && !result.ok && result.error ? t(`errors.${result.error}`) : null}
-        />
-      }
+      error={<ActionError result={result} />}
     >
       <Field data-invalid={!!errors?.topic}>
         <FieldLabel htmlFor='note-topic'>{t('trips.notes.topicLabel')}</FieldLabel>

@@ -3,6 +3,7 @@
 import { FileSpreadsheetIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useId, useState, useTransition, type ChangeEvent } from 'react';
+import { FormError } from '@/components/form-error';
 import type { ImportDraft } from '@/lib/import/types';
 import { DownloadTemplateButton } from './download-template-button';
 
@@ -72,11 +73,7 @@ export function XlsxFilePicker({ onLoad }: { onLoad: (file: LoadedFile) => void 
         />
       </label>
 
-      {error && (
-        <p id={`${inputId}-error`} role='alert' className='text-sm text-destructive'>
-          {t(error)}
-        </p>
-      )}
+      <FormError id={`${inputId}-error`}>{error && t(error)}</FormError>
 
       <div className='flex justify-center'>
         <DownloadTemplateButton />

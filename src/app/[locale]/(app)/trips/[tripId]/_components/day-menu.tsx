@@ -5,6 +5,7 @@ import { useFormatter, useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { deleteDay, insertDayAfter, updateDay } from '@/actions/days';
+import { ActionError } from '@/components/form-error';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
   Dialog,
@@ -240,11 +241,7 @@ function EditDayDialog({
             {errors?.timezone && <FieldError>{t(`validation.${errors.timezone}`)}</FieldError>}
           </Field>
 
-          {result && !result.ok && result.error && (
-            <p role='alert' className='text-sm text-destructive'>
-              {t(`errors.${result.error}`)}
-            </p>
-          )}
+          <ActionError result={result} />
 
           <DialogFooter>
             <DialogClose render={<Button type='button' variant='outline' />}>

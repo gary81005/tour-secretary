@@ -82,13 +82,3 @@ export function EditorFormShell({
     </form>
   );
 }
-
-// 整體錯誤的顯示（例如「找不到這個行程」）。
-export function EditorError({ message }: { message: string | null }) {
-  if (!message) return null;
-  return (
-    <p role='alert' className='text-sm text-destructive'>
-      {message}
-    </p>
-  );
-}

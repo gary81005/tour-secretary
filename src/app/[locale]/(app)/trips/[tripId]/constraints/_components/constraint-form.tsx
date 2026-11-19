@@ -4,12 +4,13 @@ import { useTranslations } from 'next-intl';
 import { useTransition } from 'react';
 import { toast } from 'sonner';
 import { deleteConstraint, restoreConstraint, saveConstraint } from '@/actions/constraints';
+import { ActionError } from '@/components/form-error';
 import { Field, FieldError, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import type { TravelerConstraint } from '@/data/trips';
 import { useFormSubmit } from '@/hooks/use-form-submit';
 import { TRAVELER_CONSTRAINT_KINDS } from '@/lib/trip/enums';
-import { EditorError, EditorFormShell } from '../../_components/editor-form-shell';
+import { EditorFormShell } from '../../_components/editor-form-shell';
 
 type Props = {
   tripId: string;
@@ -58,11 +59,7 @@ export function ConstraintForm({ tripId, constraint, onDone }: Props) {
       isSaving={isPending}
       onDelete={constraint ? handleDelete : undefined}
       isDeleting={isDeleting}
-      error={
-        <EditorError
-          message={result && !result.ok && result.error ? t(`errors.${result.error}`) : null}
-        />
-      }
+      error={<ActionError result={result} />}
     >
       <FieldSet>
         <FieldLegend variant='label'>{t('trips.constraints.kindLabel')}</FieldLegend>

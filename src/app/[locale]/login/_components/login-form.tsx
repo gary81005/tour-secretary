@@ -5,6 +5,7 @@ import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { useTranslations } from 'next-intl';
 import { useRef, useState, type ReactNode } from 'react';
 import { useFormStatus } from 'react-dom';
+import { FormError } from '@/components/form-error';
 import { Button } from '@/components/ui/button';
 import { Field, FieldLabel, FieldSeparator } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -104,11 +105,7 @@ export function LoginForm({ next, initialError, invite = false }: Props) {
     setResent(false);
   }
 
-  const errorMessage = error && (
-    <p role='alert' className='text-sm text-destructive'>
-      {t(`errors.${error}`)}
-    </p>
-  );
+  const errorMessage = <FormError>{error && t(`errors.${error}`)}</FormError>;
 
   if (step === 'code') {
     return (
