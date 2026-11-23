@@ -18,7 +18,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { GripVerticalIcon, PlusIcon, SearchIcon, XIcon } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
-import { useId, useRef, useState, useTransition, type FormEvent, type ReactNode } from 'react';
+import { useId, useRef, useState, useTransition, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { deleteItem, restoreItem, saveItem } from '@/actions/items';
 import { ActionError } from '@/components/form-error';
@@ -37,7 +37,7 @@ import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { Textarea } from '@/components/ui/textarea';
 import type { DayItem } from '@/data/trips';
 import { useDndAccessibility } from '@/hooks/use-dnd-accessibility';
-import type { FormResult } from '@/lib/form';
+import { useFormSubmit } from '@/hooks/use-form-submit';
 import { mergeFoundPlaces } from '@/lib/maps/place-queries';
 import type { PlaceSearchContext } from '@/lib/maps/types';
 import { ITEM_CATEGORIES } from '@/lib/trip/enums';
@@ -68,8 +68,7 @@ type Row<T> = T & { key: string };
 type PlaceRow = Row<{ name: string; placeId: string | null; sessionToken: string }>;
 
 // 行程項目的新增／編輯表單（ADR 0004 Q7、Q16、Q19）。
-// 不用 <form action>：React 19 在 action 結束後會重設非受控欄位，驗證失敗時使用者加的地點、備案會消失。
-// 改成 onSubmit 自己呼叫 Server Action，欄位維持原樣，只顯示錯誤。
+// 用 useFormSubmit 送出：驗證失敗時，使用者加的地點、備案維持原樣，只顯示錯誤。
 export function ItemForm({ item, dayId, defaultSlot, dayOptions, placeSearch, onDone }: Props) {
   const t = useTranslations();
   const format = useFormatter();
@@ -106,8 +105,13 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, placeSearch, on
     const index = places.findIndex((place) => place.key === id);
     return `${t('trips.item.placesLabel')} ${index + 1}`;
   });
-  const [result, setResult] = useState<FormResult | null>(null);
-  const [isSaving, startSave] = useTransition();
+  const { result, isPending, handleSubmit } = useFormSubmit(
+    (formData) => saveItem(item?.id ?? null, formData),
+    () => {
+      toast.success(t('trips.editor.saved'));
+      onDone();
+    },
+  );
   const [isDeleting, startDelete] = useTransition();
   const fieldErrors = result && !result.ok ? result.fieldErrors : undefined;
 
@@ -118,19 +122,6 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, placeSearch, on
   function errorFor(path: string) {
     const key = fieldErrors?.[path];
     return key && <FieldError>{t(`validation.${key}`)}</FieldError>;
-  }
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    startSave(async () => {
-      const saved = await saveItem(item?.id ?? null, formData);
-      setResult(saved);
-      if (saved.ok) {
-        toast.success(t('trips.editor.saved'));
-        onDone();
-      }
-    });
   }
 
   function handleDelete() {
@@ -170,7 +161,7 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, placeSearch, on
     <EditorFormShell
       title={item ? t('trips.item.editTitle') : t('trips.item.createTitle')}
       onSubmit={handleSubmit}
-      isSaving={isSaving}
+      isSaving={isPending}
       onDelete={item ? handleDelete : undefined}
       isDeleting={isDeleting}
       error={<ActionError result={result} />}
