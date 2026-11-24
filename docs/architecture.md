@@ -32,7 +32,7 @@
 ```
 
 - 牽涉多張表、要在同一個 transaction 完成的（存項目連同地點與備案、匯入、改日期、調整行程）寫成 RPC；單純改一欄的直接 update。
-- 打勾完成、跳過、拖拉排序用 `useOptimistic` 先顯示結果，伺服器失敗時自動還原（`trips/[tripId]/_components/day-items.tsx`）。
+- 打勾完成、跳過、拖拉排序用 `useOptimistic` 先顯示結果，伺服器失敗時自動還原（`hooks/use-day-item-changes.ts`）。
 - 刪除是軟刪除（填 `deleted_at`），提示框可以「復原」。
 
 ## 錯誤怎麼顯示到畫面
@@ -73,16 +73,16 @@
 
 ## 各功能從哪裡開始看
 
-| 功能                             | 主要檔案                                                                                                    | ADR  |
-| -------------------------------- | ----------------------------------------------------------------------------------------------------------- | ---- |
-| 行程、天、改日期                 | `data/trips.ts`、`actions/trips.ts`、`actions/days.ts`、`lib/trip/trip-dates.ts`                            | 0004 |
-| 項目、時段、拖拉排序             | `actions/items.ts`、`lib/trip/item-order.ts`、`lib/trip/time-slot.ts`、`[tripId]/_components/day-items.tsx` | 0004 |
-| 旅伴與邀請                       | `data/members.ts`、`actions/members.ts`、`(app)/invite/`、`[tripId]/members/`                               | 0005 |
-| 地圖（搜尋、營業時間、移動時間） | `lib/maps/`、`data/places.ts`、`data/routes.ts`、`data/day-maps.ts`                                         | 0006 |
-| xlsx 匯入                        | `lib/import/`、`actions/imports.ts`、`trips/_components/import/`                                            | 0008 |
-| 落後提醒與臨時調整               | `lib/trip/adjustments.ts`、`actions/adjustments.ts`、`[tripId]/_components/adjust/`                         | 0009 |
-| 「現在／下一站」                 | `lib/trip/progress.ts`、`components/itinerary/now-card.tsx`                                                 | 0010 |
-| 離線                             | `public/sw.js`、`lib/offline/`、`app/[locale]/offline/`                                                     | 0010 |
+| 功能                             | 主要檔案                                                                                                                          | ADR  |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ---- |
+| 行程、天、改日期                 | `data/trips.ts`、`actions/trips.ts`、`actions/days.ts`、`lib/trip/trip-dates.ts`                                                  | 0004 |
+| 項目、時段、拖拉排序             | `actions/items.ts`、`lib/trip/item-order.ts`、`lib/trip/time-slot.ts`、`[tripId]/_components/day-items.tsx`、`sortable-slots.tsx` | 0004 |
+| 旅伴與邀請                       | `data/members.ts`、`actions/members.ts`、`(app)/invite/`、`[tripId]/members/`                                                     | 0005 |
+| 地圖（搜尋、營業時間、移動時間） | `lib/maps/`、`data/places.ts`、`data/routes.ts`、`data/day-maps.ts`                                                               | 0006 |
+| xlsx 匯入                        | `lib/import/`、`actions/imports.ts`、`trips/_components/import/`                                                                  | 0008 |
+| 落後提醒與臨時調整               | `lib/trip/adjustments.ts`、`actions/adjustments.ts`、`[tripId]/_components/adjust/`                                               | 0009 |
+| 「現在／下一站」                 | `lib/trip/progress.ts`、`components/itinerary/now-card.tsx`                                                                       | 0010 |
+| 離線                             | `public/sw.js`、`lib/offline/`、`app/[locale]/offline/`                                                                           | 0010 |
 
 ## 測試
 
