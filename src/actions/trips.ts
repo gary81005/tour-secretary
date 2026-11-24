@@ -1,49 +1,37 @@
 'use server';
 
-import { hasLocale } from 'next-intl';
 import { refresh } from 'next/cache';
 import { z } from 'zod';
-import { redirect } from '@/i18n/navigation';
-import { routing } from '@/i18n/routing';
 import { getSignedInClient } from '@/lib/auth/session';
 import {
   fieldErrorsOf,
   formString,
+  type ActionErrorKey,
   type ActionResult,
+  type FieldErrors,
   type FormResult,
-  type FormState,
 } from '@/lib/form';
 import { blockedDatesOf, rpcErrorKey } from '@/lib/rpc-errors';
 import { tripCreateSchema, tripDateRangeSchema, tripUpdateSchema } from '@/lib/trip/schemas';
 import { isUuid } from '@/lib/uuid';
 
 // 行程的 Server Actions（ADR 0004 Q11）。每個 action 都重新確認登入，權限最後由 RLS 把關。
-// next/root-params 在 Server Action 不能用，需要語系的地方由呼叫端傳入。
 
-export type CreateTripValues = {
-  name: string;
-  startDate: string;
-  endDate: string;
-  timezone: string;
-};
+export type CreateTripResult =
+  { ok: true; tripId: string } | { ok: false; fieldErrors?: FieldErrors; error?: ActionErrorKey };
 
-export async function createTrip(
-  locale: string,
-  _previous: FormState<CreateTripValues>,
-  formData: FormData,
-): Promise<FormState<CreateTripValues>> {
-  const values: CreateTripValues = {
+// 建立行程。成功時回傳 tripId，由畫面導到行程頁（第 1 天），和「匯入新行程」相同。
+export async function createTrip(formData: FormData): Promise<CreateTripResult> {
+  const parsed = tripCreateSchema.safeParse({
     name: formString(formData, 'name'),
     startDate: formString(formData, 'startDate'),
     endDate: formString(formData, 'endDate'),
     timezone: formString(formData, 'timezone'),
-  };
-
-  const parsed = tripCreateSchema.safeParse(values);
-  if (!parsed.success) return { values, fieldErrors: fieldErrorsOf(parsed.error) };
+  });
+  if (!parsed.success) return { ok: false, fieldErrors: fieldErrorsOf(parsed.error) };
 
   const supabase = await getSignedInClient();
-  if (!supabase) return { values, error: 'unauthorized' };
+  if (!supabase) return { ok: false, error: 'unauthorized' };
 
   const { data: tripId, error } = await supabase.rpc('create_trip', {
     p_name: parsed.data.name,
@@ -51,13 +39,8 @@ export async function createTrip(
     p_end_date: parsed.data.endDate,
     p_timezone: parsed.data.timezone,
   });
-  if (error || !tripId) return { values, error: 'unknown' };
-
-  // 建好直接進行程頁（第 1 天）。
-  return redirect({
-    href: `/trips/${tripId}`,
-    locale: hasLocale(routing.locales, locale) ? locale : routing.defaultLocale,
-  });
+  if (error || !tripId) return { ok: false, error: 'unknown' };
+  return { ok: true, tripId };
 }
 
 // 移到垃圾桶。呼叫端負責顯示提示並離開行程頁，這裡不 refresh，避免先閃出 404。

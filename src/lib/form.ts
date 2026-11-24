@@ -34,18 +34,11 @@ export type ActionErrorKey =
 
 export type ActionResult = { ok: true } | { ok: false; error: ActionErrorKey };
 
-// 表單（useActionState）的狀態：失敗時把使用者填的值帶回去，避免整張表單被清空。
-export type FormState<Values> = {
-  values?: Values;
-  fieldErrors?: FieldErrors;
-  error?: ActionErrorKey;
-};
-
 export function formString(formData: FormData, key: string): string {
   const value = formData.get(key);
   return typeof value === 'string' ? value : '';
 }
 
-// 不用 useActionState 的表單（例如項目編輯面板）的結果：成功，或欄位錯誤／整體錯誤。
+// 表單（useFormSubmit）送出的結果：成功，或欄位錯誤／整體錯誤。
 export type FormResult =
   { ok: true } | { ok: false; fieldErrors?: FieldErrors; error?: ActionErrorKey };

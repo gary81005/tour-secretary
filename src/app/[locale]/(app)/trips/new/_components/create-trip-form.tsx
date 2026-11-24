@@ -1,43 +1,40 @@
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
-import { useActionState } from 'react';
-import { createTrip, type CreateTripValues } from '@/actions/trips';
-import { FormError } from '@/components/form-error';
+import { useTranslations } from 'next-intl';
+import { createTrip } from '@/actions/trips';
+import { ActionError } from '@/components/form-error';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { Link } from '@/i18n/navigation';
-import type { FormState } from '@/lib/form';
+import { useFormSubmit } from '@/hooks/use-form-submit';
+import { Link, useRouter } from '@/i18n/navigation';
 import { DEFAULT_TIMEZONE } from '@/lib/trip/timezones';
 import { TimezoneField } from '../../_components/timezone-field';
 
-const INITIAL_STATE: FormState<CreateTripValues> = {};
-
 // 建立行程（ADR 0004 Q21）：只填名稱、起訖日、時區，建好直接進第 1 天。
-// 驗證在伺服器端（zod）；失敗時用回傳的 values 把使用者填的內容帶回表單。
+// 驗證在伺服器端（zod）；失敗時欄位維持使用者填的內容，只顯示錯誤。
 export function CreateTripForm() {
   const t = useTranslations();
-  const locale = useLocale();
-  const [state, formAction, isPending] = useActionState(
-    createTrip.bind(null, locale),
-    INITIAL_STATE,
-  );
-  const { values, fieldErrors } = state;
+  const router = useRouter();
+  const { result, isPending, handleSubmit } = useFormSubmit(createTrip, (created) => {
+    if (created.ok) router.push(`/trips/${created.tripId}`);
+  });
+  const fieldErrors = result && !result.ok ? result.fieldErrors : undefined;
+  // 建好之後到換頁之前，按鈕維持停用，避免重複建立。
+  const isSubmitting = isPending || result?.ok === true;
 
-  function errorFor(field: keyof CreateTripValues) {
+  function errorFor(field: string) {
     const key = fieldErrors?.[field];
     return key && <FieldError id={`${field}-error`}>{t(`validation.${key}`)}</FieldError>;
   }
 
   return (
-    <form action={formAction} className='flex flex-col gap-5' noValidate>
+    <form onSubmit={handleSubmit} className='flex flex-col gap-5' noValidate>
       <Field data-invalid={!!fieldErrors?.name}>
         <FieldLabel htmlFor='name'>{t('trips.create.nameLabel')}</FieldLabel>
         <Input
           id='name'
           name='name'
-          defaultValue={values?.name}
           placeholder={t('trips.create.namePlaceholder')}
           maxLength={100}
           required
@@ -56,7 +53,6 @@ export function CreateTripForm() {
             id='startDate'
             name='startDate'
             type='date'
-            defaultValue={values?.startDate}
             required
             className='h-11 text-base'
             aria-invalid={!!fieldErrors?.startDate}
@@ -70,7 +66,6 @@ export function CreateTripForm() {
             id='endDate'
             name='endDate'
             type='date'
-            defaultValue={values?.endDate}
             required
             className='h-11 text-base'
             aria-invalid={!!fieldErrors?.endDate}
@@ -85,7 +80,7 @@ export function CreateTripForm() {
         <TimezoneField
           id='timezone'
           name='timezone'
-          defaultValue={values?.timezone || DEFAULT_TIMEZONE}
+          defaultValue={DEFAULT_TIMEZONE}
           invalid={!!fieldErrors?.timezone}
           describedBy={fieldErrors?.timezone ? 'timezone-error' : 'timezone-description'}
         />
@@ -96,13 +91,13 @@ export function CreateTripForm() {
         )}
       </Field>
 
-      <FormError>{state.error && t(`errors.${state.error}`)}</FormError>
+      <ActionError result={result} />
 
       <div className='flex justify-end gap-3'>
         <Link href='/' className={buttonVariants({ variant: 'outline', size: 'lg' })}>
           {t('trips.create.cancel')}
         </Link>
-        <Button type='submit' size='lg' disabled={isPending} aria-busy={isPending}>
+        <Button type='submit' size='lg' disabled={isSubmitting} aria-busy={isSubmitting}>
           {t('trips.create.submit')}
         </Button>
       </div>
