@@ -44,7 +44,8 @@ type DialogProps = {
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
-function fieldErrorsOf(result: { ok: boolean; fieldErrors?: FieldErrors } | null) {
+// 送出失敗時的欄位錯誤（和 lib/form.ts 把 zod 錯誤轉成 FieldErrors 的 fieldErrorsOf 不同）。
+function resultFieldErrors(result: { ok: boolean; fieldErrors?: FieldErrors } | null) {
   return result && !result.ok ? result.fieldErrors : undefined;
 }
 
@@ -109,7 +110,7 @@ export function EditTripDialog({ trip, open, onOpenChange }: DialogProps) {
       onOpenChange(false);
     },
   );
-  const errors = fieldErrorsOf(result);
+  const errors = resultFieldErrors(result);
 
   return (
     <SettingsDialog
@@ -166,7 +167,7 @@ export function ShiftTripDialog({ trip, open, onOpenChange }: DialogProps) {
       onOpenChange(false);
     },
   );
-  const errors = fieldErrorsOf(result);
+  const errors = resultFieldErrors(result);
   const isValid = DATE_PATTERN.test(startDate);
   const unchanged = startDate === trip.start_date;
   const dayCount = countDays(trip.start_date, trip.end_date);
@@ -228,7 +229,7 @@ export function ChangeDatesDialog({
       onOpenChange(false);
     },
   );
-  const errors = fieldErrorsOf(result);
+  const errors = resultFieldErrors(result);
 
   const isValid =
     DATE_PATTERN.test(startDate) && DATE_PATTERN.test(endDate) && endDate >= startDate;
