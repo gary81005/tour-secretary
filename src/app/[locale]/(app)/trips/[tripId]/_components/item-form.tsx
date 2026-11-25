@@ -1,29 +1,11 @@
 'use client';
 
-import {
-  closestCenter,
-  DndContext,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { GripVerticalIcon, PlusIcon, SearchIcon, XIcon } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
-import { useId, useRef, useState, useTransition, type ReactNode } from 'react';
+import { useRef, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { deleteItem, restoreItem, saveItem } from '@/actions/items';
 import { ActionError } from '@/components/form-error';
 import { CategoryIcon } from '@/components/itinerary/category-icon';
-import { Button } from '@/components/ui/button';
 import {
   Field,
   FieldDescription,
@@ -36,18 +18,15 @@ import { Input } from '@/components/ui/input';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { Textarea } from '@/components/ui/textarea';
 import type { DayItem } from '@/data/trips';
-import { useDndAccessibility } from '@/hooks/use-dnd-accessibility';
 import { useFormSubmit } from '@/hooks/use-form-submit';
-import { mergeFoundPlaces } from '@/lib/maps/place-queries';
 import type { PlaceSearchContext } from '@/lib/maps/types';
 import { ITEM_CATEGORIES } from '@/lib/trip/enums';
 import { ITEM_FIELDS } from '@/lib/trip/item-form';
 import { TIME_SLOTS, timeSlotForTime, toHourMinute, type TimeSlot } from '@/lib/trip/time-slot';
 import { localDateToUtc } from '@/lib/trip/trip-dates';
 import { EditorFormShell } from './editor-form-shell';
-import { PlaceLinkStatus } from './maps/place-link-status';
-import { PlaceSearchInput } from './maps/place-search-input';
-import { PlaceFinder, startPlaceFinder, type PlaceFinderSearch } from './place-finder';
+import { ItemFallbacksField } from './item-fallbacks-field';
+import { ItemPlacesField } from './item-places-field';
 
 export type DayOption = { id: string; dayNumber: number; date: string; city: string | null };
 
@@ -61,50 +40,14 @@ type Props = {
   onDone: () => void;
 };
 
-type Row<T> = T & { key: string };
-
-// 一列地點。placeId 是連結的地圖地點（null＝只有文字）；sessionToken 是選定這個地點時的搜尋 session，
-// 存檔時讓伺服器查座標並結束 session，既有的連結是空字串。
-type PlaceRow = Row<{ name: string; placeId: string | null; sessionToken: string }>;
-
 // 行程項目的新增／編輯表單（ADR 0004 Q7、Q16、Q19）。
 // 用 useFormSubmit 送出：驗證失敗時，使用者加的地點、備案維持原樣，只顯示錯誤。
 export function ItemForm({ item, dayId, defaultSlot, dayOptions, placeSearch, onDone }: Props) {
   const t = useTranslations();
   const format = useFormatter();
   const [timeSlot, setTimeSlot] = useState<TimeSlot>(item?.time_slot ?? defaultSlot);
-  const [places, setPlaces] = useState<PlaceRow[]>(() =>
-    (item?.item_places ?? []).map((place) => ({
-      key: place.id,
-      name: place.name,
-      placeId: place.place_id,
-      sessionToken: '',
-    })),
-  );
-  const [fallbacks, setFallbacks] = useState<Row<{ condition: string; alternative: string }>[]>(
-    () =>
-      (item?.fallbacks ?? []).map((fallback) => ({
-        key: fallback.id,
-        condition: fallback.condition ?? '',
-        alternative: fallback.alternative,
-      })),
-  );
-  // 新增列的 key。不用 crypto.randomUUID：它只在安全環境（HTTPS、localhost）可用，
-  // 手機用區網 IP 連開發伺服器時會直接報錯。
-  const nextRowKey = useRef(0);
-  const newRowKey = () => `new-${nextRowKey.current++}`;
-  const placesDndId = useId();
-  // 「幫我找地點」要讀標題；標題欄是非受控的，按下時才讀。
+  // 「幫我找地點」要讀標題（ItemPlacesField 的 readTitle）。
   const titleRef = useRef<HTMLInputElement>(null);
-  const [finder, setFinder] = useState<PlaceFinderSearch | null>(null);
-  const placeSensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
-  const placesAccessibility = useDndAccessibility((id) => {
-    const index = places.findIndex((place) => place.key === id);
-    return `${t('trips.item.placesLabel')} ${index + 1}`;
-  });
   const { result, isPending, handleSubmit } = useFormSubmit(
     (formData) => saveItem(item?.id ?? null, formData),
     () => {
@@ -114,10 +57,6 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, placeSearch, on
   );
   const [isDeleting, startDelete] = useTransition();
   const fieldErrors = result && !result.ok ? result.fieldErrors : undefined;
-
-  function updatePlace(key: string, patch: Partial<PlaceRow>) {
-    setPlaces((rows) => rows.map((row) => (row.key === key ? { ...row, ...patch } : row)));
-  }
 
   function errorFor(path: string) {
     const key = fieldErrors?.[path];
@@ -276,84 +215,12 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, placeSearch, on
         {errorFor('category')}
       </FieldSet>
 
-      <FieldSet>
-        <FieldLegend variant='label'>{t('trips.item.placesLabel')}</FieldLegend>
-        {/* 地點可以拖拉調整順序；每列的名稱與連結存在 places，靠 key 跟著列移動。 */}
-        <DndContext
-          id={placesDndId}
-          sensors={placeSensors}
-          collisionDetection={closestCenter}
-          accessibility={placesAccessibility}
-          onDragEnd={({ active, over }) => {
-            if (!over || active.id === over.id) return;
-            setPlaces((rows) => {
-              const from = rows.findIndex((row) => row.key === active.id);
-              const to = rows.findIndex((row) => row.key === over.id);
-              return from < 0 || to < 0 ? rows : arrayMove(rows, from, to);
-            });
-          }}
-        >
-          <SortableContext
-            items={places.map((place) => place.key)}
-            strategy={verticalListSortingStrategy}
-          >
-            {places.map((place, index) => (
-              <SortablePlaceRow
-                key={place.key}
-                place={place}
-                index={index}
-                search={placeSearch}
-                invalid={!!fieldErrors?.[`places.${index}.name`]}
-                error={errorFor(`places.${index}.name`)}
-                onChange={(patch) => updatePlace(place.key, patch)}
-                onRemove={() => setPlaces((rows) => rows.filter((row) => row.key !== place.key))}
-              />
-            ))}
-          </SortableContext>
-        </DndContext>
-        <div className='flex flex-wrap gap-2'>
-          <Button
-            type='button'
-            variant='outline'
-            onClick={() =>
-              setPlaces((rows) => [
-                ...rows,
-                { key: newRowKey(), name: '', placeId: null, sessionToken: '' },
-              ])
-            }
-          >
-            <PlusIcon />
-            {t('trips.item.addPlace')}
-          </Button>
-          {/* 沒有地圖金鑰時不顯示（ADR 0006 Q15）。 */}
-          {placeSearch && !finder && (
-            <Button
-              type='button'
-              variant='outline'
-              onClick={() =>
-                setFinder(startPlaceFinder(titleRef.current?.value ?? '', places, placeSearch))
-              }
-            >
-              <SearchIcon />
-              {t('trips.item.findPlaces')}
-            </Button>
-          )}
-        </div>
-        {finder && (
-          <PlaceFinder
-            search={finder}
-            addedPlaceIds={new Set(places.flatMap((place) => place.placeId ?? []))}
-            onAdd={(found) => {
-              setPlaces((rows) =>
-                mergeFoundPlaces(rows, found, (place) => ({ key: newRowKey(), ...place })),
-              );
-              setFinder(null);
-            }}
-            onClose={() => setFinder(null)}
-          />
-        )}
-        {errorFor('places')}
-      </FieldSet>
+      <ItemPlacesField
+        initialPlaces={item?.item_places ?? []}
+        search={placeSearch}
+        fieldErrors={fieldErrors}
+        readTitle={() => titleRef.current?.value ?? ''}
+      />
 
       <Field data-invalid={!!fieldErrors?.description}>
         <FieldLabel htmlFor='item-description'>{t('trips.item.descriptionLabel')}</FieldLabel>
@@ -385,164 +252,7 @@ export function ItemForm({ item, dayId, defaultSlot, dayOptions, placeSearch, on
         {errorFor('url')}
       </Field>
 
-      <FieldSet>
-        <FieldLegend variant='label'>{t('trips.item.fallbacksLabel')}</FieldLegend>
-        <FieldDescription>{t('trips.item.fallbacksDescription')}</FieldDescription>
-        {fallbacks.map((fallback, index) => (
-          <div key={fallback.key} className='flex gap-2'>
-            <div className='flex flex-1 flex-col gap-2'>
-              <Input
-                name={ITEM_FIELDS.fallbackCondition}
-                defaultValue={fallback.condition}
-                placeholder={t('trips.item.conditionPlaceholder')}
-                maxLength={500}
-                aria-label={`${t('trips.item.fallbacksLabel')} ${index + 1}`}
-                className='h-11 text-base'
-                aria-invalid={!!fieldErrors?.[`fallbacks.${index}.condition`]}
-              />
-              {errorFor(`fallbacks.${index}.condition`)}
-              <Input
-                name={ITEM_FIELDS.fallbackAlternative}
-                defaultValue={fallback.alternative}
-                placeholder={t('trips.item.alternativePlaceholder')}
-                maxLength={1000}
-                aria-label={`${t('trips.item.alternativePlaceholder')} ${index + 1}`}
-                className='h-11 text-base'
-                aria-invalid={!!fieldErrors?.[`fallbacks.${index}.alternative`]}
-              />
-              {errorFor(`fallbacks.${index}.alternative`)}
-            </div>
-            <Button
-              type='button'
-              variant='ghost'
-              size='icon-lg'
-              className='size-11'
-              aria-label={t('trips.item.removeFallback', { index: index + 1 })}
-              onClick={() => setFallbacks((rows) => rows.filter((row) => row.key !== fallback.key))}
-            >
-              <XIcon />
-            </Button>
-          </div>
-        ))}
-        <Button
-          type='button'
-          variant='outline'
-          className='w-fit'
-          onClick={() =>
-            setFallbacks((rows) => [...rows, { key: newRowKey(), condition: '', alternative: '' }])
-          }
-        >
-          <PlusIcon />
-          {t('trips.item.addFallback')}
-        </Button>
-        {errorFor('fallbacks')}
-      </FieldSet>
+      <ItemFallbacksField initialFallbacks={item?.fallbacks ?? []} fieldErrors={fieldErrors} />
     </EditorFormShell>
-  );
-}
-
-type SortablePlaceRowProps = {
-  place: PlaceRow;
-  index: number;
-  search: PlaceSearchContext | null;
-  invalid: boolean;
-  error: ReactNode;
-  onChange: (patch: Partial<PlaceRow>) => void;
-  onRemove: () => void;
-};
-
-// 一列地點：左邊是拖拉把手，右邊是移除按鈕。有地圖金鑰時輸入框兼搜尋框；
-// 連結的地點下方顯示 PlaceLinkStatus。
-function SortablePlaceRow({
-  place,
-  index,
-  search,
-  invalid,
-  error,
-  onChange,
-  onRemove,
-}: SortablePlaceRowProps) {
-  const t = useTranslations('trips');
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    setActivatorNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: place.key, attributes: { roleDescription: t('dnd.roleDescription') } });
-
-  const inputProps = {
-    name: ITEM_FIELDS.place,
-    placeholder: t(search ? 'item.placeSearchPlaceholder' : 'item.placePlaceholder'),
-    maxLength: 200,
-    'aria-label': `${t('item.placesLabel')} ${index + 1}`,
-    className: 'h-11 text-base',
-    'aria-invalid': invalid,
-  };
-
-  return (
-    <Field
-      ref={setNodeRef}
-      style={{ transform: CSS.Translate.toString(transform), transition }}
-      className={isDragging ? 'relative z-10 opacity-80' : undefined}
-      data-invalid={invalid}
-    >
-      <div className='flex gap-1'>
-        <button
-          type='button'
-          ref={setActivatorNodeRef}
-          {...attributes}
-          {...listeners}
-          aria-label={t('dnd.placeHandle', { index: index + 1 })}
-          className='flex w-7 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 active:cursor-grabbing'
-        >
-          <GripVerticalIcon className='size-4' />
-        </button>
-        <div className='min-w-0 flex-1'>
-          {search ? (
-            <PlaceSearchInput
-              {...inputProps}
-              value={place.name}
-              onValueChange={(name) => onChange({ name })}
-              onPlaceSelect={(suggestion, sessionToken) =>
-                onChange({ name: suggestion.mainText, placeId: suggestion.placeId, sessionToken })
-              }
-              search={search}
-              linked={place.placeId !== null}
-            />
-          ) : (
-            <Input
-              {...inputProps}
-              value={place.name}
-              onChange={(event) => onChange({ name: event.target.value })}
-            />
-          )}
-        </div>
-        <input type='hidden' name={ITEM_FIELDS.placeId} value={place.placeId ?? ''} />
-        <input type='hidden' name={ITEM_FIELDS.placeSessionToken} value={place.sessionToken} />
-        <Button
-          type='button'
-          variant='ghost'
-          size='icon-lg'
-          className='size-11'
-          aria-label={t('item.removePlace', { index: index + 1 })}
-          onClick={onRemove}
-        >
-          <XIcon />
-        </Button>
-      </div>
-      {place.placeId && (
-        <PlaceLinkStatus
-          name={place.name}
-          placeId={place.placeId}
-          unlinkLabel={t('item.placeUnlinkLabel', { index: index + 1 })}
-          onUnlink={() => onChange({ placeId: null, sessionToken: '' })}
-          className='pl-8'
-        />
-      )}
-      {error}
-    </Field>
   );
 }
