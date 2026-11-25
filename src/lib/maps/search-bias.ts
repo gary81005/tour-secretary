@@ -1,4 +1,4 @@
-import { freshLocation } from './location';
+import { freshLocation } from './place-locations';
 import { regionCodeForTimezone } from './region';
 import type { SearchBias } from './types';
 

@@ -1,6 +1,6 @@
 import 'server-only';
 import { getMapProvider } from './google';
-import { placeIdsToLocate, type PlaceInput, type StoredLocation } from './place-links';
+import { placeIdsToLocate, type PlaceInput, type StoredLocation } from './place-locations';
 
 export type PlaceToLocate = PlaceInput & { sessionToken: string | null };
 

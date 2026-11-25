@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { isPlaceId } from '@/lib/maps/location';
+import { isPlaceId } from '@/lib/maps/place-locations';
 import { DISPLAY_NAME_MAX_LENGTH } from '@/lib/profile/display-name';
 import { ITEM_CATEGORIES, STAY_STATUSES, TRAVELER_CONSTRAINT_KINDS } from './enums';
 import { TIME_SLOTS } from './time-slot';

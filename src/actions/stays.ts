@@ -3,8 +3,8 @@
 import { refresh } from 'next/cache';
 import { getSignedInClient } from '@/lib/auth/session';
 import { fieldErrorsOf, formString, type ActionResult, type FormResult } from '@/lib/form';
-import { locatePlaces, type PlaceToLocate } from '@/lib/maps/locate';
-import { reusableLocations, toSavedPlaces, type SavedPlace } from '@/lib/maps/place-links';
+import { locatePlaces, type PlaceToLocate } from '@/lib/maps/locate-places';
+import { reusableLocations, toSavedPlaces, type SavedPlace } from '@/lib/maps/place-locations';
 import { setDeletedAt } from '@/lib/supabase/soft-delete';
 import { staySchema } from '@/lib/trip/schemas';
 import { validateStayRange } from '@/lib/trip/stays';

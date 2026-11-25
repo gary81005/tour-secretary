@@ -1,8 +1,33 @@
-import { freshLocation } from './location';
+import dayjs from '@/lib/dayjs';
 import type { LatLng, MapProviderName } from './types';
 
-// 存檔時的地點連結（ADR 0006 Q14）：瀏覽器只送地點 ID，座標由伺服器向地圖服務查。
-// 地點沒變、座標還在 30 天內時沿用原本的座標與抓取時間，不重查。
+// 地點 ID 與座標的純邏輯（ADR 0006 Q14）。存檔時瀏覽器只送地點 ID，座標由伺服器向地圖服務查
+// （locate-places.ts）；地點沒變、座標還在 30 天內時沿用原本的座標與抓取時間，不重查。
+
+// Google Maps Platform 服務條款：座標最多快取 30 天（ADR 0006 Q14）。
+// 過期的座標當作沒有：搜尋不再偏向它，下次存檔該項目或住宿時重新查。
+export const LOCATION_MAX_AGE_DAYS = 30;
+
+export function freshLocation(
+  place: { lat: number | null; lng: number | null; location_fetched_at: string | null },
+  now: Date,
+): LatLng | null {
+  if (place.lat === null || place.lng === null || place.location_fetched_at === null) return null;
+  const expired = dayjs
+    .utc(place.location_fetched_at)
+    .add(LOCATION_MAX_AGE_DAYS, 'day')
+    .isBefore(now);
+  return expired ? null : { lat: place.lat, lng: place.lng };
+}
+
+// Google 的地點 ID 只有英數、底線、連字號。放進 URL 路徑前先檢查，也用在 Server Action 的驗證。
+export function isPlaceId(value: string): boolean {
+  return /^[A-Za-z0-9_-]{1,300}$/.test(value);
+}
+
+// ---------------------------------------------------------------------------
+// 存檔時的地點連結
+// ---------------------------------------------------------------------------
 
 export type PlaceInput = { name: string; placeId: string | null };
 

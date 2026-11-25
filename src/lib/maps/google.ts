@@ -11,7 +11,7 @@ import {
   toPlaceSuggestions,
   toRouteResult,
 } from './google-response';
-import { isPlaceId } from './location';
+import { isPlaceId } from './place-locations';
 import { MapProviderError, type MapProvider } from './types';
 
 // Google Maps Platform 的 MapProvider（ADR 0006）。金鑰只在伺服器端使用。
