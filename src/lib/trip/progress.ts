@@ -1,5 +1,5 @@
 import { DRIVE_WHEN_WALK_OVER_SECONDS } from '@/lib/maps/legs';
-import type { PlaceRef } from '@/lib/maps/links';
+import type { PlaceRef } from '@/lib/maps/map-urls';
 import type { StayStatus } from './enums';
 import { isPending } from './adjustments';
 import { sortItems, type OrderableItem } from './item-order';

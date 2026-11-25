@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { Suspense, use, type ReactNode } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { googlePlaceUrl } from '@/lib/maps/links';
+import { googlePlaceUrl } from '@/lib/maps/map-urls';
 import { formatHoursRange, isAllDay, type ItemPlaceHours } from '@/lib/maps/opening-hours';
 import type { ItemView } from '@/lib/trip/item-view';
 import { toHourMinute } from '@/lib/trip/time-slot';

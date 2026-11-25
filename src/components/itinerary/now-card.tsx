@@ -12,7 +12,7 @@ import { Suspense, use } from 'react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useWalkEstimate } from '@/hooks/use-walk-estimate';
 import { legKey, planItemLegs, type DayTravel, type Leg, type LegDurations } from '@/lib/maps/legs';
-import { googleNavigationUrl, type PlaceRef } from '@/lib/maps/links';
+import { googleNavigationUrl, type PlaceRef } from '@/lib/maps/map-urls';
 import type { ItemView } from '@/lib/trip/item-view';
 import { dayProgress, suggestedDeparture, type NowStay } from '@/lib/trip/progress';
 import { toHourMinute } from '@/lib/trip/time-slot';

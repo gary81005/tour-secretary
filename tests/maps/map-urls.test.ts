@@ -8,7 +8,7 @@ import {
   kakaoSearchUrl,
   MAX_ROUTE_WAYPOINTS,
   naverSearchUrl,
-} from '@/lib/maps/links';
+} from '@/lib/maps/map-urls';
 
 const params = (url: string) => Object.fromEntries(new URL(url).searchParams);
 const linked = (name: string) => ({ name, placeId: `id-${name}` });

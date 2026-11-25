@@ -3,7 +3,7 @@ import { ExternalLinkIcon, MapPinIcon, TriangleAlertIcon } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { googlePlaceUrl } from '@/lib/maps/links';
+import { googlePlaceUrl } from '@/lib/maps/map-urls';
 import type { StayStatus } from '@/lib/trip/enums';
 import { countDays, localDateToUtc } from '@/lib/trip/trip-dates';
 import { isSafeHttpUrl } from '@/lib/url';

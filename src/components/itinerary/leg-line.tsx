@@ -11,7 +11,7 @@ import {
   type Leg,
   type LegDurations,
 } from '@/lib/maps/legs';
-import { googleTransitUrl, kakaoSearchUrl, naverSearchUrl } from '@/lib/maps/links';
+import { googleTransitUrl, kakaoSearchUrl, naverSearchUrl } from '@/lib/maps/map-urls';
 
 const linkClass = 'flex items-center gap-1 text-primary underline-offset-4 hover:underline';
 

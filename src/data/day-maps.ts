@@ -2,7 +2,7 @@ import 'server-only';
 import type { PlaceAddresses } from '@/lib/maps/address';
 import { getMapsApiKey } from '@/lib/maps/env';
 import { dayStayStops, type DayTravel, type LegStop } from '@/lib/maps/legs';
-import { dayRoutePlaces, googleDayRouteUrl } from '@/lib/maps/links';
+import { dayRoutePlaces, googleDayRouteUrl } from '@/lib/maps/map-urls';
 import type { ItemPlaceHours } from '@/lib/maps/opening-hours';
 import { routesSupported } from '@/lib/maps/region';
 import { searchBias } from '@/lib/maps/search-bias';
