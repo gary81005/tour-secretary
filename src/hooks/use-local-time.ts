@@ -1,7 +1,7 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
-import { localTime } from '@/lib/trip/trip-phase';
+import { localTime } from '@/lib/trip/timezones';
 
 // 每 30 秒、以及回到這個分頁時重新讀一次時間（手機鎖屏回來時馬上更新提醒）。
 function subscribe(onChange: () => void) {

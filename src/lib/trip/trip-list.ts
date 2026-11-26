@@ -1,12 +1,8 @@
+import { keepsOfflineSnapshot } from '@/lib/offline/snapshot';
 import { NO_COMPANIONS, type TripCompanions } from './members';
+import { resolveTimezone } from './timezones';
 import { countDays } from './trip-dates';
-import {
-  currentDayIndex,
-  getTripPhase,
-  keepsOfflineSnapshot,
-  resolveTimezone,
-  type TripPhase,
-} from './trip-phase';
+import { currentDayIndex, getTripPhase, type TripPhase } from './trip-phase';
 
 export type TripListSource = {
   id: string;

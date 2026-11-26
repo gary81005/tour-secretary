@@ -1,25 +1,15 @@
-import dayjs from '@/lib/dayjs';
+import { localDate } from './timezones';
+
+// 行程的階段（即將出發／進行中／已結束）與「今天是第幾天」。
+// 「今天」依每一天自己的時區判斷，不看裝置時區（ADR 0004 Q20）。
 
 export type TripPhase = 'upcoming' | 'ongoing' | 'past';
 
-// timezone 是這一天實際使用的時區（days.timezone ?? trips.default_timezone）。
+// timezone 是這一天實際使用的時區（resolveTimezone）。
 export type DayInZone = { date: string; timezone: string };
 
-export function resolveTimezone(day: { timezone: string | null }, defaultTimezone: string) {
-  return day.timezone ?? defaultTimezone;
-}
-
-export function localDate(timezone: string, now: Date): string {
-  return dayjs(now).tz(timezone).format('YYYY-MM-DD');
-}
-
-// 那個時區現在幾點（HH:MM），落後提醒用（ADR 0009「M6 細節」）。
-export function localTime(timezone: string, now: Date): string {
-  return dayjs(now).tz(timezone).format('HH:mm');
-}
-
-// 「今天」是第幾天（從 0 起算），依每一天自己的時區判斷，不看裝置時區（ADR 0004 Q20）。
-// 還沒出發或已經結束時回傳 -1。跨時區換日的空檔（例如前一天在台北、隔天在東京）算在前一天。
+// 「今天」是第幾天（從 0 起算）。還沒出發或已經結束時回傳 -1。
+// 跨時區換日的空檔（例如前一天在台北、隔天在東京）算在前一天。
 export function currentDayIndex(days: readonly DayInZone[], now: Date): number {
   let index = -1;
   days.forEach((day, i) => {
@@ -38,17 +28,4 @@ export function getTripPhase(days: readonly DayInZone[], now: Date): TripPhase {
   const first = days[0];
   if (!first || first.date > localDate(first.timezone, now)) return 'upcoming';
   return 'past';
-}
-
-// 離線快照的範圍（ADR 0010 Q5）：進行中，或 7 天內出發的行程。
-export const OFFLINE_SNAPSHOT_DAYS = 7;
-
-export function keepsOfflineSnapshot(days: readonly DayInZone[], now: Date): boolean {
-  const phase = getTripPhase(days, now);
-  if (phase === 'ongoing') return true;
-  if (phase === 'past') return false;
-  const first = days[0];
-  if (!first) return false;
-  const today = localDate(first.timezone, now);
-  return first.date <= dayjs.utc(today).add(OFFLINE_SNAPSHOT_DAYS, 'day').format('YYYY-MM-DD');
 }

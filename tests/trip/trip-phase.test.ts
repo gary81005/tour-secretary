@@ -1,32 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import {
-  currentDayIndex,
-  getTripPhase,
-  keepsOfflineSnapshot,
-  localDate,
-  localTime,
-  resolveTimezone,
-} from '@/lib/trip/trip-phase';
+import { currentDayIndex, getTripPhase } from '@/lib/trip/trip-phase';
 
 const tokyo = (date: string) => ({ date, timezone: 'Asia/Tokyo' });
 const trip = [tokyo('2027-03-05'), tokyo('2027-03-06'), tokyo('2027-03-07')];
-
-describe('localDate', () => {
-  it('依時區換算日期，不看裝置時區', () => {
-    const now = new Date('2027-03-05T16:30:00Z'); // 東京 3/6 01:30、台北 3/6 00:30、UTC 3/5
-    expect(localDate('Asia/Tokyo', now)).toBe('2027-03-06');
-    expect(localDate('Asia/Taipei', now)).toBe('2027-03-06');
-    expect(localDate('UTC', now)).toBe('2027-03-05');
-  });
-});
-
-describe('localTime', () => {
-  it('依時區換算時間，24 小時制', () => {
-    const now = new Date('2027-03-05T16:30:00Z');
-    expect(localTime('Asia/Tokyo', now)).toBe('01:30');
-    expect(localTime('Europe/London', new Date('2027-03-05T14:05:00Z'))).toBe('14:05');
-  });
-});
 
 describe('currentDayIndex / getTripPhase', () => {
   it('出發前', () => {
@@ -68,30 +44,5 @@ describe('currentDayIndex / getTripPhase', () => {
 
   it('沒有天數時視為即將出發', () => {
     expect(getTripPhase([], new Date())).toBe('upcoming');
-  });
-});
-
-describe('resolveTimezone', () => {
-  it('天沒有設定時區就沿用行程預設', () => {
-    expect(resolveTimezone({ timezone: null }, 'Asia/Tokyo')).toBe('Asia/Tokyo');
-    expect(resolveTimezone({ timezone: 'Asia/Taipei' }, 'Asia/Tokyo')).toBe('Asia/Taipei');
-  });
-});
-
-describe('keepsOfflineSnapshot', () => {
-  it('進行中', () => {
-    expect(keepsOfflineSnapshot(trip, new Date('2027-03-06T03:00:00Z'))).toBe(true);
-  });
-
-  it('7 天內出發（依第一天的時區）', () => {
-    // 東京 2027-02-26 00:00：3/5 是 7 天後
-    expect(keepsOfflineSnapshot(trip, new Date('2027-02-25T15:00:00Z'))).toBe(true);
-    // 東京 2027-02-25 23:59：3/5 是 8 天後
-    expect(keepsOfflineSnapshot(trip, new Date('2027-02-25T14:59:00Z'))).toBe(false);
-  });
-
-  it('已結束或沒有天', () => {
-    expect(keepsOfflineSnapshot(trip, new Date('2027-03-08T03:00:00Z'))).toBe(false);
-    expect(keepsOfflineSnapshot([], new Date('2027-03-06T03:00:00Z'))).toBe(false);
   });
 });

@@ -8,7 +8,7 @@ import { routesSupported } from '@/lib/maps/region';
 import { searchBias } from '@/lib/maps/search-bias';
 import type { PlaceSearchContext } from '@/lib/maps/types';
 import { sortItems } from '@/lib/trip/item-order';
-import { localDate } from '@/lib/trip/trip-phase';
+import { localDate } from '@/lib/trip/timezones';
 import { getItemPlaceHours, getPlaceAddresses } from './places';
 import { getDayTravel } from './routes';
 import type { DayItem, TripStay } from './trips';

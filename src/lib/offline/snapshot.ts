@@ -1,5 +1,7 @@
+import dayjs from '@/lib/dayjs';
 import type { ItemView } from '@/lib/trip/item-view';
-import { keepsOfflineSnapshot, resolveTimezone } from '@/lib/trip/trip-phase';
+import { localDate, resolveTimezone } from '@/lib/trip/timezones';
+import { getTripPhase, type DayInZone } from '@/lib/trip/trip-phase';
 import type { Tables } from '@/types/database';
 
 // 離線快照（ADR 0010 Q11）：線上打開進行中或 7 天內出發的行程時，存進這支手機的 IndexedDB，
@@ -138,6 +140,19 @@ function pickItem(item: ItemView): ItemView {
         position: fallback.position,
       })),
   };
+}
+
+// 離線快照的範圍（ADR 0010 Q5）：進行中，或 7 天內出發的行程。
+export const OFFLINE_SNAPSHOT_DAYS = 7;
+
+export function keepsOfflineSnapshot(days: readonly DayInZone[], now: Date): boolean {
+  const phase = getTripPhase(days, now);
+  if (phase === 'ongoing') return true;
+  if (phase === 'past') return false;
+  const first = days[0];
+  if (!first) return false;
+  const today = localDate(first.timezone, now);
+  return first.date <= dayjs.utc(today).add(OFFLINE_SNAPSHOT_DAYS, 'day').format('YYYY-MM-DD');
 }
 
 // 快照還能用嗎：格式是目前版本，而且行程仍是進行中或 7 天內出發（行程結束隔天就過期）。

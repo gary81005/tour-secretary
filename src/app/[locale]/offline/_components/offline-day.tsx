@@ -16,7 +16,8 @@ import { resolveSelectedDayIndex } from '@/lib/trip/day-selection';
 import { groupItemsBySlot, sortItems } from '@/lib/trip/item-order';
 import { nowStay } from '@/lib/trip/progress';
 import { staysForNight } from '@/lib/trip/stays';
-import { currentDayIndex, resolveTimezone } from '@/lib/trip/trip-phase';
+import { resolveTimezone } from '@/lib/trip/timezones';
+import { currentDayIndex } from '@/lib/trip/trip-phase';
 
 // 離線行程頁的「行程」分頁（ADR 0010 Q11）：和線上的單日畫面相同的天數列、「現在／下一站」與項目卡片，
 // 全部唯讀。Google 的資料（營業時間、地址、移動時間）沒有存，不顯示；「查電車」、導航等連結保留，
