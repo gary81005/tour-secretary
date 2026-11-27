@@ -1,5 +1,7 @@
 import { Constants, type Enums } from '@/types/database';
 
+// 時段（ADR 0004 Q6、Q19）：時段的順序與預設時間範圍、開始時間對應的時段，以及 HH:MM 的換算。
+
 export type TimeSlot = Enums<'time_slot'>;
 export type TimedSlot = Exclude<TimeSlot, 'all_day'>;
 

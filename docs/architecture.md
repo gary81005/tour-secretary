@@ -76,7 +76,9 @@
 | 功能                             | 主要檔案                                                                                                                          | ADR  |
 | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ---- |
 | 行程、天、改日期                 | `data/trips.ts`、`actions/trips.ts`、`actions/days.ts`、`lib/trip/trip-dates.ts`                                                  | 0004 |
+| 時區與「今天是第幾天」           | `lib/trip/timezones.ts`、`lib/trip/trip-phase.ts`                                                                                 | 0004 |
 | 項目、時段、拖拉排序             | `actions/items.ts`、`lib/trip/item-order.ts`、`lib/trip/time-slot.ts`、`[tripId]/_components/day-items.tsx`、`sortable-slots.tsx` | 0004 |
+| 項目表單（地點、備案）           | `[tripId]/_components/item-form.tsx`、`item-places-field.tsx`、`item-fallbacks-field.tsx`、`lib/trip/item-form.ts`                | 0004 |
 | 旅伴與邀請                       | `data/members.ts`、`actions/members.ts`、`(app)/invite/`、`[tripId]/members/`                                                     | 0005 |
 | 地圖（搜尋、營業時間、移動時間） | `lib/maps/`、`data/places.ts`、`data/routes.ts`、`data/day-maps.ts`                                                               | 0006 |
 | xlsx 匯入                        | `lib/import/`、`actions/imports.ts`、`trips/_components/import/`                                                                  | 0008 |

@@ -1,5 +1,7 @@
 import dayjs from '@/lib/dayjs';
 
+// 時區（ADR 0004 Q5、Q20）：預設時區、選單的清單與驗證，以及某個時區現在的日期與時間。
+
 export const DEFAULT_TIMEZONE = 'Asia/Tokyo';
 
 // 時區選單的常用選項（ADR 0004 Q5）；選單最下面另有「其他」可以搜尋完整清單。

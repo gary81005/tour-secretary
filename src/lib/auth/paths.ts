@@ -1,5 +1,7 @@
 import { routing } from '@/i18n/routing';
 
+// 登入相關的路徑判斷（proxy、登入頁、登入回呼共用）：哪些路徑不用登入、登入後可以回到哪裡。
+
 export const LOGIN_PATH = '/login';
 export const HOME_PATH = '/';
 

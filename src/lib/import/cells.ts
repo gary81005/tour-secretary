@@ -1,6 +1,8 @@
 import dayjs from '@/lib/dayjs';
 import type { CellRange, CellValue, SheetData } from './types';
 
+// 讀儲存格的共用工具：A1 位址與範圍、合併儲存格的值、文字／時間／日期／連結的轉換。
+
 export function columnLetters(index: number): string {
   let n = index + 1;
   let letters = '';

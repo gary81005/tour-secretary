@@ -4,6 +4,8 @@ import { resolveTimezone } from './timezones';
 import { countDays } from './trip-dates';
 import { currentDayIndex, getTripPhase, type TripPhase } from './trip-phase';
 
+// 行程列表（ADR 0004 Q20）：把每趟行程整理成卡片要顯示的摘要，再分成進行中、即將出發、已結束。
+
 export type TripListSource = {
   id: string;
   name: string;
